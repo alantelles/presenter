@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Presenter Live View</title>
+    <style>
+        /* http://meyerweb.com/eric/tools/css/reset/ 
+   v2.0 | 20110126
+   License: none (public domain)
+*/
+
+html, body, div, span, applet, object, iframe,
+h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+a, abbr, acronym, address, big, cite, code,
+del, dfn, em, img, ins, kbd, q, s, samp,
+small, strike, strong, sub, sup, tt, var,
+b, u, i, center,
+dl, dt, dd, ol, ul, li,
+fieldset, form, label, legend,
+table, caption, tbody, tfoot, thead, tr, th, td,
+article, aside, canvas, details, embed, 
+figure, figcaption, footer, header, hgroup, 
+menu, nav, output, ruby, section, summary,
+time, mark, audio, video {
+	margin: 0;
+	padding: 0;
+	border: 0;
+	font-size: 100%;
+	font: inherit;
+	vertical-align: baseline;
+}
+/* HTML5 display-role reset for older browsers */
+article, aside, details, figcaption, figure, 
+footer, header, hgroup, menu, nav, section {
+	display: block;
+}
+body {
+	line-height: 1;
+}
+ol, ul {
+	list-style: none;
+}
+blockquote, q {
+	quotes: none;
+}
+blockquote:before, blockquote:after,
+q:before, q:after {
+	content: '';
+	content: none;
+}
+table {
+	border-collapse: collapse;
+	border-spacing: 0;
+}
+    </style>
+    <style>
+        body {
+            background-color: black;
+            color: white;   
+            font-family: sans-serif;         
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+        .presentation {
+            font-size: calc((100vw / 100) * 6 );
+            text-align: center;
+            line-height: 1.2;
+            letter-spacing: 3px;
+            padding: 20px;
+        }
+        .loaded {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 10; height: 10;
+            background-color: green;
+        }
+        .loading {
+            display: block;
+            background-color: red;
+            color: red;
+        }
+    </style>
+</head>
+<body>
+    <div class="loaded loading" id="status">
+        _
+    </div>
+    <div class="container">
+        <div class="presentation" id='liveblock'>
+
+        </div>
+    </div>
+    <script>
+        var failed = 0;
+        const liveBlock = document.getElementById('liveblock');
+        var finished = true;        
+        async function getLive() {
+            const status = document.getElementById('status');            
+            status.classList.add('loading');
+            if (failed > 15) {
+                // window.location.reload();
+            }
+            if (!finished) {
+                failed++;
+                return
+            }
+            finished = false;
+            try {
+                const res = await fetch('{{APP_LOCATION}}/api/content', {
+                    signal: AbortSignal.timeout(8000)
+                });
+                const data = await res.json();
+                liveBlock.innerHTML = data.content.replaceAll('\n', '<br>');
+            } catch (e) {
+                console.log('Request error')
+            }
+            finished = true;
+            failed = 0;
+            status.classList.remove('loading');
+        }
+        setInterval(getLive, 1000);
+        finished = true;
+
+        // SSE não se mostrou uma tecnologia boa pra esse caso, de toda forma, segue implementado na aplicação
+        // const evtSource = new EventSource("APP_LOCATION/api/now-live/event");
+        // evtSource.onmessage = function(e) {
+        //     const text = e.data;
+        //     const liveBlock = document.getElementById('liveblock');
+        //     liveBlock.innerHTML = text.replaceAll('\n', '<br>');
+        // }
+    </script>
+</body>
+</html>

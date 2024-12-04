@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Presenter</title>
+    <style>
+        /* http://meyerweb.com/eric/tools/css/reset/ 
+   v2.0 | 20110126
+   License: none (public domain)
+*/
+
+html, body, div, span, applet, object, iframe,
+h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+a, abbr, acronym, address, big, cite, code,
+del, dfn, em, img, ins, kbd, q, s, samp,
+small, strike, strong, sub, sup, tt, var,
+b, u, i, center,
+dl, dt, dd, ol, ul, li,
+fieldset, form, label, legend,
+table, caption, tbody, tfoot, thead, tr, th, td,
+article, aside, canvas, details, embed, 
+figure, figcaption, footer, header, hgroup, 
+menu, nav, output, ruby, section, summary,
+time, mark, audio, video {
+	margin: 0;
+	padding: 0;
+	border: 0;
+	font-size: 100%;
+	font: inherit;
+	vertical-align: baseline;
+}
+/* HTML5 display-role reset for older browsers */
+article, aside, details, figcaption, figure, 
+footer, header, hgroup, menu, nav, section {
+	display: block;
+}
+body {
+	line-height: 1;
+}
+ol, ul {
+	list-style: none;
+}
+blockquote, q {
+	quotes: none;
+}
+blockquote:before, blockquote:after,
+q:before, q:after {
+	content: '';
+	content: none;
+}
+table {
+	border-collapse: collapse;
+	border-spacing: 0;
+}
+    </style>
+    <style>
+        button {
+            cursor: pointer;
+        }
+        body {
+            font-family: sans-serif;
+            background-color: black;
+            color: white;
+            font-size: 15px;
+        }
+        h1 { font-size: 30px;}
+        .container {
+            display: flex;
+            flex-direction: column;
+            margin-top: 60px;
+            
+            width: 100vw;
+        }
+        .container div {
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+        .title {
+            background-color: brown;
+            color: white;
+            width: calc(100% - 20px);
+        }
+        .input-text {
+            justify-content: center;
+        }
+        .input-text p {
+            font-size: 18px;
+            line-height: 1.2;
+        }
+        .cont-text-to-show {
+            width: calc(100% - 24px);
+        }
+        .text-to-show {
+            font-size: 16px;
+            width: 100%;
+            height: 200px;            
+        }
+        .button {
+            border-radius: 6px;
+            border: none;
+            background-color: rgb(69, 57, 180);
+            color: white;
+            font-size: 16px;
+            padding: 8px;
+        }
+        .button-big {
+            font-size: 20px;
+            font-weight: bold;
+        }
+        .bloco {
+            overflow-wrap: break-word;
+            cursor: pointer;
+            user-select: none;
+            border-radius: 20px;
+            background-color: rgb(145, 34, 34);
+            color: white;
+            font-size: 20px;
+            font-weight: bold;
+        }
+        .blocos {
+            display: flex;
+            flex-direction: column;
+            width: calc(100% - 20px);
+        }
+        .bloco div p {
+            max-width: 90%;
+        }
+        .fixed {
+            padding: 10px;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100vw;
+            background-color: beige;
+        }
+        .select-text {
+            margin-top: 10px
+        }
+        .select {
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            padding: 6px;
+            padding-right: 30px;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="fixed">
+        <button type="button" class="button button-big" id="clear-screen">Limpar tela</button>
+        <button type="button" class="button button-big" id="clear-text-input">Apagar texto</button>
+        <!-- <button type="button" class="button button-big" id="paste-to-text-input">Colar texto</button> -->
+         <div class="select-text">
+            <select class="select " name="select-text" id="select-text-options">
+                <option value="Jeová Jireh - Aline Barros.txt">Jeová Jireh - Aline Barros.txt</option>
+                <option value="outra.txt">outra.txt</option>
+            </select>
+            <button type="button" class="button" id="carregar-texto">Carregar texto</button>
+         </div>
+    </div>
+    <div class="container">
+        <div class="title">
+            <h1>Presenter</h1>
+        </div>
+        <div class="input-text">
+            <p>Insira um texto neste campo e clique em "Criar blocos" quando estiver pronto.</p>
+            <p>Para exibir um conteúdo na apresentação clique no bloco gerado com o texto</p>
+            <div class="cont-text-to-show">
+                <textarea class="text-to-show" name="text-to-show" id="text-to-show"></textarea>
+            </div>
+        </div>
+        <div class="functions">
+            <button class="button" type="button" id="process-text">Criar blocos</button>
+            <button class="button" type="button" id="save-text">Salvar texto</button>
+        </div>
+        <div class="blocos" id="blocos">            
+        </div>    
+    </div>
+    <script>
+        function createElemPs(line) {
+            return line.split('\n').map(line => {
+                const pNode = document.createElement("p");
+                const textNode = document.createTextNode(line + '\n');
+                pNode.appendChild(textNode);
+                return pNode;
+            });
+        }
+        function createBlocks() {
+            const textToShow = document.getElementById('text-to-show').value;            
+            saveProcessedText(textToShow);            
+            const splittedParagraphs = textToShow.split('\n\n')
+                .map(line => line.trim())
+                .filter(e => e.length > 0);
+            var index = 0;
+            const blocks = splittedParagraphs.map(paragraph => {
+                const block = document.createElement('div');
+                block.className = 'bloco';
+                block.id = `bl${index}`;
+                index++;
+                const container = document.createElement('div');
+                const ps = createElemPs(paragraph);
+                ps.forEach(p => {
+                    container.appendChild(p);
+                });
+                block.appendChild(container);
+                return block;
+            });
+            const elemBlocos = document.getElementById('blocos');
+            elemBlocos.textContent = '';
+            blocks.forEach(block => {
+                elemBlocos.appendChild(block);
+            });
+            addGoLiveEventListener();
+        }
+        function sendBlockToLive() {
+            const content = this.textContent
+                .split('\n')
+                .map(e => e.trim())
+                .filter(e => e.length > 1)
+                .join('\n');
+            console.log(`putting block ${this.id} live: ${content}`);
+            emitContent(content);
+        }
+
+        function emitContent(content) {
+            fetch('{{APP_LOCATION}}/api/content', {
+                method: 'POST',
+                body: JSON.stringify({
+                    providerId: 1,
+                    content,
+                    isBinary: false,
+                })
+            });
+        }
+
+        function addGoLiveEventListener() {
+            const blocks = document.querySelectorAll('.bloco');        
+            blocks.forEach(element => {
+                element.addEventListener('click', sendBlockToLive);
+            });
+        }
+
+        function getSongToSavePayload(content) {
+            // assumindo padrão cifra club
+            const titleParts = content.split("\n\n")[0]
+                .split("\n")
+            const title = titleParts[0]
+            const author = titleParts.length == 2 ? titleParts[1] : "Artista desconhecido"
+            const category = "songs"
+            return {title, author, category, content}
+        }
+
+        async function saveProcessedTextToBackend(content) {
+            const payload = getSongToSavePayload(content)
+            const res = await fetch("{{APP_LOCATION}}/api/media", {
+                method: 'POST',
+                body: JSON.stringify(payload)
+            })
+            const resJson = await res.json()
+            console.log(resJson)
+        }
+
+        function saveProcessedText(content) {
+            window.localStorage.setItem('lastText', content);
+        }
+
+        function openProcessedText() {
+            const lastText = window.localStorage.getItem('lastText');
+            if (lastText) {
+                document.getElementById('text-to-show').value = lastText;
+            }
+        }
+
+        function clearTextInput() {
+            document.getElementById('text-to-show').value = ''
+        }
+
+        async function pasteToTextInput() {
+            const elem = document.getElementById('text-to-show');
+            const text = await navigator.clipboard.readText();
+            elem.value = text;
+        }
+
+        async function fillTextInput() {
+            loadTextFromBackend();
+        }
+
+        async function loadTextFromBackend() {
+            
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            addGoLiveEventListener();
+            document.getElementById('process-text').addEventListener('click', createBlocks);
+            document.getElementById('clear-screen').addEventListener('click', () => emitContent(''));
+            document.getElementById('clear-text-input').addEventListener('click', clearTextInput);
+            // document.getElementById('paste-to-text-input').addEventListener('click', pasteToTextInput);
+            document.getElementById('save-text').addEventListener('click', () => {
+                const content = document.getElementById('text-to-show').value;
+                saveProcessedTextToBackend(content);
+            });
+            document.getElementById('carregar-texto').addEventListener('click', fillTextInput);
+            openProcessedText();
+            createBlocks();
+        })
+
+    </script>
+</body>
+</html>
