@@ -103,7 +103,7 @@ func main() {
 	router.POST("/api/media", saveMedia)
 
 	router.GET("/api/songs", getAllSongs)
-	router.GET("/api/song/content", getSongContent)
+	router.GET("/api/songs/content", getSongContent)
 
 	router.GET("/controller", viewController)
 	router.GET("/live", viewPanel)

@@ -55,5 +55,6 @@ func getAllSongs(c *gin.Context) {
 
 func getSongContent(c *gin.Context) {
 	song := c.Query("song")
-	c.Data(http.StatusOK, "text/plain", loadSongFile(song))
+	CORS(c)
+	c.Data(http.StatusOK, "text/plain; charset=UTF-8", loadSongFile(song))
 }

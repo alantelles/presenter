@@ -246,10 +246,14 @@ table {
                 .join('\n');
             console.log(`putting block ${this.id} live: ${content}`);
             emitContent(content);
-            document.querySelectorAll('.bloco').forEach( elemQuery => {
+            removeBlockSelectedClass();
+            document.getElementById(this.id).classList.add('bloco-selected');
+        }
+
+        function removeBlockSelectedClass() {
+            document.querySelectorAll('.bloco-selected').forEach( elemQuery => {
                 const elem = document.getElementById(elemQuery.id).classList.remove('bloco-selected');
             })
-            document.getElementById(this.id).classList.add('bloco-selected');
         }
 
         function emitContent(content) {
@@ -302,7 +306,9 @@ table {
         }
 
         function clearTextInput() {
-            document.getElementById('text-to-show').value = ''
+            const textToShow = document.getElementById('text-to-show');
+            textToShow.value = '';
+            return textToShow;
         }
 
         async function pasteToTextInput() {
@@ -312,11 +318,15 @@ table {
         }
 
         async function fillTextInput() {
-            loadTextFromBackend();
+            const fileName = document.getElementById('select-text-options').value;
+            clearTextInput().value = await loadTextFromBackend(fileName);
         }
 
-        async function loadTextFromBackend() {
-            
+        async function loadTextFromBackend(song) {
+            const params = new URLSearchParams({song}).toString();
+            const res = await fetch(`{{APP_LOCATION}}/api/songs/content?${params}`)
+            const content = res.text();
+            return content
         }
 
         async function getSongList() {
@@ -338,7 +348,10 @@ table {
         document.addEventListener('DOMContentLoaded', () => {
             addGoLiveEventListener();
             document.getElementById('process-text').addEventListener('click', createBlocks);
-            document.getElementById('clear-screen').addEventListener('click', () => emitContent(''));
+            document.getElementById('clear-screen').addEventListener('click', () => {
+                removeBlockSelectedClass();
+                emitContent('');
+            });
             document.getElementById('clear-text-input').addEventListener('click', clearTextInput);
             // document.getElementById('paste-to-text-input').addEventListener('click', pasteToTextInput);
             document.getElementById('save-text').addEventListener('click', () => {
