@@ -291,8 +291,8 @@ table {
                 method: 'POST',
                 body: JSON.stringify(payload)
             })
-            const resJson = await res.json()
-            console.log(resJson)
+            const resJson = await res.json();
+            alert('Texto salvo com sucesso!');
         }
 
         function saveProcessedText(content) {
