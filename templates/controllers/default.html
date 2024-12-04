@@ -71,7 +71,7 @@ table {
             width: calc(100vw - 17px);
         }
         .inner {
-            margin-top: 170px;
+            margin-top: 174px;
         }
         .inner div {
             padding: 10px;
@@ -102,7 +102,7 @@ table {
         }
         .button {
             border-radius: 6px;
-            border: solid 2px rgb(9, 7, 129);
+            border: solid 1px rgb(9, 7, 129);
             background-color: rgb(69, 57, 180);
             color: white;
             font-size: 16px;
@@ -120,10 +120,19 @@ table {
             cursor: pointer;
             user-select: none;
             border-radius: 20px;
-            background-color: rgb(156, 54, 36);
+            background-color: rgb(110, 33, 19);
             color: white;
             font-size: 20px;
             font-weight: bold;
+        }
+        .bloco:hover:not(.bloco-selected) {
+            background-color: rgb(153, 67, 52);
+            color: white;
+        }
+        .bloco-selected {
+            background-color: rgb(214, 191, 187);
+            color: rgb(92, 19, 19);
+            box-shadow: inset -10px -5px 5px 0px #793939;
         }
         .blocos {
             display: flex;
@@ -143,6 +152,7 @@ table {
             top: 0; left: 0;
             width: 100%;
             background-color: rgb(232, 234, 250);
+            border-bottom: solid 2px rgb(9, 7, 129);
         }
         .select-text {
             margin-top: 10px
@@ -162,6 +172,9 @@ table {
     
     <div class="container">
         <div class="fixed">
+            <div class="title">
+               <h1>Presenter</h1>
+           </div>
             <div class="functions-buttons">
                 <button type="button" class="button button-big" id="clear-screen">Limpar tela</button>
                 <button type="button" class="button button-big" id="clear-text-input">Apagar texto</button>
@@ -173,9 +186,6 @@ table {
                     </select>
                     <button type="button" class="button" id="carregar-texto">Carregar texto</button>
                 </div>
-            </div>
-             <div class="title">
-                <h1>Presenter</h1>
             </div>
         </div>
         <div class="inner">            
@@ -238,6 +248,10 @@ table {
                 .join('\n');
             console.log(`putting block ${this.id} live: ${content}`);
             emitContent(content);
+            document.querySelectorAll('.bloco').forEach( elemQuery => {
+                const elem = document.getElementById(elemQuery.id).classList.remove('bloco-selected');
+            })
+            document.getElementById(this.id).classList.add('bloco-selected');
         }
 
         function emitContent(content) {
