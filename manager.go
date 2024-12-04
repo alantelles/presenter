@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"fmt"
+	"io"
 	"log"
 	"os"
 )
@@ -34,7 +35,11 @@ func getTextPath(category Category, fileName string) string {
 	return MediaPath + category.Path + "/" + fileName + ".txt"
 }
 
-func SaveTextFile(category Category, fileName string, content string) {
+func getTextPathNoPrefix(category Category, fileName string) string {
+	return MediaPath + category.Path + "/" + fileName
+}
+
+func saveTextFile(category Category, fileName string, content string) {
 	path := getTextPath(category, fileName)
 	f, err := os.Create(path)
 	if err != nil {
@@ -66,4 +71,20 @@ func loadMediaList(categoryName string) []string {
 		ret[i] = file.Name()
 	}
 	return ret
+}
+
+func loadSongFile(fileName string) []byte {
+	path := getTextPathNoPrefix(CategorySongs, fileName)
+	log.Print(path)
+	file, err := os.Open(path)
+	if err != nil {
+		log.Print(err)
+	}
+	defer func() {
+		if err = file.Close(); err != nil {
+			log.Print(err)
+		}
+	}()
+	retrieved, err := io.ReadAll(file)
+	return retrieved
 }

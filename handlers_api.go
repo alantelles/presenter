@@ -37,7 +37,7 @@ func saveMedia(c *gin.Context) {
 	categoryP, _ := findCategoryByName(command.Category)
 	category := *categoryP
 	title := command.Title + " - " + command.Author
-	SaveTextFile(category, title, command.Content)
+	saveTextFile(category, title, command.Content)
 	response := returnBody{
 		Status:  http.StatusCreated,
 		Message: "New media saved",
@@ -51,4 +51,9 @@ func getAllSongs(c *gin.Context) {
 	CORS(c)
 	response := mediaList{MediaList: songNames}
 	c.JSON(http.StatusOK, response)
+}
+
+func getSongContent(c *gin.Context) {
+	song := c.Query("song")
+	c.Data(http.StatusOK, "text/plain", loadSongFile(song))
 }
