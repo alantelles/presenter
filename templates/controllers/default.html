@@ -71,7 +71,7 @@ table {
             width: calc(100vw - 17px);
         }
         .inner {
-            margin-top: 174px;
+            margin-top: 194px;
         }
         .inner div {
             padding: 10px;
@@ -148,7 +148,7 @@ table {
         }
         .functions-buttons {
             padding: 10px;
-            height: 100px;
+            height: 120px;
             top: 0; left: 0;
             width: 100%;
             background-color: rgb(232, 234, 250);
@@ -184,6 +184,7 @@ table {
                     <select class="select " name="select-text" id="select-text-options">
                     </select>
                     <button type="button" class="button" id="carregar-texto">Carregar texto</button>
+                    <button type="button" class="button" id="carregar-lista-musicas">Carregar lista</button>
                 </div>
             </div>
         </div>
@@ -353,6 +354,7 @@ table {
                 removeBlockSelectedClass();
                 emitContent('');
             });
+            document.getElementById('carregar-lista-musicas').addEventListener('click', getSongList);
             document.getElementById('clear-text-input').addEventListener('click', clearTextInput);
             // document.getElementById('paste-to-text-input').addEventListener('click', pasteToTextInput);
             document.getElementById('save-text').addEventListener('click', () => {
