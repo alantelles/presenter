@@ -98,20 +98,10 @@ table {
         </div>
     </div>
     <script>
-        var failed = 0;
         const liveBlock = document.getElementById('liveblock');
-        var finished = true;        
         async function getLive() {
             const status = document.getElementById('status');            
-            status.classList.add('loading');
-            if (failed > 15) {
-                // window.location.reload();
-            }
-            if (!finished) {
-                failed++;
-                return
-            }
-            finished = false;
+            status.classList.add('loading');            
             try {
                 const res = await fetch('{{APP_LOCATION}}/api/content', {
                     signal: AbortSignal.timeout(8000)
@@ -119,14 +109,11 @@ table {
                 const data = await res.json();
                 liveBlock.innerHTML = data.content.replaceAll('\n', '<br>');
             } catch (e) {
-                console.log('Request error')
+                console.log('Request failed');
             }
-            finished = true;
-            failed = 0;
             status.classList.remove('loading');
         }
         setInterval(getLive, 1000);
-        finished = true;
 
         // SSE não se mostrou uma tecnologia boa pra esse caso, de toda forma, segue implementado na aplicação
         // const evtSource = new EventSource("APP_LOCATION/api/now-live/event");
