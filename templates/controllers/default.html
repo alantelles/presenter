@@ -181,8 +181,6 @@ table {
                 <!-- <button type="button" class="button button-big" id="paste-to-text-input">Colar texto</button> -->
                 <div class="select-text">
                     <select class="select " name="select-text" id="select-text-options">
-                        <option value="Jeová Jireh - Aline Barros.txt">Jeová Jireh - Aline Barros.txt</option>
-                        <option value="outra.txt">outra.txt</option>
                     </select>
                     <button type="button" class="button" id="carregar-texto">Carregar texto</button>
                 </div>
@@ -321,6 +319,22 @@ table {
             
         }
 
+        async function getSongList() {
+            const res = await fetch('{{APP_LOCATION}}/api/songs');
+            const json = await res.json();            
+            fillSongsOption(json.mediaList);
+        }
+
+        function fillSongsOption(mediaList) {
+            const selectSong = document.getElementById('select-text-options');
+            mediaList.sort().forEach(songName => {
+                const optionElem = document.createElement('option');
+                optionElem.value = songName;
+                optionElem.textContent = songName;
+                selectSong.appendChild(optionElem);
+            });
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
             addGoLiveEventListener();
             document.getElementById('process-text').addEventListener('click', createBlocks);
@@ -334,6 +348,7 @@ table {
             document.getElementById('carregar-texto').addEventListener('click', fillTextInput);
             openProcessedText();
             createBlocks();
+            getSongList();
         })
 
     </script>
