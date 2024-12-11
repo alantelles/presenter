@@ -2,23 +2,5 @@
 @_json = Content-Type: application/json
 GET {{api}}/songs
 ###
-POST {{api}}/albums
-
-
-{
-    "id": "4",
-    "title": "L.O.V.E",
-    "artist": "Devin Morrison",
-    "price": 20.99
-}
-###
-GET {{api}}/content
-###
-POST {{api}}/content
-{{_json}}
-
-{
-    "providerId": 1,
-    "content": "Um teste de quanto ele aguenta de request",
-    "isBinary": false
-}
+GET {{api}}/song/content
+    ?song=Jeová Jireh - Aline Barros.txt
