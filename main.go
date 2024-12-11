@@ -97,8 +97,12 @@ func insertAddressOnContent(content []byte) []byte {
 func main() {
 	varSetup()
 	gin.SetMode(gin.ReleaseMode)
-	router := gin.Default()
-	router.POST("/api/content", setMediaProviderContent)
+	router := gin.New()
+	router.Use(
+		gin.LoggerWithWriter(gin.DefaultWriter, "/api/content"),
+		gin.Recovery(),
+	)
+	router.POST("/api/content/set", setMediaProviderContent)
 	router.GET("/api/content", getMediaProviderContent)
 	router.POST("/api/media", saveMedia)
 
@@ -107,5 +111,8 @@ func main() {
 
 	router.GET("/controller", viewController)
 	router.GET("/live", viewPanel)
+	log.Print("PRESENTER - Desenvolvido por Alan Telles")
+	log.Print("Iniciando serviço...")
+	log.Print("Endereço: " + location)
 	router.Run("0.0.0.0:" + fmt.Sprint(port))
 }

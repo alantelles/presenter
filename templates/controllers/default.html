@@ -259,7 +259,7 @@ table {
         }
 
         function emitContent(content) {
-            fetch('{{APP_LOCATION}}/api/content', {
+            fetch('{{APP_LOCATION}}/api/content/set', {
                 method: 'POST',
                 body: JSON.stringify({
                     providerId: 1,
