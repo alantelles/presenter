@@ -125,9 +125,12 @@ table {
             font-size: 20px;
             font-weight: bold;
         }
-        .bloco:hover:not(.bloco-selected) {
+        .bloco:hover:not(.bloco-selected):not(.bloco-waiting) {
             background-color: rgb(153, 67, 52);
             color: white;
+        }.bloco-waiting {
+            background-color: rgb(163, 156, 155);
+            color: rgb(48, 48, 48);
         }
         .bloco-selected {
             background-color: rgb(214, 191, 187);
@@ -240,26 +243,29 @@ table {
             });
             addGoLiveEventListener();
         }
-        function sendBlockToLive() {
+        async function sendBlockToLive() {
             const content = this.textContent
                 .split('\n')
                 .map(e => e.trim())
                 .filter(e => e.length > 1)
                 .join('\n');
             console.log(`putting block ${this.id} live: ${content}`);
-            emitContent(content);
+            const clicked = document.getElementById(this.id);
+            clicked.classList.add('bloco-waiting');
+            await emitContent(content);
             removeBlockSelectedClass();
-            document.getElementById(this.id).classList.add('bloco-selected');
+            clicked.classList.remove('bloco-waiting');
+            clicked.classList.add('bloco-selected');
         }
 
         function removeBlockSelectedClass() {
             document.querySelectorAll('.bloco-selected').forEach( elemQuery => {
                 const elem = document.getElementById(elemQuery.id).classList.remove('bloco-selected');
-            })
+            });
         }
 
-        function emitContent(content) {
-            fetch('{{APP_LOCATION}}/api/content/set', {
+        async function emitContent(content) {
+            return await fetch('{{APP_LOCATION}}/api/content/set', {
                 method: 'POST',
                 body: JSON.stringify({
                     providerId: 1,
