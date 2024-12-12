@@ -345,6 +345,7 @@ table {
 
         function fillSongsOption(mediaList) {
             const selectSong = document.getElementById('select-text-options');
+            selectSong.textContent = '';
             mediaList.sort().forEach(songName => {
                 const optionElem = document.createElement('option');
                 optionElem.value = songName;
