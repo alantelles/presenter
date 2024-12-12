@@ -12,11 +12,11 @@ import (
 func getHtmlPage(path string) ([]byte, error) {
 	file, err := os.Open(path)
 	if err != nil {
-		log.Fatal(err)
+		log.Print(err)
 	}
 	defer func() {
 		if err = file.Close(); err != nil {
-			log.Fatal(err)
+			log.Print(err)
 		}
 	}()
 	retrieved, err := io.ReadAll(file)

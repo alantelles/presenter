@@ -63,7 +63,7 @@ func saveTextFile(category Category, fileName string, content string) {
 func loadMediaList(categoryName string) []string {
 	files, err := os.ReadDir("media/" + categoryName)
 	if err != nil {
-		log.Fatal(err)
+		log.Print(err)
 	}
 
 	ret := make([]string, len(files))
