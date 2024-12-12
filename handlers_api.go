@@ -47,7 +47,7 @@ func saveMedia(c *gin.Context) {
 }
 
 func getAllSongs(c *gin.Context) {
-	songNames := loadMediaList(CategorySongs.Name)
+	songNames, _ := loadMediaList(CategorySongs.Name)
 	CORS(c)
 	response := mediaList{MediaList: songNames}
 	c.JSON(http.StatusOK, response)
