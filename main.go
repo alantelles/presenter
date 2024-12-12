@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"os"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -94,8 +95,38 @@ func insertAddressOnContent(content []byte) []byte {
 	)
 }
 
+// exists returns whether the given file or directory exists
+func pathExists(path string) (bool, error) {
+	_, err := os.Stat(path)
+	if err == nil {
+		return true, nil
+	}
+	if os.IsNotExist(err) {
+		return false, nil
+	}
+	return false, err
+}
+
+func createFolder(path string) {
+	exists, _ := pathExists(path)
+	if exists {
+		return
+	}
+	err := os.MkdirAll(path, 0755)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	log.Printf("Diretório %s criado com sucesso", path)
+}
+
+func createDefaultFolders() {
+	createFolder("media/songs")
+}
+
 func main() {
 	varSetup()
+	createDefaultFolders()
 	gin.SetMode(gin.ReleaseMode)
 	router := gin.New()
 	router.Use(
