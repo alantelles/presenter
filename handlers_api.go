@@ -58,3 +58,19 @@ func getSongContent(c *gin.Context) {
 	CORS(c)
 	c.Data(http.StatusOK, "text/plain; charset=UTF-8", loadSongFile(song))
 }
+
+func discover(c *gin.Context) {
+	validationCode := c.Query("validationCode")
+	var vcr *string
+	vcr = nil
+	if validationCode != "" {
+		vcr = &validationCode
+	}
+	response := returnBody{
+		Status:     http.StatusOK,
+		Message:    "Presenter up!",
+		Validation: vcr,
+	}
+	CORS(c)
+	c.JSON(http.StatusOK, response)
+}

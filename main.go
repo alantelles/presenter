@@ -35,8 +35,9 @@ type media struct {
 }
 
 type returnBody struct {
-	Status  int    `json:"status"`
-	Message string `json:"message"`
+	Status     int     `json:"status"`
+	Message    string  `json:"message"`
+	Validation *string `json:"validation"`
 }
 
 var provider1 = mediaProviderContent{
@@ -142,6 +143,9 @@ func main() {
 
 	router.GET("/controller", viewController)
 	router.GET("/live", viewPanel)
+
+	router.GET("/api/discover", discover)
+
 	log.Print("PRESENTER - Desenvolvido por Alan Telles")
 	log.Print("Iniciando serviço...")
 	log.Print("Endereço: " + location)
