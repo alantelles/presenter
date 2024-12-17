@@ -29,6 +29,6 @@ func viewPanel(c *gin.Context) {
 }
 
 func viewController(c *gin.Context) {
-	read, _ := getHtmlPage("templates/controllers/default.html")
+	read, _ := getHtmlPage("templates/controllers/songs.html")
 	c.Data(http.StatusOK, ContentTypeHTML, read)
 }

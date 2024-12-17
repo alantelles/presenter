@@ -119,13 +119,15 @@ table {
             overflow-wrap: break-word;
             cursor: pointer;
             user-select: none;
-            border-radius: 20px;
-            background-color: rgb(110, 33, 19);
-            color: white;
+            border-radius: 20px;            
             font-size: 20px;
             font-weight: bold;
         }
-        .bloco:hover:not(.bloco-selected):not(.bloco-waiting) {
+        .bloco-verse {
+            background-color: rgb(110, 33, 19);
+            color: white;
+        }
+        .bloco-verse:hover:not(.bloco-selected):not(.bloco-waiting) {
             background-color: rgb(153, 67, 52);
             color: white;
         }.bloco-waiting {
@@ -136,6 +138,13 @@ table {
             background-color: rgb(214, 191, 187);
             color: rgb(92, 19, 19);
             box-shadow: inset -10px -5px 5px 0px #793939;
+        }
+        .bloco-comment {
+            border-top: solid 1px white;
+            font-weight: normal;
+            cursor: auto;
+            background-color: rgb(26, 34, 146);
+            color: white;
         }
         .blocos {
             display: flex;
@@ -223,19 +232,7 @@ table {
                 .map(line => line.trim())
                 .filter(e => e.length > 0);
             var index = 0;
-            const blocks = splittedParagraphs.map(paragraph => {
-                const block = document.createElement('div');
-                block.className = 'bloco';
-                block.id = `bl${index}`;
-                index++;
-                const container = document.createElement('div');
-                const ps = createElemPs(paragraph);
-                ps.forEach(p => {
-                    container.appendChild(p);
-                });
-                block.appendChild(container);
-                return block;
-            });
+            const blocks = splittedParagraphs.map(createBlock, index);
             const elemBlocos = document.getElementById('blocos');
             elemBlocos.textContent = '';
             blocks.forEach(block => {
@@ -243,13 +240,32 @@ table {
             });
             addGoLiveEventListener();
         }
+        function createBlock(paragraph, index) {
+            const block = document.createElement('div');            
+            block.classList.add('bloco');
+            const isComment = paragraph[0] === ':';
+            if (isComment) {
+                paragraph = paragraph.substr(1);
+                block.classList.add('bloco-comment');
+            } else {
+                block.classList.add('bloco-verse');
+            }
+            block.id = `bl${index}`;
+            index++;
+            const container = document.createElement('div');
+            const ps = createElemPs(paragraph);
+            ps.forEach(p => {
+                container.appendChild(p);
+            });
+            block.appendChild(container);
+            return block;
+        }
         async function sendBlockToLive() {
             const content = this.textContent
                 .split('\n')
                 .map(e => e.trim())
                 .filter(e => e.length > 1)
                 .join('\n');
-            console.log(`putting block ${this.id} live: ${content}`);
             const clicked = document.getElementById(this.id);
             clicked.classList.add('bloco-waiting');
             await emitContent(content);
@@ -276,7 +292,7 @@ table {
         }
 
         function addGoLiveEventListener() {
-            const blocks = document.querySelectorAll('.bloco');        
+            const blocks = document.querySelectorAll('.bloco-verse');        
             blocks.forEach(element => {
                 element.addEventListener('click', sendBlockToLive);
             });
