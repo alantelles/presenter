@@ -236,7 +236,7 @@ table {
                 <input type="text" id="artista-busca-musica">
                 <label for="nome-busca-musica">Música</label><br>
                 <input type="text" id="nome-busca-musica">
-                <button class="button">Pesquisar por artista e música</button>
+                <button class="button" id="get-lyrics-letras-by-artista-musica">Pesquisar por artista e música</button>
                 <h2>Obter letra pelo link</h2>
                 <p>Copie e cole o link de uma música do letras.mus para importar</p>
                 <label for="url-busca-musica">Link da música</label><br>
@@ -432,6 +432,20 @@ table {
             document.getElementById('modal').classList.add('hide');
         }
 
+        async function getLyricsFromLetrasByAndArtist() {
+            const artista = document.getElementById('artista-busca-musica').value;
+            const musica = document.getElementById('nome-busca-musica').value;
+            const params = new URLSearchParams({artista, musica}).toString();
+            const res = await fetch(`{{APP_LOCATION}}/api/lyrics/letras?${params}`);
+            const lyrics = await res.text();
+            if (lyrics.length == 0) {
+                alert('Letra não encontrada');
+                return;
+            }
+            document.getElementById('text-to-show').value = lyrics
+            document.getElementById('modal').classList.add('hide');
+        }
+
         function fillSongsOption(mediaList) {
             const selectSong = document.getElementById('select-text-options');
             selectSong.textContent = '';
@@ -453,6 +467,7 @@ table {
             document.getElementById('carregar-lista-musicas').addEventListener('click', getSongList);
             document.getElementById('clear-text-input').addEventListener('click', clearTextInput);
             document.getElementById('get-lyrics-letras-by-url').addEventListener('click', getLyricsFromLetrasByUrl);
+            document.getElementById('get-lyrics-letras-by-artista-musica').addEventListener('click', getLyricsFromLetrasByAndArtist);
             // document.getElementById('paste-to-text-input').addEventListener('click', pasteToTextInput);
             document.getElementById('save-text').addEventListener('click', () => {
                 const content = document.getElementById('text-to-show').value;
