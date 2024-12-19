@@ -216,12 +216,19 @@ table {
         .content-modal-form p {
             margin-bottom: 10px;
         }
+        .content-modal .close-button {
+            position: absolute;
+            top: 10px; right: 10px;
+        }
         .hide { display: none; }
     </style>
 </head>
 <body>
     <div id="modal" class="hide">
         <div class="content-modal" id="buscar-letra">
+            <div class="close-button">
+                <button class="button" id="close-modal">Fechar</button>
+            </div>
             <div class="content-modal-form">
                 <h2>Pesquisar música no <strong>letras.mus</strong></h2>
                 <p>Esta função ainda carece de ajustes e pode não encontrar a música correta</p>
@@ -454,6 +461,9 @@ table {
             document.getElementById('carregar-texto').addEventListener('click', fillTextInput);
             document.getElementById('open-modal-letras').addEventListener('click', () => {
                 document.getElementById('modal').classList.remove('hide');
+            })
+            document.getElementById('close-modal').addEventListener('click', () => {
+                document.getElementById('modal').classList.add('hide');
             })
             openProcessedText();
             createBlocks();
