@@ -66,12 +66,17 @@ func loadMediaList(categoryName string) ([]string, error) {
 		log.Print(err)
 		return nil, err
 	}
-
-	ret := make([]string, len(files))
-	for i, file := range files {
-		ret[i] = file.Name()
+	count := len(files)
+	ret := make([]string, count)
+	index := 0
+	for i := 0; i < count; i++ {
+		if files[i].IsDir() {
+			continue
+		}
+		ret[index] = files[i].Name()
+		index++
 	}
-	return ret, nil
+	return ret[:index], nil
 }
 
 func loadSongFile(fileName string) []byte {
