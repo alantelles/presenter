@@ -26,4 +26,5 @@ go.work.sum
 
 build/**
 media/songs/**
+media/**
 presenter
