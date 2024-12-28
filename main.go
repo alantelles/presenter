@@ -79,7 +79,9 @@ func varSetup() {
 func getLocalIp() string {
 	conn, err := net.Dial("udp", "8.8.8.8:80")
 	if err != nil {
+		log.Print("Não foi possível obter o IP. Será utilizado localhost.")
 		log.Print(err)
+		return "localhost"
 	}
 	defer conn.Close()
 	full := conn.LocalAddr().String()
