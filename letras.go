@@ -64,7 +64,7 @@ func fetchArtistsSongs(path string) string {
 	return string(body)
 }
 
-func findSongLyricId(artistPath string, content string, songName string) string {
+func findSongLyricsId(artistPath string, content string, songName string) string {
 	noBreakLines := strings.ReplaceAll(content, "\n", "")
 	strPattern := `(?i)href="\/` + artistPath + `\/([a-z0-9-]+)\/"(?: title="` + strings.ToLower(songName) + `")?>\s*<span>` + strings.ToLower(songName) + `<\/span>`
 	pattern, _ := regexp.Compile(strPattern)
@@ -77,12 +77,16 @@ func findSongLyricId(artistPath string, content string, songName string) string 
 
 func getSongId(artistPath string, songName string) string {
 	content := fetchArtistsSongs(artistPath)
-	songId := findSongLyricId(artistPath, content, songName)
+	songId := findSongLyricsId(artistPath, content, songName)
 	return songId
 }
 
-func fetchSongLyric(artistPath string, songId string) string {
-	resp, err := http.Get(buildSongLyricUrl(artistPath, songId))
+func fetchSongLyrics(artistPath string, songId string) string {
+	return fetchSongLyricsByUrl(buildSongLyricUrl(artistPath, songId))
+}
+
+func fetchSongLyricsByUrl(url string) string {
+	resp, err := http.Get(url)
 	if err != nil {
 		return "Houve um erro ao buscar a letra da música: " + err.Error()
 	}
@@ -94,7 +98,7 @@ func fetchSongLyric(artistPath string, songId string) string {
 	return string(body)
 }
 
-func extractRawSongLyric(content string) string {
+func extractRawSongLyrics(content string) string {
 	if len(content) == 0 {
 		return ""
 	}
@@ -106,7 +110,7 @@ func extractRawSongLyric(content string) string {
 	return content
 }
 
-func processSongLyricToPresent(rawLyrics string) string {
+func processSongLyricsToPresent(rawLyrics string) string {
 	rawLyrics = strings.ReplaceAll(rawLyrics, "\n", "")
 	rawLyrics = strings.ReplaceAll(rawLyrics, "<p>", "")
 	rawLyrics = strings.ReplaceAll(rawLyrics, "<br/>", "\n")
@@ -115,13 +119,27 @@ func processSongLyricToPresent(rawLyrics string) string {
 	return rawLyrics
 }
 
-func getProcessedSongLyric(artistPath string, songId string) string {
-	content := fetchSongLyric(artistPath, songId)
-	rawLyrics := extractRawSongLyric(content)
+func getSongNameAndArtistName(content string) (string, string) {
+	strSongPattern := `"track_name":"([^"]+)"`
+	songPattern, _ := regexp.Compile(strSongPattern)
+	songMatches := songPattern.FindStringSubmatch(content)
+	songName := songMatches[1]
+	strArtistPattern := `"artist_name":"([^"]+)"`
+	artistPattern, _ := regexp.Compile(strArtistPattern)
+	artistMatches := artistPattern.FindStringSubmatch(content)
+	artistName := artistMatches[1]
+	return songName, artistName
+}
+
+func getProcessedSongLyrics(artistPath string, songId string) string {
+	content := fetchSongLyrics(artistPath, songId)
+	rawLyrics := extractRawSongLyrics(content)
 	if rawLyrics == "" {
 		return ""
 	}
-	return processSongLyricToPresent(rawLyrics)
+	songName, artistName := getSongNameAndArtistName(content)
+	processedLyrics := songName + "\n" + artistName + "\n\n" + processSongLyricsToPresent(rawLyrics)
+	return processedLyrics
 }
 
 func getSongLyrics(artist string, songName string) string {
@@ -135,5 +153,13 @@ func getSongLyrics(artist string, songName string) string {
 	if songId == "" {
 		return ""
 	}
-	return getProcessedSongLyric(artistPath, songId)
+	return getProcessedSongLyrics(artistPath, songId)
+}
+
+func getSongLyricsByUrl(url string) string {
+	content := fetchSongLyricsByUrl(url)
+	rawLyrics := extractRawSongLyrics(content)
+	songName, artistName := getSongNameAndArtistName(content)
+	processedLyrics := songName + "\n" + artistName + "\n\n" + processSongLyricsToPresent(rawLyrics)
+	return processedLyrics
 }

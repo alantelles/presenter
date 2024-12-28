@@ -179,10 +179,73 @@ table {
             border-radius: 4px;
             width: 400px;
         }
+        #modal {
+            width: 100vw; height: 100vh;
+            position: fixed;
+            top: 0; left: 0;
+            background-color: rgba(70, 70, 70, 0.753);
+            z-index: 99999;
+        }
+        .content-modal {
+            position: absolute;
+            margin-left: calc(50vw - 310px);
+            margin-top: calc(50vh - 210px);
+            height: 420px; width: 600px;
+            background-color: #793939;
+            border-radius: 10px;
+            padding: 20px;
+        }
+        .content-modal-form h2 {
+            font-weight: bold;
+            font-size: 22px;
+            margin-bottom: 15px;
+            margin-top: 5px;
+        }
+        .content-modal-form input[type=text] {
+            border-radius: 6px;
+            border: solid 1px black;
+            font-size: 18px;
+            padding: 5px;
+            width: calc(100% - 10px);
+            margin-top: 10px;
+            margin-bottom: 10px;
+        }
+        .content-modal-form label { 
+            font-size: 19px;
+        }
+        .content-modal-form p {
+            margin-bottom: 10px;
+        }
+        .content-modal .close-button {
+            position: absolute;
+            top: 10px; right: 10px;
+        }
+        .hide { display: none; }
     </style>
 </head>
 <body>
-    
+    <div id="modal" class="hide">
+        <div class="content-modal" id="buscar-letra">
+            <div class="close-button">
+                <button class="button" id="close-modal">Fechar</button>
+            </div>
+            <div class="content-modal-form">
+                <h2>Pesquisar música no <strong>letras.mus</strong></h2>
+                <p>Esta função ainda carece de ajustes e pode não encontrar a música correta</p>
+                <label for="artista-busca-musica">Artista</label><br>
+                <input type="text" id="artista-busca-musica">
+                <label for="nome-busca-musica">Música</label><br>
+                <input type="text" id="nome-busca-musica">
+                <button class="button" id="get-lyrics-letras-by-artista-musica">Pesquisar por artista e música</button>
+                <h2>Obter letra pelo link</h2>
+                <p>Copie e cole o link de uma música do letras.mus para importar</p>
+                <label for="url-busca-musica">Link da música</label><br>
+                <input type="text" id="url-busca-musica">
+                <button class="button" id="get-lyrics-letras-by-url">Obter letra pelo link</button>
+            </div>
+            
+        </div>
+    </div>
     <div class="container">
         <div class="fixed">
             <div class="title">
@@ -191,6 +254,7 @@ table {
             <div class="functions-buttons">
                 <button type="button" class="button button-big" id="clear-screen">Limpar tela</button>
                 <button type="button" class="button button-big" id="clear-text-input">Apagar texto</button>
+                <button type="button" class="button button-big" id="open-modal-letras">Buscar no letras.mus</button>
                 <!-- <button type="button" class="button button-big" id="paste-to-text-input">Colar texto</button> -->
                 <div class="select-text">
                     <select class="select " name="select-text" id="select-text-options">
@@ -359,6 +423,29 @@ table {
             fillSongsOption(json.mediaList);
         }
 
+        async function getLyricsFromLetrasByUrl() {
+            const url = document.getElementById('url-busca-musica').value;
+            const params = new URLSearchParams({url}).toString();
+            const res = await fetch(`{{APP_LOCATION}}/api/lyrics/letras/song?${params}`);
+            const lyrics = await res.text();
+            document.getElementById('text-to-show').value = lyrics
+            document.getElementById('modal').classList.add('hide');
+        }
+
+        async function getLyricsFromLetrasByAndArtist() {
+            const artista = document.getElementById('artista-busca-musica').value;
+            const musica = document.getElementById('nome-busca-musica').value;
+            const params = new URLSearchParams({artista, musica}).toString();
+            const res = await fetch(`{{APP_LOCATION}}/api/lyrics/letras?${params}`);
+            const lyrics = await res.text();
+            if (lyrics.length == 0) {
+                alert('Letra não encontrada');
+                return;
+            }
+            document.getElementById('text-to-show').value = lyrics
+            document.getElementById('modal').classList.add('hide');
+        }
+
         function fillSongsOption(mediaList) {
             const selectSong = document.getElementById('select-text-options');
             selectSong.textContent = '';
@@ -379,12 +466,20 @@ table {
             });
             document.getElementById('carregar-lista-musicas').addEventListener('click', getSongList);
             document.getElementById('clear-text-input').addEventListener('click', clearTextInput);
+            document.getElementById('get-lyrics-letras-by-url').addEventListener('click', getLyricsFromLetrasByUrl);
+            document.getElementById('get-lyrics-letras-by-artista-musica').addEventListener('click', getLyricsFromLetrasByAndArtist);
             // document.getElementById('paste-to-text-input').addEventListener('click', pasteToTextInput);
             document.getElementById('save-text').addEventListener('click', () => {
                 const content = document.getElementById('text-to-show').value;
                 saveProcessedTextToBackend(content);
             });
             document.getElementById('carregar-texto').addEventListener('click', fillTextInput);
+            document.getElementById('open-modal-letras').addEventListener('click', () => {
+                document.getElementById('modal').classList.remove('hide');
+            })
+            document.getElementById('close-modal').addEventListener('click', () => {
+                document.getElementById('modal').classList.add('hide');
+            })
             openProcessedText();
             createBlocks();
             getSongList();

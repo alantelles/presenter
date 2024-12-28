@@ -146,7 +146,8 @@ func main() {
 
 	router.GET("/api/discover", discover)
 
-	router.GET("/api/lyrics/letras", getSongLyricFromLetras)
+	router.GET("/api/lyrics/letras", getSongLyricsFromLetras)
+	router.GET("/api/lyrics/letras/song", getSongLyricFromLetrasByUrl)
 
 	log.Print("PRESENTER - Desenvolvido por Alan Telles")
 	log.Print("Iniciando serviço...")
