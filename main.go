@@ -21,6 +21,10 @@ const (
 	AppLocationToken = "{{APP_LOCATION}}"
 )
 
+type flagsSetup struct {
+	Location string
+}
+
 type mediaProviderContent struct {
 	ProviderId int    `json:"providerId"`
 	Content    string `json:"content"`
@@ -40,11 +44,12 @@ type returnBody struct {
 	Validation *string `json:"validation"`
 }
 
+var flagsUsed flagsSetup
+
 var provider1 = mediaProviderContent{
 	ProviderId: 1, Content: "", IsBinary: false,
 }
 
-var address string
 var port = 8080 // TODO: receive this by running argument
 var location string
 var usePort = true
@@ -70,16 +75,25 @@ func getPortSuffix() string {
 	return ""
 }
 
-func varSetup() {
-	address = getLocalIp()
+func setLocation() string {
+	address := getLocalIp()
 	scheme := getScheme(false) // TODO: receive this by running argument
-	location = scheme + address + getPortSuffix()
+	return scheme + address + getPortSuffix()
+}
+
+func varSetup() {
+	location = flagsUsed.Location
+	if location == "" {
+		location = setLocation()
+	}
 }
 
 func getLocalIp() string {
 	conn, err := net.Dial("udp", "8.8.8.8:80")
 	if err != nil {
+		log.Print("Não foi possível obter o IP. Será utilizado localhost.")
 		log.Print(err)
+		return "localhost"
 	}
 	defer conn.Close()
 	full := conn.LocalAddr().String()
@@ -126,6 +140,8 @@ func createDefaultFolders() {
 }
 
 func main() {
+
+	processFlags()
 	varSetup()
 	createDefaultFolders()
 	gin.SetMode(gin.ReleaseMode)
