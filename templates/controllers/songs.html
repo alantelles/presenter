@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,73 +11,168 @@
    License: none (public domain)
 */
 
-html, body, div, span, applet, object, iframe,
-h1, h2, h3, h4, h5, h6, p, blockquote, pre,
-a, abbr, acronym, address, big, cite, code,
-del, dfn, em, img, ins, kbd, q, s, samp,
-small, strike, strong, sub, sup, tt, var,
-b, u, i, center,
-dl, dt, dd, ol, ul, li,
-fieldset, form, label, legend,
-table, caption, tbody, tfoot, thead, tr, th, td,
-article, aside, canvas, details, embed, 
-figure, figcaption, footer, header, hgroup, 
-menu, nav, output, ruby, section, summary,
-time, mark, audio, video {
-	margin: 0;
-	padding: 0;
-	border: 0;
-	font-size: 100%;
-	font: inherit;
-	vertical-align: baseline;
-}
-/* HTML5 display-role reset for older browsers */
-article, aside, details, figcaption, figure, 
-footer, header, hgroup, menu, nav, section {
-	display: block;
-}
-body {
-	line-height: 1;
-}
-ol, ul {
-	list-style: none;
-}
-blockquote, q {
-	quotes: none;
-}
-blockquote:before, blockquote:after,
-q:before, q:after {
-	content: '';
-	content: none;
-}
-table {
-	border-collapse: collapse;
-	border-spacing: 0;
-}
+        html,
+        body,
+        div,
+        span,
+        applet,
+        object,
+        iframe,
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        h6,
+        p,
+        blockquote,
+        pre,
+        a,
+        abbr,
+        acronym,
+        address,
+        big,
+        cite,
+        code,
+        del,
+        dfn,
+        em,
+        img,
+        ins,
+        kbd,
+        q,
+        s,
+        samp,
+        small,
+        strike,
+        strong,
+        sub,
+        sup,
+        tt,
+        var,
+        b,
+        u,
+        i,
+        center,
+        dl,
+        dt,
+        dd,
+        ol,
+        ul,
+        li,
+        fieldset,
+        form,
+        label,
+        legend,
+        table,
+        caption,
+        tbody,
+        tfoot,
+        thead,
+        tr,
+        th,
+        td,
+        article,
+        aside,
+        canvas,
+        details,
+        embed,
+        figure,
+        figcaption,
+        footer,
+        header,
+        hgroup,
+        menu,
+        nav,
+        output,
+        ruby,
+        section,
+        summary,
+        time,
+        mark,
+        audio,
+        video {
+            margin: 0;
+            padding: 0;
+            border: 0;
+            font-size: 100%;
+            font: inherit;
+            vertical-align: baseline;
+        }
+
+        /* HTML5 display-role reset for older browsers */
+        article,
+        aside,
+        details,
+        figcaption,
+        figure,
+        footer,
+        header,
+        hgroup,
+        menu,
+        nav,
+        section {
+            display: block;
+        }
+
+        body {
+            line-height: 1;
+        }
+
+        ol,
+        ul {
+            list-style: none;
+        }
+
+        blockquote,
+        q {
+            quotes: none;
+        }
+
+        blockquote:before,
+        blockquote:after,
+        q:before,
+        q:after {
+            content: '';
+            content: none;
+        }
+
+        table {
+            border-collapse: collapse;
+            border-spacing: 0;
+        }
     </style>
     <style>
         button {
             cursor: pointer;
         }
+
         body {
             font-family: sans-serif;
             background-color: black;
             color: white;
             font-size: 15px;
         }
-        h1 { font-size: 30px;}
+
+        h1 {
+            font-size: 30px;
+        }
+
         .container {
             display: flex;
-            flex-direction: column;            
+            flex-direction: column;
             width: calc(100vw - 17px);
         }
+
         .inner {
-            margin-top: 194px;
+            margin-top: 234px;
         }
+
         .inner div {
             padding: 10px;
             margin-bottom: 10px;
         }
+
         .title {
             height: 30px;
             background-color: brown;
@@ -85,21 +181,26 @@ table {
             width: calc(100% - 20px);
             border-bottom: solid 2px rgb(255, 255, 255);
         }
+
         .input-text {
             justify-content: center;
         }
+
         .input-text p {
             font-size: 18px;
             line-height: 1.2;
         }
+
         .cont-text-to-show {
             width: calc(100% - 24px);
         }
+
         .text-to-show {
             font-size: 16px;
             width: 100%;
-            height: 200px;            
+            height: 200px;
         }
+
         .button {
             border-radius: 6px;
             border: solid 1px rgb(9, 7, 129);
@@ -108,37 +209,51 @@ table {
             font-size: 16px;
             padding: 8px;
         }
+
         .button:hover {
             background-color: rgb(80, 68, 187);
         }
+
         .button-big {
             font-size: 20px;
             font-weight: bold;
         }
+
+        .button-small {
+            font-size: 14px;
+            padding: 5px;
+        }
+
         .bloco {
             overflow-wrap: break-word;
             cursor: pointer;
             user-select: none;
-            border-radius: 20px;            
+            border-radius: 20px;
             font-size: 20px;
             font-weight: bold;
         }
+
         .bloco-verse {
             background-color: rgb(110, 33, 19);
             color: white;
         }
+
         .bloco-verse:hover:not(.bloco-selected):not(.bloco-waiting) {
             background-color: rgb(153, 67, 52);
             color: white;
-        }.bloco-waiting {
+        }
+
+        .bloco-waiting {
             background-color: rgb(163, 156, 155);
             color: rgb(48, 48, 48);
         }
+
         .bloco-selected {
             background-color: rgb(214, 191, 187);
             color: rgb(92, 19, 19);
             box-shadow: inset -10px -5px 5px 0px #793939;
         }
+
         .bloco-comment {
             border-top: solid 1px white;
             font-weight: normal;
@@ -146,29 +261,36 @@ table {
             background-color: rgb(26, 34, 146);
             color: white;
         }
+
         .blocos {
             display: flex;
             flex-direction: column;
             width: calc(100% - 20px);
         }
+
         .bloco div p {
             max-width: 90%;
         }
-        .fixed {            
+
+        .fixed {
             position: fixed;
             width: 100%;
         }
+
         .functions-buttons {
             padding: 10px;
-            height: 120px;
-            top: 0; left: 0;
+            height: 140px;
+            top: 0;
+            left: 0;
             width: 100%;
             background-color: rgb(232, 234, 250);
             border-bottom: solid 2px rgb(9, 7, 129);
         }
+
         .select-text {
             margin-top: 10px;
         }
+
         .select {
             max-width: 60%;
             cursor: pointer;
@@ -178,56 +300,112 @@ table {
             padding-right: 30px;
             border-radius: 4px;
             width: 400px;
+            margin-bottom: 10px;
         }
+
         #modal {
-            width: 100vw; height: 100vh;
+            width: 100vw;
+            height: 100vh;
             position: fixed;
-            top: 0; left: 0;
+            top: 0;
+            left: 0;
             background-color: rgba(70, 70, 70, 0.753);
             z-index: 99999;
         }
+
         .content-modal {
             position: absolute;
-            margin-left: calc(50vw - 310px);
-            margin-top: calc(50vh - 210px);
-            height: 420px; width: 600px;
+            width: calc(100vw - 30px);
             background-color: #793939;
-            border-radius: 10px;
             padding: 20px;
+            padding-right: 0px;
         }
+
         .content-modal-form h2 {
             font-weight: bold;
             font-size: 22px;
             margin-bottom: 15px;
-            margin-top: 5px;
+            margin-top: 35px;
         }
+
         .content-modal-form input[type=text] {
             border-radius: 6px;
             border: solid 1px black;
             font-size: 18px;
             padding: 5px;
-            width: calc(100% - 10px);
+            width: calc(100% - 30px);
             margin-top: 10px;
             margin-bottom: 10px;
         }
-        .content-modal-form label { 
+
+        .content-modal-form label {
             font-size: 19px;
         }
+
         .content-modal-form p {
             margin-bottom: 10px;
         }
+
         .content-modal .close-button {
             position: absolute;
-            top: 10px; right: 10px;
+            top: 10px;
+            left: 10px;
         }
-        .hide { display: none; }
+
+        .hide {
+            display: none;
+        }
+    </style>
+    <style type="text/css">
+        .tg {
+            border-collapse: collapse;
+            border-color: #9ABAD9;
+            border-spacing: 0;
+            width: calc(100% - 20px);
+        }
+
+        .tg td {
+            background-color: #EBF5FF;
+            border-color: #9ABAD9;
+            border-style: solid;
+            border-width: 1px;
+            color: #444;
+            font-family: Arial, sans-serif;
+            font-size: 14px;
+            overflow: hidden;
+            padding: 10px 5px;
+            word-break: normal;
+        }
+
+        .tg th {
+            background-color: #409cff;
+            border-color: #9ABAD9;
+            border-style: solid;
+            border-width: 1px;
+            color: #fff;
+            font-family: Arial, sans-serif;
+            font-size: 14px;
+            font-weight: normal;
+            overflow: hidden;
+            padding: 10px 5px;
+            word-break: normal;
+        }
+
+        .tg .tg-0lax {
+            text-align: left;
+            vertical-align: top
+        }
+        .tg .autosize {
+            width: 40px;
+        }
     </style>
 </head>
+
 <body>
-    <div id="modal" class="hide">
-        <div class="content-modal" id="buscar-letra">
+    <div id="modal" class="khide">
+        <div class="content-modal hide" id="buscar-letra">
             <div class="close-button">
-                <button class="button" id="close-modal">Fechar</button>
+                <button class="button" id="close-modal-letras">Fechar</button>
             </div>
             <div class="content-modal-form">
                 <h2>Pesquisar música no <strong>letras.mus</strong></h2>
@@ -243,14 +421,39 @@ table {
                 <input type="text" id="url-busca-musica">
                 <button class="button" id="get-lyrics-letras-by-url">Obter letra pelo link</button>
             </div>
-            
+        </div>
+        <div class="content-modal khide" id="buscar-musica">
+            <div class="close-button">
+                <button class="button" id="close-modal-procurar">Fechar</button>
+            </div>
+            <div class="content-modal-form">
+                <h2>Procurar músicas</h2>
+                <select class="select select-reduced" name="iniciais" id="iniciais">
+                    <option value="A">A</option>
+                    <option value="B">B</option>
+                    <option value="C">C</option>
+                </select>
+                <table class="tg">
+                    <thead>
+                        <tr>
+                            <th class="tg-0lax" colspan="2">Músicas</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="tg-0lax autosize"><button type="button" class="button button-small">Carregar</button></td>
+                            <td class="tg-0lax">Este é um teste para coisas.txt</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
     <div class="container">
         <div class="fixed">
             <div class="title">
-               <h1>Presenter</h1>
-           </div>
+                <h1>Presenter</h1>
+            </div>
             <div class="functions-buttons">
                 <button type="button" class="button button-big" id="clear-screen">Limpar tela</button>
                 <button type="button" class="button button-big" id="clear-text-input">Apagar texto</button>
@@ -259,12 +462,15 @@ table {
                 <div class="select-text">
                     <select class="select " name="select-text" id="select-text-options">
                     </select>
+                </div>
+                <div class="select-text">
                     <button type="button" class="button" id="carregar-texto">Carregar texto</button>
                     <button type="button" class="button" id="carregar-lista-musicas">Carregar lista</button>
+                    <button type="button" class="button" id="open-modal-procurar">Procurar músicas</button>
                 </div>
             </div>
         </div>
-        <div class="inner">            
+        <div class="inner">
             <div class="input-text">
                 <p>Insira um texto neste campo e clique em "Criar blocos" quando estiver pronto.</p>
                 <p>Para exibir um conteúdo na apresentação clique no bloco gerado com o texto</p>
@@ -276,8 +482,8 @@ table {
                 <button class="button" type="button" id="process-text">Criar blocos</button>
                 <button class="button" type="button" id="save-text">Salvar texto</button>
             </div>
-            <div class="blocos" id="blocos">            
-            </div>    
+            <div class="blocos" id="blocos">
+            </div>
         </div>
     </div>
     <script>
@@ -290,8 +496,8 @@ table {
             });
         }
         function createBlocks() {
-            const textToShow = document.getElementById('text-to-show').value;            
-            saveProcessedText(textToShow);            
+            const textToShow = document.getElementById('text-to-show').value;
+            saveProcessedText(textToShow);
             const splittedParagraphs = textToShow.split('\n\n')
                 .map(line => line.trim())
                 .filter(e => e.length > 0);
@@ -305,7 +511,7 @@ table {
             addGoLiveEventListener();
         }
         function createBlock(paragraph, index) {
-            const block = document.createElement('div');            
+            const block = document.createElement('div');
             block.classList.add('bloco');
             const isComment = paragraph[0] === ':';
             if (isComment) {
@@ -339,7 +545,7 @@ table {
         }
 
         function removeBlockSelectedClass() {
-            document.querySelectorAll('.bloco-selected').forEach( elemQuery => {
+            document.querySelectorAll('.bloco-selected').forEach(elemQuery => {
                 const elem = document.getElementById(elemQuery.id).classList.remove('bloco-selected');
             });
         }
@@ -356,7 +562,7 @@ table {
         }
 
         function addGoLiveEventListener() {
-            const blocks = document.querySelectorAll('.bloco-verse');        
+            const blocks = document.querySelectorAll('.bloco-verse');
             blocks.forEach(element => {
                 element.addEventListener('click', sendBlockToLive);
             });
@@ -369,7 +575,7 @@ table {
             const title = titleParts[0]
             const author = titleParts.length == 2 ? titleParts[1] : "Artista desconhecido"
             const category = "songs"
-            return {title, author, category, content}
+            return { title, author, category, content }
         }
 
         async function saveProcessedTextToBackend(content) {
@@ -411,7 +617,7 @@ table {
         }
 
         async function loadTextFromBackend(song) {
-            const params = new URLSearchParams({song}).toString();
+            const params = new URLSearchParams({ song }).toString();
             const res = await fetch(`{{APP_LOCATION}}/api/songs/content?${params}`)
             const content = res.text();
             return content
@@ -419,13 +625,13 @@ table {
 
         async function getSongList() {
             const res = await fetch('{{APP_LOCATION}}/api/songs');
-            const json = await res.json();            
+            const json = await res.json();
             fillSongsOption(json.mediaList);
         }
 
         async function getLyricsFromLetrasByUrl() {
             const url = document.getElementById('url-busca-musica').value;
-            const params = new URLSearchParams({url}).toString();
+            const params = new URLSearchParams({ url }).toString();
             const res = await fetch(`{{APP_LOCATION}}/api/lyrics/letras/song?${params}`);
             const lyrics = await res.text();
             document.getElementById('text-to-show').value = lyrics
@@ -435,7 +641,7 @@ table {
         async function getLyricsFromLetrasByAndArtist() {
             const artista = document.getElementById('artista-busca-musica').value;
             const musica = document.getElementById('nome-busca-musica').value;
-            const params = new URLSearchParams({artista, musica}).toString();
+            const params = new URLSearchParams({ artista, musica }).toString();
             const res = await fetch(`{{APP_LOCATION}}/api/lyrics/letras?${params}`);
             const lyrics = await res.text();
             if (lyrics.length == 0) {
@@ -476,10 +682,20 @@ table {
             document.getElementById('carregar-texto').addEventListener('click', fillTextInput);
             document.getElementById('open-modal-letras').addEventListener('click', () => {
                 document.getElementById('modal').classList.remove('hide');
-            })
-            document.getElementById('close-modal').addEventListener('click', () => {
+                document.getElementById('buscar-letra').classList.remove('hide');
+            });
+            document.getElementById('close-modal-letras').addEventListener('click', () => {
                 document.getElementById('modal').classList.add('hide');
-            })
+                document.getElementById('buscar-letra').classList.add('hide');
+            });
+            document.getElementById('open-modal-procurar').addEventListener('click', () => {
+                document.getElementById('modal').classList.remove('hide');
+                document.getElementById('buscar-musica').classList.remove('hide');
+            });
+            document.getElementById('close-modal-procurar').addEventListener('click', () => {
+                document.getElementById('modal').classList.add('hide');
+                document.getElementById('buscar-musica').classList.add('hide');
+            });
             openProcessedText();
             createBlocks();
             getSongList();
@@ -487,4 +703,5 @@ table {
 
     </script>
 </body>
+
 </html>
