@@ -79,6 +79,26 @@ func loadMediaList(categoryName string) ([]string, error) {
 	return ret[:index], nil
 }
 
+// TODO: isto precisa ser mais genérico
+func loadSongFolders(category string, archivePath string) ([]string, error) {
+	files, err := os.ReadDir("media/" + category + "/" + archivePath)
+	if err != nil {
+		log.Print(err)
+		return nil, err
+	}
+	count := len(files)
+	ret := make([]string, count)
+	index := 0
+	for i := 0; i < count; i++ {
+		if !files[i].IsDir() {
+			continue
+		}
+		ret[index] = files[i].Name()
+		index++
+	}
+	return ret[:index], nil
+}
+
 func loadSongFile(fileName string) []byte {
 	path := getTextPathNoPrefix(CategorySongs, fileName)
 	log.Print(path)

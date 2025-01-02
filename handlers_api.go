@@ -10,6 +10,16 @@ type mediaList struct {
 	MediaList []string `json:"mediaList"`
 }
 
+func getSongsFolderList(c *gin.Context) {
+	CORS(c)
+	archivePath := c.Query("archive")
+	folders, _ := loadSongFolders(CategorySongs.Name, archivePath)
+	response := mediaList{
+		MediaList: folders,
+	}
+	c.JSON(http.StatusOK, response)
+}
+
 func setMediaProviderContent(c *gin.Context) {
 	var newContent mediaProviderContent
 	if err := c.BindJSON(&newContent); err != nil {
