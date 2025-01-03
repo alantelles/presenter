@@ -430,16 +430,18 @@
                 <h2>Procurar músicas</h2>
                 <select class="select select-reduced" name="folder-options" id="folder-options">                    
                 </select>
+                <button class="button" id="carregar-lista-pasta">Listar músicas</button>
                 <table class="tg">
                     <thead>
                         <tr>
                             <th class="tg-0lax" colspan="2">Músicas</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody id="tabela-lista-musicas">
                         <tr>
-                            <td class="tg-0lax autosize"><button type="button" class="button button-small">Carregar</button></td>
-                            <td class="tg-0lax">Este é um teste para coisas.txt</td>
+                            <td colspan="2">Nenhuma música encontrada</td>
+                            <!-- <td class="tg-0lax autosize"><button type="button" class="button button-small">Carregar</button></td>
+                            <td class="tg-0lax">Este é um teste para coisas.txt</td> -->
                         </tr>
                     </tbody>
                 </table>
@@ -661,7 +663,33 @@
             const params = new URLSearchParams({ archive, folder }).toString();
             const res = await fetch(`{{APP_LOCATION}}/api/songs/folder?${params}`);
             const json = await res.json();
-            console.log(json);
+            fillSongListFromFolderTable(json.mediaList, folder, archive);
+        }
+
+        function fillSongListFromFolderTable(songs, folder, archive) {
+            const tbody = document.getElementById('tabela-lista-musicas');
+            tbody.textContent = '';
+            songs.forEach(song => {
+                const trNode = document.createElement('tr');
+                const tdButtonNode = document.createElement('td');
+                tdButtonNode.classList.add('tg0-lax', 'autosize');
+                const path = `${archive}/${folder}/${song}`;
+                tdButtonNode.appendChild(createButtonLoadSongNode(path));
+                const tdSongNameNode = document.createElement('td');
+                tdSongNameNode.classList.add('tg0-lax');
+                tdSongNameNode.textContent = song;
+                trNode.append(tdButtonNode, tdSongNameNode);
+                tbody.appendChild(trNode);
+            })
+            
+        }
+
+        function createButtonLoadSongNode(path) {
+            const btnNode = document.createElement('button');
+            btnNode.classList.add('button', 'button-small', 'song-loader');
+            btnNode.value = path;
+            btnNode.textContent = 'Carregar';
+            return btnNode;
         }
 
         function fillSongsOption(mediaList) {
@@ -693,7 +721,7 @@
                 removeBlockSelectedClass();
                 emitContent('');
             });
-            document.getElementById('carregar-lista-musicas').addEventListener('click', getSongList);
+            document.getElementById('carregar-lista-musicas').addEventListener('click', getSongList);            
             document.getElementById('clear-text-input').addEventListener('click', clearTextInput);
             document.getElementById('get-lyrics-letras-by-url').addEventListener('click', getLyricsFromLetrasByUrl);
             document.getElementById('get-lyrics-letras-by-artista-musica').addEventListener('click', getLyricsFromLetrasByAndArtist);
