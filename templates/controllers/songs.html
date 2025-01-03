@@ -428,10 +428,7 @@
             </div>
             <div class="content-modal-form">
                 <h2>Procurar músicas</h2>
-                <select class="select select-reduced" name="iniciais" id="iniciais">
-                    <option value="A">A</option>
-                    <option value="B">B</option>
-                    <option value="C">C</option>
+                <select class="select select-reduced" name="folder-options" id="folder-options">                    
                 </select>
                 <table class="tg">
                     <thead>
@@ -629,6 +626,12 @@
             fillSongsOption(json.mediaList);
         }
 
+        async function getSongFolders() {
+            const res = await fetch('{{APP_LOCATION}}/api/songs/folders?archive=musicas');
+            const json = await res.json();
+            fillSongsFoldersOption(json.mediaList);
+        }
+
         async function getLyricsFromLetrasByUrl() {
             const url = document.getElementById('url-busca-musica').value;
             const params = new URLSearchParams({ url }).toString();
@@ -659,6 +662,17 @@
                 const optionElem = document.createElement('option');
                 optionElem.value = songName;
                 optionElem.textContent = songName;
+                selectSong.appendChild(optionElem);
+            });
+        }
+
+        function fillSongsFoldersOption(mediaList) {
+            const selectSong = document.getElementById('folder-options');
+            selectSong.textContent = '';
+            mediaList.sort().forEach(folder => {
+                const optionElem = document.createElement('option');
+                optionElem.value = folder;
+                optionElem.textContent = folder;
                 selectSong.appendChild(optionElem);
             });
         }
@@ -699,6 +713,7 @@
             openProcessedText();
             createBlocks();
             getSongList();
+            getSongFolders();
         })
 
     </script>
