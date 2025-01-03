@@ -680,8 +680,17 @@
                 tdSongNameNode.textContent = song;
                 trNode.append(tdButtonNode, tdSongNameNode);
                 tbody.appendChild(trNode);
+            });
+            addLoadSongFromFolderEventListener();
+        }
+
+        function addLoadSongFromFolderEventListener() {
+            const loaders = document.querySelectorAll('.song-loader');
+            loaders.forEach(elem => {
+                elem.addEventListener('click', function() {
+                    alert(this.value);
+                });
             })
-            
         }
 
         function createButtonLoadSongNode(path) {
