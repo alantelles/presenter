@@ -63,6 +63,17 @@ func getAllSongs(c *gin.Context) {
 	c.JSON(http.StatusOK, response)
 }
 
+func getAllSongsFromFolder(c *gin.Context) {
+	songNames, _ := loadMediaListFromFolder(
+		CategorySongs.Name,
+		c.Query("archive"),
+		c.Query("folder"),
+	)
+	CORS(c)
+	response := mediaList{MediaList: songNames}
+	c.JSON(http.StatusOK, response)
+}
+
 func getSongContent(c *gin.Context) {
 	song := c.Query("song")
 	CORS(c)
