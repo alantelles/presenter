@@ -402,7 +402,7 @@
 </head>
 
 <body>
-    <div id="modal" class="khide">
+    <div id="modal" class="hide">
         <div class="content-modal hide" id="buscar-letra">
             <div class="close-button">
                 <button class="button" id="close-modal-letras">Fechar</button>
@@ -422,7 +422,7 @@
                 <button class="button" id="get-lyrics-letras-by-url">Obter letra pelo link</button>
             </div>
         </div>
-        <div class="content-modal khide" id="buscar-musica">
+        <div class="content-modal hide" id="buscar-musica">
             <div class="close-button">
                 <button class="button" id="close-modal-procurar">Fechar</button>
             </div>
@@ -687,8 +687,9 @@
         function addLoadSongFromFolderEventListener() {
             const loaders = document.querySelectorAll('.song-loader');
             loaders.forEach(elem => {
-                elem.addEventListener('click', function() {
-                    alert(this.value);
+                elem.addEventListener('click', async function() {
+                    const song = this.value;
+                    clearTextInput().value = await loadTextFromBackend(song);
                 });
             })
         }
@@ -749,6 +750,7 @@
                 document.getElementById('buscar-letra').classList.add('hide');
             });
             document.getElementById('open-modal-procurar').addEventListener('click', () => {
+                loadSongListFromFolder();
                 document.getElementById('modal').classList.remove('hide');
                 document.getElementById('buscar-musica').classList.remove('hide');
             });
