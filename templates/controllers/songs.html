@@ -655,6 +655,15 @@
             document.getElementById('modal').classList.add('hide');
         }
 
+        async function loadSongListFromFolder() {
+            const folder = document.getElementById('folder-options').value;
+            const archive = 'musicas'            
+            const params = new URLSearchParams({ archive, folder }).toString();
+            const res = await fetch(`{{APP_LOCATION}}/api/songs/folder?${params}`);
+            const json = await res.json();
+            console.log(json);
+        }
+
         function fillSongsOption(mediaList) {
             const selectSong = document.getElementById('select-text-options');
             selectSong.textContent = '';
@@ -710,6 +719,8 @@
                 document.getElementById('modal').classList.add('hide');
                 document.getElementById('buscar-musica').classList.add('hide');
             });
+            document.getElementById('carregar-lista-pasta').addEventListener('click', loadSongListFromFolder);
+
             openProcessedText();
             createBlocks();
             getSongList();
