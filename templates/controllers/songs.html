@@ -640,7 +640,7 @@
             const res = await fetch(`{{APP_LOCATION}}/api/lyrics/letras/song?${params}`);
             const lyrics = await res.text();
             document.getElementById('text-to-show').value = lyrics
-            document.getElementById('modal').classList.add('hide');
+            document.getElementById('close-modal-letras').click();
         }
 
         async function getLyricsFromLetrasByAndArtist() {
@@ -690,6 +690,7 @@
                 elem.addEventListener('click', async function() {
                     const song = this.value;
                     clearTextInput().value = await loadTextFromBackend(song);
+                    document.getElementById('close-modal-procurar').click();
                 });
             })
         }
