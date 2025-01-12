@@ -86,11 +86,28 @@ table {
             background-color: red;
             color: red;
         }
+        .relogio {
+            position: fixed;
+            font-size: 60px;
+            top: 0; right: 0;
+            background-color: rgb(156, 19, 19);
+            padding: 6px;
+            border-radius: 8px;
+            color: white;
+            margin: 5px;
+            display: none;
+        }
+        .show {
+            display: block;
+        }
     </style>
 </head>
 <body>
     <div class="loaded loading" id="status">
         _
+    </div>
+    <div class="relogio" id="relogio-container">
+        <p id="relogio">00:00</p>
     </div>
     <div class="container">
         <div class="presentation" id='liveblock'>
@@ -112,6 +129,20 @@ table {
             status.classList.remove('loading');
         }
         setInterval(getLive, 1500);
+        function showTime() {
+            const nowTime = new Date().toTimeString().substring(0, 5);
+            document.getElementById('relogio').textContent = nowTime;
+        }
+
+        document.addEventListener("DOMContentLoaded", function() {
+            const params = new URLSearchParams(window.location.search);
+            if (params.get('showClock') !== 'true') {
+                return;            
+            }
+            document.getElementById('relogio-container').classList.add('show');            
+            setInterval(showTime, 30 * 1000);
+            showTime();
+        })
 
         // SSE não se mostrou uma tecnologia boa pra esse caso, de toda forma, segue implementado na aplicação
         // const evtSource = new EventSource("APP_LOCATION/api/now-live/event");
