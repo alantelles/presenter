@@ -87,8 +87,9 @@ table {
             color: red;
         }
         .relogio {
+            text-align: right;
             position: fixed;
-            font-size: 60px;
+            font-size: 70px;
             top: 0; right: 0;
             background-color: rgb(156, 19, 19);
             padding: 6px;
@@ -100,6 +101,10 @@ table {
         .show {
             display: block;
         }
+        .momento-cronograma {
+            background-color: rgb(212, 212, 212);
+            color: rgb(0, 0, 0);
+        }
     </style>
 </head>
 <body>
@@ -108,6 +113,7 @@ table {
     </div>
     <div class="relogio" id="relogio-container">
         <p id="relogio">00:00</p>
+        <p class="momento-cronograma" id="momento-cronograma-atual"></p>
     </div>
     <div class="container">
         <div class="presentation" id='liveblock'>
@@ -115,34 +121,76 @@ table {
         </div>
     </div>
     <script>
-        const liveBlock = document.getElementById('liveblock');
-        async function getLive() {
-            const status = document.getElementById('status');            
-            status.classList.add('loading');            
-            try {
-                const res = await fetch('{{APP_LOCATION}}/api/content');
-                const data = await res.json();
-                liveBlock.innerHTML = data.content.replaceAll('\n', '<br>');
-            } catch (e) {
-                console.log('Request failed');
-            }
-            status.classList.remove('loading');
-        }
-        setInterval(getLive, 1500);
-        function showTime() {
-            const nowTime = new Date().toTimeString().substring(0, 5);
-            document.getElementById('relogio').textContent = nowTime;
-        }
-
         document.addEventListener("DOMContentLoaded", function() {
-            const params = new URLSearchParams(window.location.search);
-            if (params.get('showClock') !== 'true') {
-                return;            
+            const liveBlock = document.getElementById('liveblock');
+            async function getLive() {
+                const status = document.getElementById('status');            
+                status.classList.add('loading');            
+                try {
+                    const res = await fetch('{{APP_LOCATION}}/api/content');
+                    const data = await res.json();
+                    liveBlock.innerHTML = data.content.replaceAll('\n', '<br>');
+                } catch (e) {
+                    console.log('Request failed');
+                }
+                status.classList.remove('loading');
             }
-            document.getElementById('relogio-container').classList.add('show');            
-            setInterval(showTime, 30 * 1000);
-            showTime();
-        })
+            setInterval(getLive, 1000);
+
+            function showTime() {
+                const nowTime = new Date().toTimeString().substring(0, 5);
+                document.getElementById('relogio').textContent = nowTime;
+                const nowMoment = getMomentByTime(nowTime);                
+                document.getElementById('momento-cronograma-atual').textContent = nowMoment.momento;
+            }
+            function processTimeline(params) {
+                const raw = params.getAll('momento');
+                const mapped = []
+                raw.map (entry => {
+                    const obj = {
+                        horario: entry.split('|')[1],
+                        momento: entry.split('|')[0]
+                    }
+                    mapped.push(obj);
+                });
+                window.sessionStorage.setItem('presenterTimeline', JSON.stringify(mapped));
+            }
+            function getMomentByTime(nowTime) {
+                const momentsRaw = window.sessionStorage.getItem('presenterTimeline');
+                if (!momentsRaw) {
+                    return;
+                }
+                const moments = JSON.parse(momentsRaw);
+                if (nowTime < moments[0].horario) {
+                    return {momento: ''};
+                }
+                const nowMoment = moments.find((entry, index) => {
+                    if (
+                        index == moments.length - 1 && // último e agora é depois do último
+                        nowTime >= entry.horario
+                    ) {
+                        return entry;
+                    }
+                    if (
+                        nowTime >= entry.horario && // é depois do horário do momento e anterior ao horário do próximo
+                        nowTime < moments[index + 1].horario
+                    ) {
+                        return entry;
+                    }
+                });
+                return nowMoment ?? {momento: ''};
+            }
+
+            const params = new URLSearchParams(window.location.search);
+            if (params.get('showClock') === 'true') {
+                processTimeline(params);
+                document.getElementById('relogio-container').classList.add('show');
+                setInterval(showTime, 30 * 1000);
+                showTime();
+            }
+        });
+
+        
 
         // SSE não se mostrou uma tecnologia boa pra esse caso, de toda forma, segue implementado na aplicação
         // const evtSource = new EventSource("APP_LOCATION/api/now-live/event");
