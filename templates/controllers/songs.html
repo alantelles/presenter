@@ -584,6 +584,7 @@
                 body: JSON.stringify(payload)
             })
             const resJson = await res.json();
+            getSongList();
             alert('Texto salvo com sucesso!');
         }
 
