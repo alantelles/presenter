@@ -23,6 +23,8 @@ const (
 
 type flagsSetup struct {
 	Location string
+	Username string
+	Password string
 }
 
 type mediaProviderContent struct {
@@ -53,6 +55,8 @@ var provider1 = mediaProviderContent{
 var port = 8080 // TODO: receive this by running argument
 var location string
 var usePort = true
+var basicAuthUser string
+var basicAuthPass string
 
 func CORS(c *gin.Context) {
 	c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
@@ -81,11 +85,17 @@ func setLocation() string {
 	return scheme + address + getPortSuffix()
 }
 
+func setBasicAuthCredentials() {
+	basicAuthUser = flagsUsed.Username
+	basicAuthPass = flagsUsed.Password
+}
+
 func varSetup() {
 	location = flagsUsed.Location
 	if location == "" {
 		location = setLocation()
 	}
+	setBasicAuthCredentials()
 }
 
 func getLocalIp() string {
@@ -139,6 +149,18 @@ func createDefaultFolders() {
 	createFolder("media/songs")
 }
 
+func AuthMiddleware(c *gin.Context) {
+	CORS(c)
+	user, pass, ok := c.Request.BasicAuth()
+	if !(user == basicAuthUser && pass == basicAuthPass && ok) {
+		c.Writer.Header().Set("WWW-Authenticate", "Basic realm=Restricted")
+		c.JSON(401, gin.H{"status": 401, "message": "Unauthorized"})
+		c.Abort()
+		return
+	}
+	c.Next()
+}
+
 func main() {
 
 	processFlags()
@@ -150,16 +172,16 @@ func main() {
 		gin.LoggerWithWriter(gin.DefaultWriter, "/api/content"),
 		gin.Recovery(),
 	)
-	router.POST("/api/content/set", setMediaProviderContent)
+	router.POST("/api/content/set", AuthMiddleware, setMediaProviderContent)
 	router.GET("/api/content", getMediaProviderContent)
-	router.POST("/api/media", saveMedia)
+	router.POST("/api/media", AuthMiddleware, saveMedia)
 
 	router.GET("/api/songs", getAllSongs)
 	router.GET("/api/songs/content", getSongContent)
 	router.GET("/api/songs/folders", getSongsFolderList)
 	router.GET("/api/songs/folder", getAllSongsFromFolder)
 
-	router.GET("/controller", viewController)
+	router.GET("/controller", AuthMiddleware, viewController)
 	router.GET("/live", viewPanel)
 
 	router.GET("/api/discover", discover)

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/base64"
 	"io"
 	"log"
 	"net/http"
@@ -30,5 +31,7 @@ func viewPanel(c *gin.Context) {
 
 func viewController(c *gin.Context) {
 	read, _ := getHtmlPage("templates/controllers/songs.html")
+	b64Auth := basicAuthUser + ":" + basicAuthPass
+	c.Writer.Header().Set("presenter-basic-auth", base64.StdEncoding.EncodeToString([]byte(b64Auth)))
 	c.Data(http.StatusOK, ContentTypeHTML, read)
 }
