@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"encoding/base64"
 	"fmt"
 	"log"
 	"net"
@@ -19,6 +20,7 @@ const (
 	ContentTypeText   = "text/plain; charset=utf-8"
 
 	AppLocationToken = "{{APP_LOCATION}}"
+	AppAuthToken     = "{{BASIC_AUTH_TOKEN}}"
 )
 
 type flagsSetup struct {
@@ -120,6 +122,15 @@ func insertAddressOnContent(content []byte) []byte {
 	)
 }
 
+func insertAuthTokenOnContent(content []byte) []byte {
+	return bytes.Replace(
+		content,
+		[]byte(AppAuthToken),
+		[]byte(getAuthAsB64()),
+		-1,
+	)
+}
+
 // exists returns whether the given file or directory exists
 func pathExists(path string) (bool, error) {
 	_, err := os.Stat(path)
@@ -147,6 +158,10 @@ func createFolder(path string) {
 
 func createDefaultFolders() {
 	createFolder("media/songs")
+}
+
+func getAuthAsB64() string {
+	return base64.StdEncoding.EncodeToString([]byte(basicAuthUser + ":" + basicAuthPass))
 }
 
 func AuthMiddleware(c *gin.Context) {

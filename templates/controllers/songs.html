@@ -402,6 +402,7 @@
 </head>
 
 <body>
+    <input type="hidden" name="basic-auth-token" id="basic-auth-token" value="{{BASIC_AUTH_TOKEN}}">
     <div id="modal" class="hide">
         <div class="content-modal hide" id="buscar-letra">
             <div class="close-button">
@@ -550,7 +551,12 @@
         }
 
         async function emitContent(content) {
+            const auth = document.getElementById('basic-auth-token').value;
             return await fetch('{{APP_LOCATION}}/api/content/set', {
+                headers: {
+                    'Authorization': `Basic ${auth}`,
+                    'Content-Type': 'application/json'
+                },
                 method: 'POST',
                 body: JSON.stringify({
                     providerId: 1,
