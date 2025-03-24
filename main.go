@@ -150,6 +150,7 @@ func main() {
 		gin.LoggerWithWriter(gin.DefaultWriter, "/api/content"),
 		gin.Recovery(),
 	)
+	router.Static("/static", "./static")
 	router.POST("/api/content/set", setMediaProviderContent)
 	router.GET("/api/content", getMediaProviderContent)
 	router.POST("/api/media", saveMedia)
