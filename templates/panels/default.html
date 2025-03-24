@@ -203,6 +203,8 @@ table {
             if (params.get('showClock') === 'true') {
                 processTimeline(params);
                 document.getElementById('relogio-container').classList.add('show');
+                document.getElementById('liveblock').style.backgroundColor = 'black';
+                document.getElementById('bgvideo').remove();
                 setInterval(showTime, 30 * 1000);
                 showTime();
             }
