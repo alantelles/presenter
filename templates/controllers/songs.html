@@ -757,12 +757,14 @@
                 document.getElementById('modal').classList.add('hide');
                 document.getElementById('buscar-letra').classList.add('hide');
             });
-            document.getElementById('open-modal-procurar').addEventListener('click', () => {
-                loadSongListFromFolder();
+            document.getElementById('open-modal-procurar').addEventListener('click', async () => {
+                await loadSongListFromFolder();
+                document.getElementById('folder-options').addEventListener('change', loadSongListFromFolder);
                 document.getElementById('modal').classList.remove('hide');
                 document.getElementById('buscar-musica').classList.remove('hide');
             });
             document.getElementById('close-modal-procurar').addEventListener('click', () => {
+                document.getElementById('folder-options').removeEventListener('change', loadSongListFromFolder);
                 document.getElementById('modal').classList.add('hide');
                 document.getElementById('buscar-musica').classList.add('hide');
             });
