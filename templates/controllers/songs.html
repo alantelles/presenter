@@ -407,6 +407,14 @@
 
 <body>
     <div id="modal" class="hide">
+        <div class="content-modal hide" id="trigger-blocos-letra">
+            <div class="close-button">
+                <button class="button" id="close-modal-trigger-blocos-letra">Fechar</button>
+            </div>
+            <div class="content-modal-form">
+                <div id="abriga-botoes"></div>
+            </div>
+        </div>
         <div class="content-modal hide" id="buscar-letra">
             <div class="close-button">
                 <button class="button" id="close-modal-letras">Fechar</button>
@@ -472,6 +480,7 @@
                     <button type="button" class="button" id="carregar-texto">Carregar texto</button>
                     <button type="button" class="button" id="carregar-lista-musicas">Carregar lista</button>
                     <button type="button" class="button" id="open-modal-procurar">Procurar músicas</button>
+                    <button type="button" class="button" id="open-modal-trigger-blocos-letra">Escolher música</button>
                 </div>
             </div>
         </div>
@@ -756,6 +765,14 @@
             document.getElementById('close-modal-letras').addEventListener('click', () => {
                 document.getElementById('modal').classList.add('hide');
                 document.getElementById('buscar-letra').classList.add('hide');
+            });
+            document.getElementById('open-modal-trigger-blocos-letra').addEventListener('click', () => {
+                document.getElementById('modal').classList.remove('hide');
+                document.getElementById('trigger-blocos-letra').classList.remove('hide');
+            });
+            document.getElementById('close-modal-trigger-blocos-letra').addEventListener('click', () => {
+                document.getElementById('modal').classList.add('hide');
+                document.getElementById('trigger-blocos-letra').classList.add('hide');
             });
             document.getElementById('open-modal-procurar').addEventListener('click', async () => {
                 await loadSongListFromFolder();
