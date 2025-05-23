@@ -412,7 +412,9 @@
                 <button class="button" id="close-modal-trigger-blocos-letra">Fechar</button>
             </div>
             <div class="content-modal-form">
-                <div id="abriga-botoes"></div>
+                <h2>Criar blocos para música</h2>
+                <div id="abriga-botoes">
+                </div>
             </div>
         </div>
         <div class="content-modal hide" id="buscar-letra">
@@ -682,6 +684,26 @@
             fillSongListFromFolderTable(json.mediaList, folder, archive);
         }
 
+        function fillDirectCreateBlockButton() {
+            const songs = document.querySelectorAll('#select-text-options option').values().map(e => e.value);
+            const container = document.getElementById('abriga-botoes');
+            container.textContent = '';
+            songs.forEach(song => {
+                const btnNode = document.createElement('button');
+                btnNode.classList.add('button');
+                btnNode.value = song;
+                btnNode.textContent = song;
+                container.appendChild(btnNode);
+                document.querySelector('button[value="' + song + '"]').addEventListener('click', async function() {
+                    const content = await loadTextFromBackend(song);
+                    saveProcessedText(content);
+                    clearTextInput().value = await loadTextFromBackend(song);
+                    createBlocks();
+                    document.getElementById('modal').classList.add('hide');
+                });
+            });
+        }
+
         function fillSongListFromFolderTable(songs, folder, archive) {
             const tbody = document.getElementById('tabela-lista-musicas');
             tbody.textContent = '';
@@ -719,6 +741,14 @@
             return btnNode;
         }
 
+        function createButtonDirectLoadSongNode(path) {
+            const btnNode = document.createElement('button');
+            btnNode.classList.add('button');
+            btnNode.value = path;
+            btnNode.textContent = path;
+            return btnNode;
+        }
+
         function fillSongsOption(mediaList) {
             const selectSong = document.getElementById('select-text-options');
             selectSong.textContent = '';
@@ -742,6 +772,11 @@
         }
 
         document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('open-modal-trigger-blocos-letra').addEventListener('click', () => {
+                fillDirectCreateBlockButton();
+                document.getElementById('modal').classList.remove('hide');
+                document.getElementById('trigger-blocos-letra').classList.remove('hide');
+            });
             addGoLiveEventListener();
             document.getElementById('process-text').addEventListener('click', createBlocks);
             document.getElementById('clear-screen').addEventListener('click', () => {
