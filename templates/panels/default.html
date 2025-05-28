@@ -81,7 +81,7 @@ table {
             position: absolute;
             top: 10%;
             text-align: center;
-            font-size: 500px;
+            font-size: 450px;
             -webkit-text-stroke: 4px black;
         }
         .loaded {
@@ -189,9 +189,11 @@ table {
                     liveBlock.textContent = '';
                 }
                 if (regressivo) {
-                    const minutos = Math.floor(segundos / 60);
+                    const horas = Math.floor(segundos / 3600);
+                    const minutos = Math.floor((segundos % 3600) / 60);
                     const segundosRestantes = segundos % 60;
-                    const timeString = `${minutos.toString().padStart(2, '0')}:${segundosRestantes.toString().padStart(2, '0')}`;
+                    const horasShow = horas > 0 ? horas.toString().padStart(2, '0') + ':' : '';
+                    const timeString = `${horasShow}${minutos.toString().padStart(2, '0')}:${segundosRestantes.toString().padStart(2, '0')}`;
                     if (!lastMainText) {
                         liveBlock.textContent = timeString;
                     }
