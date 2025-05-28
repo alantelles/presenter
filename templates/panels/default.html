@@ -148,7 +148,7 @@ table {
                 try {
                     const res = await fetch('{{APP_LOCATION}}/api/content?providerId=main');
                     const data = await res.json();
-                    liveBlock.innerHTML = data.content.replaceAll('\n', '<br>');
+                    liveBlock.innerHTML = data.main.content.replaceAll('\n', '<br>');
                 } catch (e) {
                     console.log('Request failed');
                 }
