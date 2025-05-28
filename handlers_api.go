@@ -44,9 +44,12 @@ func setMediaProviderContent(c *gin.Context) {
 
 func getMediaProviderContent(c *gin.Context) {
 	CORS(c)
-	providerId := c.Query("providerId")
-	provider := providers[providerId]
-	c.JSON(http.StatusOK, &provider)
+	providerIds := c.QueryArray("providerId")
+	responseData := map[string]ProviderData{}
+	for _, providerId := range providerIds {
+		responseData[providerId] = providers[providerId]
+	}
+	c.JSON(http.StatusOK, &responseData)
 }
 
 func saveMedia(c *gin.Context) {
