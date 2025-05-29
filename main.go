@@ -33,7 +33,7 @@ type flagsSetup struct {
 }
 
 type ProviderData struct {
-	Content   string `json:"content"`
+	Content   string `json:"content,omitempty"`
 	Type      string `json:"type,omitempty"`
 	ContentId string `json:"contentId,omitempty"`
 }
