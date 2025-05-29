@@ -140,61 +140,26 @@ table {
         </div>
     </div>
     <script>
-        var lastCommandId = '';
-        var lastChronoId = undefined;
-        function processMainProviderData(data) {
-            const liveBlock = document.getElementById('liveblock');
-            liveBlock.innerHTML = data.content.replaceAll('\n', '<br>');
-        }
-        function cronometro(data) {
-            try {
-                clearInterval(lastChronoId);
-            } catch (e) {
-                console.log('Erro ao limpar cronômetro: ', e);
-            }
-            const params = data.content.split(' ')
-                .map(entry => entry.trim());
-            const regressivo = params[0] === 'regressivo';
-            let segundos = params[1];
-            lastChronoId = setInterval(() => {
-                console.log('Cronômetro:', segundos);
-                segundos--;
-                if (segundos < 0) {
-                    clearInterval(lastChronoId);
-                    return;
-                }
-            }, 1000);
-        }
-        function processCommandData(data) {
-            if (data.contentId === lastCommandId) {
-                return;
-            }
-            lastCommandId = data.contentId;
-            if (data.contentId.indexOf('cronometro-') === 0) {
-                cronometro(data);
-            }
-        }
         document.addEventListener("DOMContentLoaded", function() {
-            var lastCommandId = '';
-            async function getProvidersData() {
+            const liveBlock = document.getElementById('liveblock');
+            async function getLive() {
                 const status = document.getElementById('status');            
                 status.classList.add('loading');            
                 try {
-                    const res = await fetch('{{APP_LOCATION}}/api/content?providerId=main&providerId=command');
+                    const res = await fetch('{{APP_LOCATION}}/api/content?providerId=main');
                     const data = await res.json();
-                    processMainProviderData(data.main);
-                    processCommandData(data.command);
+                    liveBlock.innerHTML = data.main.content.replaceAll('\n', '<br>');
                 } catch (e) {
-                    console.log('Request failed: ', e);
+                    console.log('Request failed');
                 }
                 status.classList.remove('loading');
             }
-            setInterval(getProvidersData, 1000);
+            setInterval(getLive, 1000);
 
             function showTime() {
                 const nowTime = new Date().toTimeString().substring(0, 5);
                 document.getElementById('relogio').textContent = nowTime;
-                const nowMoment = getMomentByTime(nowTime);         
+                const nowMoment = getMomentByTime(nowTime);                
                 document.getElementById('momento-cronograma-atual').textContent = nowMoment.momento;
             }
             function processTimeline(params) {
@@ -212,12 +177,9 @@ table {
             function getMomentByTime(nowTime) {
                 const momentsRaw = window.sessionStorage.getItem('presenterTimeline');
                 if (!momentsRaw) {
-                    return {momento: ''};
+                    return;
                 }
                 const moments = JSON.parse(momentsRaw);
-                if (!moments.length) {
-                    return {momento: ''};
-                }
                 if (nowTime < moments[0].horario) {
                     return {momento: ''};
                 }
@@ -247,7 +209,17 @@ table {
                 setInterval(showTime, 30 * 1000);
                 showTime();
             }
-        });        
+        });
+
+        
+
+        // SSE não se mostrou uma tecnologia boa pra esse caso, de toda forma, segue implementado na aplicação
+        // const evtSource = new EventSource("APP_LOCATION/api/now-live/event");
+        // evtSource.onmessage = function(e) {
+        //     const text = e.data;
+        //     const liveBlock = document.getElementById('liveblock');
+        //     liveBlock.innerHTML = text.replaceAll('\n', '<br>');
+        // }
     </script>
 </body>
 </html>
