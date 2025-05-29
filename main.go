@@ -19,13 +19,6 @@ const (
 	ContentTypeText   = "text/plain; charset=utf-8"
 
 	AppLocationToken = "{{APP_LOCATION}}"
-
-	TypeCommand = "COMMAND"
-	TypeText    = "TEXT"
-	TypeImage   = "IMAGE"
-	TypeVideo   = "VIDEO"
-	TypeAudio   = "AUDIO"
-	TypeBinary  = "BINARY"
 )
 
 type flagsSetup struct {
@@ -35,7 +28,7 @@ type flagsSetup struct {
 type mediaProviderContent struct {
 	ProviderId int    `json:"providerId"`
 	Content    string `json:"content"`
-	Type       string `json:"type"`
+	IsBinary   bool   `json:"isBinary"`
 }
 
 type media struct {
@@ -54,7 +47,7 @@ type returnBody struct {
 var flagsUsed flagsSetup
 
 var provider1 = mediaProviderContent{
-	ProviderId: 1, Content: "", Type: TypeText,
+	ProviderId: 1, Content: "", IsBinary: false,
 }
 
 var port = 8080 // TODO: receive this by running argument
