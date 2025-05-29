@@ -146,7 +146,7 @@ table {
                 const status = document.getElementById('status');            
                 status.classList.add('loading');            
                 try {
-                    const res = await fetch('{{APP_LOCATION}}/api/content?providerId=main');
+                    const res = await fetch('{{APP_LOCATION}}/api/content');
                     const data = await res.json();
                     liveBlock.innerHTML = data.content.replaceAll('\n', '<br>');
                 } catch (e) {

@@ -556,9 +556,10 @@
         }
 
         async function emitContent(content) {
-            return await fetch('{{APP_LOCATION}}/api/content/set/main', {
+            return await fetch('{{APP_LOCATION}}/api/content/set', {
                 method: 'POST',
                 body: JSON.stringify({
+                    providerId: 1,
                     content,
                     type: 'TEXT',
                 })
