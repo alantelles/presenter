@@ -19,23 +19,16 @@ const (
 	ContentTypeText   = "text/plain; charset=utf-8"
 
 	AppLocationToken = "{{APP_LOCATION}}"
-
-	TypeCommand = "COMMAND"
-	TypeText    = "TEXT"
-	TypeImage   = "IMAGE"
-	TypeVideo   = "VIDEO"
-	TypeAudio   = "AUDIO"
-	TypeBinary  = "BINARY"
 )
 
 type flagsSetup struct {
 	Location string
 }
 
-type ProviderData struct {
-	Content   string `json:"content"`
-	Type      string `json:"type,omitempty"`
-	ContentId string `json:"contentId,omitempty"`
+type mediaProviderContent struct {
+	ProviderId int    `json:"providerId"`
+	Content    string `json:"content"`
+	IsBinary   bool   `json:"isBinary"`
 }
 
 type media struct {
@@ -48,13 +41,14 @@ type media struct {
 type returnBody struct {
 	Status     int     `json:"status"`
 	Message    string  `json:"message"`
-	Validation *string `json:"validation,omitempty"`
-	ProviderId string  `json:"providerId"`
-	Type       string  `json:"type"`
-	ContentId  string  `json:"contentId,omitempty"`
+	Validation *string `json:"validation"`
 }
 
 var flagsUsed flagsSetup
+
+var provider1 = mediaProviderContent{
+	ProviderId: 1, Content: "", IsBinary: false,
+}
 
 var port = 8080 // TODO: receive this by running argument
 var location string
@@ -157,7 +151,7 @@ func main() {
 		gin.Recovery(),
 	)
 	router.Static("/static", "./static")
-	router.POST("/api/content/set/:providerId", setMediaProviderContent)
+	router.POST("/api/content/set", setMediaProviderContent)
 	router.GET("/api/content", getMediaProviderContent)
 	router.POST("/api/media", saveMedia)
 

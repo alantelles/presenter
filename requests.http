@@ -1,0 +1,6 @@
+@api = http://localhost:8080/api
+@_json = Content-Type: application/json
+GET {{api}}/songs
+###
+GET {{api}}/song/content
+    ?song=Jeová Jireh - Aline Barros.txt

@@ -75,14 +75,7 @@ table {
             padding: 20px;
             /* background-color: black; */
             z-index: 99999;
-            -webkit-text-stroke: 2px black;
-        }
-        .cronometro {
-            position: absolute;
-            top: 10%;
-            text-align: center;
-            font-size: 450px;
-            -webkit-text-stroke: 4px black;
+            -webkit-text-stroke: 1px black;
         }
         .loaded {
             display: none;
@@ -115,12 +108,9 @@ table {
             background-color: rgb(212, 212, 212);
             color: rgb(0, 0, 0);
         }
-        @media screen and (max-height: 900px) {
+        @media screen and (max-height: 650px) {
             .presentation {
                 font-size: calc((100vw / 100) * 4.8 );
-            }
-            .cronometro {
-                font-size: 300px;
             }
         }
         #bgvideo {
@@ -145,103 +135,31 @@ table {
         <p class="momento-cronograma" id="momento-cronograma-atual"></p>
     </div>
     <div class="container">
-        <div class="presentation cronometro" id='cronometro'>
-
-        </div>
         <div class="presentation" id='liveblock'>
 
         </div>
     </div>
     <script>
-        var lastCommandId = window.sessionStorage.getItem('lastCommandId') || undefined;
-        var lastChronoId = undefined;
-        var lastMainText = '';
-        function processMainProviderData(data) {
-            const liveBlock = document.getElementById('liveblock');
-            if (lastMainText === data.content) {
-                return;
-            }
-            lastMainText = data.content;
-            liveBlock.innerHTML = data.content.replaceAll('\n', '<br>');
-        }
-        function limparCronometro() {
-            try {
-                clearInterval(lastChronoId);
-            } catch (e) {
-                console.log('Erro ao limpar cronômetro: ', e);
-            }
-            const liveBlock = document.getElementById('cronometro');
-            liveBlock.textContent = '';
-        }
-        function cronometro(data) {
-            try {
-                clearInterval(lastChronoId);
-            } catch (e) {
-                console.log('Erro ao limpar cronômetro: ', e);
-            }
-            const params = data.content.split(' ')
-                .map(entry => entry.trim());
-            const regressivo = params[0] === 'regressivo';
-            let segundos = params[1];
-            const liveBlock = document.getElementById('cronometro');
-            lastChronoId = setInterval(() => {
-                if (lastMainText) {
-                    liveBlock.textContent = '';
-                }
-                if (regressivo) {
-                    const horas = Math.floor(segundos / 3600);
-                    const minutos = Math.floor((segundos % 3600) / 60);
-                    const segundosRestantes = segundos % 60;
-                    const horasShow = horas > 0 ? horas.toString().padStart(2, '0') + ':' : '';
-                    const timeString = `${horasShow}${minutos.toString().padStart(2, '0')}:${segundosRestantes.toString().padStart(2, '0')}`;
-                    if (!lastMainText) {
-                        liveBlock.textContent = timeString;
-                    }
-                    segundos--;
-                    if (segundos < 0) {
-                        clearInterval(lastChronoId);
-                        liveBlock.textContent = '';
-                        return;
-                    }
-                } else {
-                    segundos++;
-                }
-            }, 1000);
-        }
-        function processCommandData(data) {
-            if (data.contentId === lastCommandId) {
-                return;
-            }
-            lastCommandId = data.contentId;
-            window.sessionStorage.setItem('lastCommandId', lastCommandId);
-            if (data.contentId.startsWith('cronometro-')) {
-                cronometro(data);
-            }
-            if (data.contentId.startsWith('limpar-cronometro')) {
-                limparCronometro(data);
-            }
-        }
         document.addEventListener("DOMContentLoaded", function() {
-            async function getProvidersData() {
+            const liveBlock = document.getElementById('liveblock');
+            async function getLive() {
                 const status = document.getElementById('status');            
-                status.classList.add('loading');
-                let data;      
+                status.classList.add('loading');            
                 try {
-                    const res = await fetch('{{APP_LOCATION}}/api/content?providerId=main&providerId=command');
-                    data = await res.json();                    
+                    const res = await fetch('{{APP_LOCATION}}/api/content');
+                    const data = await res.json();
+                    liveBlock.innerHTML = data.content.replaceAll('\n', '<br>');
                 } catch (e) {
-                    console.log('Request failed: ', e);
+                    console.log('Request failed');
                 }
                 status.classList.remove('loading');
-                processMainProviderData(data.main);
-                processCommandData(data.command);
             }
-            setInterval(getProvidersData, 1000);
+            setInterval(getLive, 1000);
 
             function showTime() {
                 const nowTime = new Date().toTimeString().substring(0, 5);
                 document.getElementById('relogio').textContent = nowTime;
-                const nowMoment = getMomentByTime(nowTime);         
+                const nowMoment = getMomentByTime(nowTime);                
                 document.getElementById('momento-cronograma-atual').textContent = nowMoment.momento;
             }
             function processTimeline(params) {
@@ -259,12 +177,9 @@ table {
             function getMomentByTime(nowTime) {
                 const momentsRaw = window.sessionStorage.getItem('presenterTimeline');
                 if (!momentsRaw) {
-                    return {momento: ''};
+                    return;
                 }
                 const moments = JSON.parse(momentsRaw);
-                if (!moments.length) {
-                    return {momento: ''};
-                }
                 if (nowTime < moments[0].horario) {
                     return {momento: ''};
                 }
@@ -294,7 +209,17 @@ table {
                 setInterval(showTime, 30 * 1000);
                 showTime();
             }
-        });        
+        });
+
+        
+
+        // SSE não se mostrou uma tecnologia boa pra esse caso, de toda forma, segue implementado na aplicação
+        // const evtSource = new EventSource("APP_LOCATION/api/now-live/event");
+        // evtSource.onmessage = function(e) {
+        //     const text = e.data;
+        //     const liveBlock = document.getElementById('liveblock');
+        //     liveBlock.innerHTML = text.replaceAll('\n', '<br>');
+        // }
     </script>
 </body>
 </html>
