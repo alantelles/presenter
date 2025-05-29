@@ -28,3 +28,4 @@ build/**
 media/songs/**
 media/**
 presenter
+requests.http
