@@ -216,9 +216,11 @@ table {
             window.sessionStorage.setItem('lastCommandId', lastCommandId);
             if (data.contentId.startsWith('cronometro-')) {
                 cronometro(data);
+                return;
             }
             if (data.contentId.startsWith('limpar-cronometro')) {
                 limparCronometro(data);
+                return;
             }
         }
         document.addEventListener("DOMContentLoaded", function() {
