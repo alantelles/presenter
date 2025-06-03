@@ -462,7 +462,9 @@
             <div class="functions-buttons">
                 <button type="button" class="button button-big" id="clear-screen">Limpar tela</button>
                 <button type="button" class="button button-big" id="clear-text-input">Apagar texto</button>
-                <button type="button" class="button button-big" id="open-modal-letras">Buscar no letras.mus</button>
+                <button type="button" class="button button-big" id="trigger-timer-1930">Cronometro até 19:30</button>
+                <button type="button" class="button button-big" id="trigger-timer-1800">Cronometro até 18:00</button>
+                <!-- <button type="button" class="button button-big" id="open-modal-letras">Buscar no letras.mus</button> -->
                 <!-- <button type="button" class="button button-big" id="paste-to-text-input">Colar texto</button> -->
                 <div class="select-text">
                     <select class="select " name="select-text" id="select-text-options">
@@ -555,13 +557,29 @@
             });
         }
 
-        async function emitContent(content) {
-            return await fetch('{{APP_LOCATION}}/api/content/set', {
+        function triggerTimer(horas, minutos) {
+            const now = new Date();
+            const horaAlvo = new Date(now.getFullYear(), now.getMonth(), now.getDate(), horas, minutos, 0);
+            const diff = Math.round((horaAlvo.getTime() - now.getTime()) / 1000); // converte para segundos
+            if (diff < 0) {
+                return;
+            }
+            fetch('{{APP_LOCATION}}/api/content/set/command', {
                 method: 'POST',
                 body: JSON.stringify({
-                    providerId: 1,
+                    contentId: `cronometro-${Date.now()}`,
+                    type: 'COMMAND',
+                    content: `regressivo ${diff}`
+                })
+            });
+        }
+
+        async function emitContent(content) {
+            return await fetch('{{APP_LOCATION}}/api/content/set/main', {
+                method: 'POST',
+                body: JSON.stringify({
                     content,
-                    isBinary: false,
+                    type: 'TEXT',
                 })
             });
         }
@@ -749,14 +767,14 @@
                 saveProcessedTextToBackend(content);
             });
             document.getElementById('carregar-texto').addEventListener('click', fillTextInput);
-            document.getElementById('open-modal-letras').addEventListener('click', () => {
-                document.getElementById('modal').classList.remove('hide');
-                document.getElementById('buscar-letra').classList.remove('hide');
-            });
-            document.getElementById('close-modal-letras').addEventListener('click', () => {
-                document.getElementById('modal').classList.add('hide');
-                document.getElementById('buscar-letra').classList.add('hide');
-            });
+            // document.getElementById('open-modal-letras').addEventListener('click', () => {
+            //     document.getElementById('modal').classList.remove('hide');
+            //     document.getElementById('buscar-letra').classList.remove('hide');
+            // });
+            // document.getElementById('close-modal-letras').addEventListener('click', () => {
+            //     document.getElementById('modal').classList.add('hide');
+            //     document.getElementById('buscar-letra').classList.add('hide');
+            // });
             document.getElementById('open-modal-procurar').addEventListener('click', async () => {
                 await loadSongListFromFolder();
                 document.getElementById('folder-options').addEventListener('change', loadSongListFromFolder);
@@ -769,6 +787,9 @@
                 document.getElementById('buscar-musica').classList.add('hide');
             });
             document.getElementById('carregar-lista-pasta').addEventListener('click', loadSongListFromFolder);
+
+            document.getElementById('trigger-timer-1930').addEventListener('click', triggerTimer.bind(null, 19, 30));
+            document.getElementById('trigger-timer-1800').addEventListener('click', triggerTimer.bind(null, 18, 0));
 
             openProcessedText();
             createBlocks();
