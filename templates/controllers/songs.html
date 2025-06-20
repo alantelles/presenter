@@ -488,6 +488,7 @@
             <div class="functions">
                 <button class="button" type="button" id="process-text">Criar blocos</button>
                 <button class="button" type="button" id="save-text">Salvar texto</button>
+                <button class="button" type="button" id="set-aux-text">Exibir auxiliar</button>
             </div>
             <div class="blocos" id="blocos">
             </div>
@@ -599,6 +600,14 @@
             const author = titleParts.length == 2 ? titleParts[1] : "Artista desconhecido"
             const category = "songs"
             return { title, author, category, content }
+        }
+
+        async function setAuxTextToBackend(content) {
+            const res = await fetch("{{APP_LOCATION}}/api/content/set/aux", {
+                method: 'POST',
+                body: JSON.stringify({content, type: 'TEXT'})
+            });
+            const resJson = await res.json();
         }
 
         async function saveProcessedTextToBackend(content) {
@@ -765,6 +774,10 @@
             document.getElementById('save-text').addEventListener('click', () => {
                 const content = document.getElementById('text-to-show').value;
                 saveProcessedTextToBackend(content);
+            });
+            document.getElementById('set-aux-text').addEventListener('click', () => {
+                const content = document.getElementById('text-to-show').value;
+                setAuxTextToBackend(content);
             });
             document.getElementById('carregar-texto').addEventListener('click', fillTextInput);
             // document.getElementById('open-modal-letras').addEventListener('click', () => {
