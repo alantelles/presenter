@@ -224,13 +224,34 @@ table {
             }
         }
         document.addEventListener("DOMContentLoaded", function() {
+            const params = new URLSearchParams(window.location.search);
+
+            const providersByUrl = params.getAll('providers');
+
             async function getProvidersData() {
-                const status = document.getElementById('status');            
+                const status = document.getElementById('status');         
                 status.classList.add('loading');
                 let data;      
                 try {
-                    const res = await fetch('{{APP_LOCATION}}/api/content?providerId=main&providerId=command');
-                    data = await res.json();                    
+                    const streams = Array.from(new Set(
+                        ['main', 'command']
+                            .concat(providersByUrl)
+                            .filter(provider => provider !== '')
+                            .filter(provider => provider !== 'undefined')
+                            .filter(provider => provider !== 'null')
+                    ));
+                    const providerIds = streams.map(stream => `providerId=${stream}`).join('&');
+                    const url = `{{APP_LOCATION}}/api/content?${providerIds}`;
+                    console.log('Fetching data from: ', url);
+                    // Fetch data from the API
+                    // Note: Replace `{{APP_LOCATION}}` with the actual app location in your environment
+                    // This is a placeholder, this will be replaced by the server-side template engine
+                    const res = await fetch(url);
+                    if (!res.ok) {
+                        throw new Error(`HTTP error! status: ${res.status}`);
+                    }
+                    // Parse the JSON response                
+                    data = await res.json();
                 } catch (e) {
                     console.log('Request failed: ', e);
                 }
@@ -287,7 +308,6 @@ table {
                 return nowMoment ?? {momento: ''};
             }
 
-            const params = new URLSearchParams(window.location.search);
             if (params.get('showClock') === 'true') {
                 processTimeline(params);
                 document.getElementById('relogio-container').classList.add('show');
