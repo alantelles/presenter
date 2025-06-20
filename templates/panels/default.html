@@ -77,6 +77,17 @@ table {
             z-index: 99999;
             -webkit-text-stroke: 2px black;
         }
+        .auxblock {
+            font-size: 16px !important;
+            display: none;
+            -webkit-text-stroke: 0px white;
+            position: absolute;
+            top: 0; left: 0;
+            color: white;
+            z-index: 99990;
+            font-weight: normal;
+            background-color: rgb(46, 19, 0);
+        }
         .cronometro {
             position: absolute;
             top: 10%;
@@ -148,6 +159,9 @@ table {
         <div class="presentation cronometro" id='cronometro'>
 
         </div>
+        <div class="presentation auxblock" id='auxblock'>
+
+        </div>
         <div class="presentation" id='liveblock'>
 
         </div>
@@ -156,6 +170,7 @@ table {
         var lastCommandId = window.sessionStorage.getItem('lastCommandId') || undefined;
         var lastChronoId = undefined;
         var lastMainText = '';
+        var lastAuxText = '';
         function processMainProviderData(data) {
             const liveBlock = document.getElementById('liveblock');
             if (lastMainText === data.content) {
@@ -163,6 +178,18 @@ table {
             }
             lastMainText = data.content;
             liveBlock.innerHTML = data.content.replaceAll('\n', '<br>');
+        }
+        function processAuxProviderData(data) {
+            if (!data) {
+                return;
+            }
+            console.log('Processing aux provider data: ', data);
+            const auxBlock = document.getElementById('auxblock');
+            if (lastAuxText === data.content) {
+                return;
+            }
+            lastAuxText = data.content;
+            auxBlock.innerHTML = data.content.replaceAll('\n', '<br>');
         }
         function limparCronometro() {
             try {
@@ -258,6 +285,7 @@ table {
                 status.classList.remove('loading');
                 processMainProviderData(data.main);
                 processCommandData(data.command);
+                processAuxProviderData(data.aux);
             }
             setInterval(getProvidersData, 1000);
 
@@ -312,6 +340,7 @@ table {
                 processTimeline(params);
                 document.getElementById('relogio-container').classList.add('show');
                 document.getElementById('liveblock').style.backgroundColor = 'black';
+                document.getElementById('auxblock').style.display = 'block';
                 document.getElementById('bgvideo').remove();
                 setInterval(showTime, 30 * 1000);
                 showTime();
