@@ -78,7 +78,7 @@ table {
             -webkit-text-stroke: 2px black;
         }
         .auxblock {
-            font-size: 20px !important;
+            font-size: 25px !important;
             display: none;
             -webkit-text-stroke: 0px white;
             position: absolute;
@@ -86,7 +86,7 @@ table {
             color: white;
             z-index: 99990;
             font-weight: normal;
-            background-color: rgb(46, 19, 0);
+            background-color: maroon;
             column-count: 2;
         }
         .cronometro {
@@ -173,7 +173,14 @@ table {
         var lastMainText = '';
         var lastAuxText = '';
         function processMainProviderData(data) {
-            const liveBlock = document.getElementById('liveblock');
+            const liveBlock = document.getElementById('liveblock');            
+            if (isShowClockMode()) {
+                if (data.content === '') {
+                    liveBlock.style.backgroundColor = 'transparent';
+                } else {
+                    liveBlock.style.backgroundColor = 'black';
+                }
+            }
             if (lastMainText === data.content) {
                 return;
             }
@@ -186,6 +193,12 @@ table {
             }
             console.log('Processing aux provider data: ', data);
             const auxBlock = document.getElementById('auxblock');
+            if (data.content === '') {
+                auxBlock.style.display = 'none';
+                return;
+            } else {
+                auxBlock.style.display = 'block';
+            }
             if (lastAuxText === data.content) {
                 return;
             }
@@ -250,6 +263,11 @@ table {
                 limparCronometro(data);
                 return;
             }
+        }
+
+        function isShowClockMode() {
+            const params = new URLSearchParams(window.location.search);
+            return params.get('showClock') === 'true';
         }
         document.addEventListener("DOMContentLoaded", function() {
             const params = new URLSearchParams(window.location.search);

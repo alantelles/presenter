@@ -489,6 +489,7 @@
                 <button class="button" type="button" id="process-text">Criar blocos</button>
                 <button class="button" type="button" id="save-text">Salvar texto</button>
                 <button class="button" type="button" id="set-aux-text">Exibir auxiliar</button>
+                <button class="button" type="button" id="clean-aux-text">Limpar auxiliar</button>
             </div>
             <div class="blocos" id="blocos">
             </div>
@@ -778,6 +779,9 @@
             document.getElementById('set-aux-text').addEventListener('click', () => {
                 const content = document.getElementById('text-to-show').value;
                 setAuxTextToBackend(content);
+            });
+            document.getElementById('clean-aux-text').addEventListener('click', () => {
+                setAuxTextToBackend('');
             });
             document.getElementById('carregar-texto').addEventListener('click', fillTextInput);
             // document.getElementById('open-modal-letras').addEventListener('click', () => {
