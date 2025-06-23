@@ -5,6 +5,7 @@ import "fmt"
 var providers = map[string]ProviderData{
 	"main":           {},
 	"preview":        {},
+	"aux":            {},
 	"internal":       {},
 	"command":        {},
 	"operator":       {},

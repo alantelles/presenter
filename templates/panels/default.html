@@ -77,6 +77,18 @@ table {
             z-index: 99999;
             -webkit-text-stroke: 2px black;
         }
+        .auxblock {
+            font-size: 25px !important;
+            display: none;
+            -webkit-text-stroke: 0px white;
+            position: absolute;
+            top: 0; left: 0;
+            color: white;
+            z-index: 99990;
+            font-weight: normal;
+            background-color: maroon;
+            column-count: 2;
+        }
         .cronometro {
             position: absolute;
             top: 10%;
@@ -148,6 +160,9 @@ table {
         <div class="presentation cronometro" id='cronometro'>
 
         </div>
+        <div class="presentation auxblock" id='auxblock'>
+
+        </div>
         <div class="presentation" id='liveblock'>
 
         </div>
@@ -156,13 +171,39 @@ table {
         var lastCommandId = window.sessionStorage.getItem('lastCommandId') || undefined;
         var lastChronoId = undefined;
         var lastMainText = '';
+        var lastAuxText = '';
         function processMainProviderData(data) {
-            const liveBlock = document.getElementById('liveblock');
+            const liveBlock = document.getElementById('liveblock');            
+            if (isShowClockMode()) {
+                if (data.content === '') {
+                    liveBlock.style.backgroundColor = 'transparent';
+                } else {
+                    liveBlock.style.backgroundColor = 'black';
+                }
+            }
             if (lastMainText === data.content) {
                 return;
             }
             lastMainText = data.content;
             liveBlock.innerHTML = data.content.replaceAll('\n', '<br>');
+        }
+        function processAuxProviderData(data) {
+            if (!data) {
+                return;
+            }
+            console.log('Processing aux provider data: ', data);
+            const auxBlock = document.getElementById('auxblock');
+            if (data.content === '') {
+                auxBlock.style.display = 'none';
+                return;
+            } else {
+                auxBlock.style.display = 'block';
+            }
+            if (lastAuxText === data.content) {
+                return;
+            }
+            lastAuxText = data.content;
+            auxBlock.innerHTML = data.content.replaceAll('\n', '<br>');
         }
         function limparCronometro() {
             try {
@@ -223,20 +264,47 @@ table {
                 return;
             }
         }
+
+        function isShowClockMode() {
+            const params = new URLSearchParams(window.location.search);
+            return params.get('showClock') === 'true';
+        }
         document.addEventListener("DOMContentLoaded", function() {
+            const params = new URLSearchParams(window.location.search);
+
+            const providersByUrl = params.getAll('providers');
+
             async function getProvidersData() {
-                const status = document.getElementById('status');            
+                const status = document.getElementById('status');         
                 status.classList.add('loading');
                 let data;      
                 try {
-                    const res = await fetch('{{APP_LOCATION}}/api/content?providerId=main&providerId=command');
-                    data = await res.json();                    
+                    const streams = Array.from(new Set(
+                        ['main', 'command']
+                            .concat(providersByUrl)
+                            .filter(provider => provider !== '')
+                            .filter(provider => provider !== 'undefined')
+                            .filter(provider => provider !== 'null')
+                    ));
+                    const providerIds = streams.map(stream => `providerId=${stream}`).join('&');
+                    const url = `{{APP_LOCATION}}/api/content?${providerIds}`;
+                    console.log('Fetching data from: ', url);
+                    // Fetch data from the API
+                    // Note: Replace `{{APP_LOCATION}}` with the actual app location in your environment
+                    // This is a placeholder, this will be replaced by the server-side template engine
+                    const res = await fetch(url);
+                    if (!res.ok) {
+                        throw new Error(`HTTP error! status: ${res.status}`);
+                    }
+                    // Parse the JSON response                
+                    data = await res.json();
                 } catch (e) {
                     console.log('Request failed: ', e);
                 }
                 status.classList.remove('loading');
                 processMainProviderData(data.main);
                 processCommandData(data.command);
+                processAuxProviderData(data.aux);
             }
             setInterval(getProvidersData, 1000);
 
@@ -287,11 +355,11 @@ table {
                 return nowMoment ?? {momento: ''};
             }
 
-            const params = new URLSearchParams(window.location.search);
             if (params.get('showClock') === 'true') {
                 processTimeline(params);
                 document.getElementById('relogio-container').classList.add('show');
                 document.getElementById('liveblock').style.backgroundColor = 'black';
+                document.getElementById('auxblock').style.display = 'block';
                 document.getElementById('bgvideo').remove();
                 setInterval(showTime, 30 * 1000);
                 showTime();
