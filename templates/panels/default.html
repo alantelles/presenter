@@ -249,20 +249,26 @@ table {
                 }
             }, 1000);
         }
+        const commandHandlers = {
+            'cronometro': cronometro,
+            'limparCronometro': limparCronometro
+        };
         function processCommandData(data) {
             if (data.contentId === lastCommandId) {
                 return;
             }
             lastCommandId = data.contentId;
             window.sessionStorage.setItem('lastCommandId', lastCommandId);
-            if (data.contentId.startsWith('cronometro-')) {
-                cronometro(data);
+            executeCommand(data);
+        }
+
+        function executeCommand(data) {
+            const target = data.contentId.split('-')[0]; // o comando sempre precisa estar em camelCase
+            if (Object.keys(commandHandlers).includes(target)) {
+                commandHandlers[target](data);
                 return;
             }
-            if (data.contentId.startsWith('limpar-cronometro')) {
-                limparCronometro(data);
-                return;
-            }
+            console.warn(`Comando desconhecido: ${target}; Dados: ${JSON.stringify(data)}`);
         }
 
         function isShowClockMode() {
