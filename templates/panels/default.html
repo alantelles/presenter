@@ -195,7 +195,7 @@ table {
             }
             lastMainText = data.content;
             liveBlock.innerHTML = data.content.replaceAll('\n', '<br>');
-            if (data.contentId.startsWith('bible ')) {
+            if (data.contentId && data.contentId.startsWith('bible ')) {
                 processBibleData(data.contentId);
                 toggleVideo({content: 'off'}); // Desliga o vídeo se for um capítulo da Bíblia
             } else {
