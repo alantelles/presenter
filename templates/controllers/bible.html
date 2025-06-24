@@ -148,6 +148,13 @@
     button {
       cursor: pointer;
     }
+    .fixed {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      z-index: 1000;
+    }
     .container {
       display: flex;
       flex-direction: column;
@@ -162,6 +169,7 @@
     .seletor-capitulo {
       display: flex;
       flex-direction: row;
+      align-items: center;
       padding: 10px;
       background-color: #a3c4e6;
     }
@@ -192,6 +200,7 @@
       background-color: #004494;
     }
     .blocos {
+      margin-top: 98px;
       min-height: calc(100vh - 20vh);
       border-top: #74b1f7 1px solid;
       display: flex;
@@ -225,68 +234,54 @@
 </head>
 <body>
   <div class="container">
-    <div class="header">
-      <h1>Presenter - Bíblia</h1>
-    </div>
-    <div class="seletor-capitulo">
-      <!-- TODO: permitir selecionar versao -->
-      <p>Livro</p>
-      <select name="livro" id="livro">
-      </select>
-      <p>Capítulo</p>
-      <select name="capitulo" id="capitulo">
-        <option value="1">1</option>
-        <option value="2">2</option>
-        <option value="3">3</option>
-      </select>
-      <button type="button">Carregar</button>
+    <div class="fixed">
+      <div class="header">
+        <h1>Presenter - Bíblia</h1>
+      </div>
+      <div class="seletor-capitulo">
+        <!-- TODO: permitir selecionar versao -->
+        <p>Livro</p>
+        <select name="livro" id="livro">
+        </select>
+        <p>Capítulo</p>
+        <select name="capitulo" id="capitulo">
+        </select>
+      </div>
     </div>
     <div class="blocos">
-      <h2 id="livro-capitulo">Gênesis 1</h2>
-      <div class="blocos-carregados">
-        <div class="bloco">
-          <span>1 </span>
-          <p>No princípio, Deus criou os céus e a terra.</p>                
-        </div>
-        <div class="bloco">
-          <span>1 </span>
-          <p>E a terra era sem forma e vazia; e havia trevas sobre a face do abismo, e o Espírito de Deus se movia sobre a face das águas.</p>
-        </div>
-        <div class="bloco">
-          <span>1 </span>
-          <p>E disse Deus: Haja luz; e houve luz.</p>
-        </div>
+      <h2 id="livro-capitulo"></h2>
+      <div class="blocos-carregados">        
       </div>
     </div>
   </div>
   <script>
     async function fetchLivros() {
-      // Simula uma chamada a uma API para buscar os livros da Bíblia
-      return await [
-        { id: 'gn', nome: 'Gênesis', capitulos: 50 },
-        { id: 'ex', nome: 'Êxodo', capitulos: 40 },
-        { id: 'lv', nome: 'Levítico', capitulos: 27 },
-        { id: 'nm', nome: 'Números', capitulos: 36 },
-        { id: 'dt', nome: 'Deuteronômio', capitulos: 34 },
-        { id: 'js', nome: 'Josué', capitulos: 24 },
-        { id: 'jz', nome: 'Juízes', capitulos: 21 },
-        { id: 'rt', nome: 'Rute', capitulos: 4 },
-        { id: '1s', nome: '1 Samuel', capitulos: 31 },
-        { id: '2s', nome: '2 Samuel', capitulos: 24 },
-        { id: '1r', nome: '1 Reis', capitulos: 22 },
-        { id: '2r', nome: '2 Reis', capitulos: 25 },
-        { id: '1cr', nome: '1 Crônicas', capitulos: 29 },
-        { id: '2cr', nome: '2 Crônicas', capitulos: 36 },
-        { id: 'ed', nome: 'Esdras', capitulos: 10 },
-        { id: 'ne', nome: 'Neemias', capitulos: 13 },
-        { id: 'et', nome: 'Ester', capitulos: 10 },
-        { id: 'joe', nome: 'Jó', capitulos: 42 },
-      ];
+      resp = await fetch('{{APP_LOCATION}}/api/bible/books');
+      if (!resp.ok) {
+        throw new Error('Erro ao buscar livros da Bíblia');
+      }
+      const livros = await resp.json();
+      return livros.map(livro => ({
+        id: livro.abbrev.pt,
+        nome: livro.name,
+        capitulos: livro.chapters
+      }));
+    }
+    async function fetchCapitulo(livro, numCapitulo) {
+      // TODO: permitir selecionar versao
+      resp = await fetch(`{{APP_LOCATION}}/api/bible/chapter/ra/${livro}/${numCapitulo}`);
+      if (!resp.ok) {
+        throw new Error('Erro ao buscar capítulo da Bíblia');
+      }
+      const capitulo = await resp.json();
+      return capitulo.verses.map(verso => ({
+        numero: verso.number,
+        texto: verso.text
+      }));
     }
     document.addEventListener('DOMContentLoaded', function() {
       const livroSelect = document.getElementById('livro');
       const capituloSelect = document.getElementById('capitulo');
-      const carregarButton = document.querySelector('.seletor-capitulo button');
       const livroCapituloHeader = document.getElementById('livro-capitulo');
       const blocosCarregados = document.querySelector('.blocos-carregados');
 
@@ -299,9 +294,13 @@
           option.dataset.capitulos = livro.capitulos;
           livroSelect.appendChild(option);
         });
+        preencheCapitulos(); // Preenche os capítulos do primeiro livro
+        preencheVersiculos(); // Carrega o primeiro capítulo
       });
 
-      livroSelect.addEventListener('change', function() {
+      livroSelect.addEventListener('change', preencheCapitulos);
+
+      function preencheCapitulos() {
         const livro = livroSelect.value;
         const selectedOption = livroSelect.options[livroSelect.selectedIndex];
         const capitulos = selectedOption.dataset.capitulos;
@@ -314,9 +313,9 @@
           option.textContent = i;
           capituloSelect.appendChild(option);
         }
-      });
+      }
 
-      carregarButton.addEventListener('click', function() {        
+      function preencheVersiculos() {
         const selectedOption = livroSelect.options[livroSelect.selectedIndex];
         const livro = selectedOption.textContent;
         const capitulo = capituloSelect.value;
@@ -326,15 +325,20 @@
 
         // Limpa os blocos carregados
         blocosCarregados.innerHTML = '';
+        fetchCapitulo(selectedOption.value, capitulo).then(versos => {
+          // Preenche os blocos com os versos
+          versos.forEach(verso => {
+            const blocoDiv = document.createElement('div');
+            blocoDiv.className = 'bloco';
+            blocoDiv.innerHTML = `<span>${verso.numero} </span><p>${verso.texto}</p>`;
+            blocosCarregados.appendChild(blocoDiv);
+          });
+        }).catch(error => {
+          console.error('Erro ao carregar capítulo:', error);
+        });
+      };
 
-        // Simula o carregamento de blocos
-        for (let i = 1; i <= 3; i++) {
-          const blocoDiv = document.createElement('div');
-          blocoDiv.className = 'bloco';
-          blocoDiv.innerHTML = `<span>${i} </span><p>Texto do bloco ${i} do capítulo ${capitulo} do livro ${livro}.</p>`;
-          blocosCarregados.appendChild(blocoDiv);
-        }
-      });
+      capituloSelect.addEventListener('change', preencheVersiculos);
     });
   </script>
 </body>
