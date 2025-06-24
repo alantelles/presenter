@@ -6,6 +6,7 @@ import (
 	"log"
 	"net"
 	"os"
+	"presenter/bible"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -173,6 +174,8 @@ func main() {
 
 	router.GET("/api/lyrics/letras", getSongLyricsFromLetras)
 	router.GET("/api/lyrics/letras/song", getSongLyricFromLetrasByUrl)
+
+	router.GET("/api/bible/books", bible.GetBooksList)
 
 	log.Print("PRESENTER - Desenvolvido por Alan Telles")
 	log.Print("Iniciando serviço...")
