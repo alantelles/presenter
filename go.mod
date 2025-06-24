@@ -32,6 +32,9 @@ require (
 	google.golang.org/protobuf v1.34.1 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	presenter/bible v0.0.0-00010101000000-000000000000
+	presenter/flags v0.0.0-00010101000000-000000000000
 )
 
 replace presenter/bible => ./bible
+
+replace presenter/flags => ./flags

@@ -7,6 +7,7 @@ import (
 	"net"
 	"os"
 	"presenter/bible"
+	"presenter/flags"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -29,10 +30,6 @@ const (
 	TypeBinary  = "BINARY"
 )
 
-type flagsSetup struct {
-	Location string
-}
-
 type ProviderData struct {
 	Content   string `json:"content"`
 	Type      string `json:"type,omitempty"`
@@ -54,8 +51,6 @@ type returnBody struct {
 	Type       string  `json:"type"`
 	ContentId  string  `json:"contentId,omitempty"`
 }
-
-var flagsUsed flagsSetup
 
 var port = 8080 // TODO: receive this by running argument
 var location string
@@ -89,7 +84,7 @@ func setLocation() string {
 }
 
 func varSetup() {
-	location = flagsUsed.Location
+	location = flags.GetLocation()
 	if location == "" {
 		location = setLocation()
 	}
@@ -148,7 +143,7 @@ func createDefaultFolders() {
 
 func main() {
 
-	processFlags()
+	flags.ProcessFlags()
 	varSetup()
 	createDefaultFolders()
 	gin.SetMode(gin.ReleaseMode)
