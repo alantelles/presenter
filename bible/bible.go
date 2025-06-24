@@ -80,5 +80,7 @@ func GetChapter(c *gin.Context) {
 
 func SaveChapter(book, version string, chapter int, content string) {
 	fileName := fmt.Sprintf("%s_%s_%d.json", version, book, chapter)
-	SaveTextFile(fileName, content)
+	path := fmt.Sprintf("%s/%s", version, book)
+	CreateFolder(path)
+	SaveTextFile(path+"/"+fileName, content)
 }

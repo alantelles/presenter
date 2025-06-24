@@ -20,6 +20,7 @@ func PathExists(path string) (bool, error) {
 }
 
 func CreateFolder(path string) {
+	path = "bible/fetched/" + path
 	exists, _ := PathExists(path)
 	if exists {
 		return
