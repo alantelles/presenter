@@ -205,7 +205,15 @@ table {
             lastAuxText = data.content;
             auxBlock.innerHTML = data.content.replaceAll('\n', '<br>');
         }
-        function limparCronometro() {
+        function toggleVideo(data) {
+            const bgVideo = document.getElementById('bgvideo');
+            if (data.content === 'on') {
+                bgVideo.style.display = 'block';
+                return;
+            }
+            bgVideo.style.display = 'none';
+        }
+        function limparCronometro(data) {
             try {
                 clearInterval(lastChronoId);
             } catch (e) {
@@ -251,7 +259,8 @@ table {
         }
         const commandHandlers = {
             'cronometro': cronometro,
-            'limparCronometro': limparCronometro
+            'limparCronometro': limparCronometro,
+            'toggleVideo': toggleVideo,
         };
         function processCommandData(data) {
             if (data.contentId === lastCommandId) {

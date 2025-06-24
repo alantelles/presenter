@@ -365,6 +365,14 @@
             font-size: 20px;
             color: black;
         }
+        .functions-buttons-group label {
+            font-size: 18px;
+            margin-right: 10px;
+            color: black;
+        }
+        .functions-buttons-group input[type=checkbox] {
+            margin-right: 5px;
+        }
     </style>
     <style type="text/css">
         .tg {
@@ -475,6 +483,8 @@
                     <div>
                         <button type="button" class="button button-big" id="clear-screen">Limpar tela</button>
                         <button type="button" class="button button-big" id="clear-text-input">Apagar texto</button>
+                        <input type="checkbox" name="toggle-video" id="toggle-video" checked>
+                        <label for="toggle-video">Exibir vídeo</label>
                     </div>
                 </div>
                 <div class="functions-buttons-group">
@@ -792,7 +802,17 @@
                 selectSong.appendChild(optionElem);
             });
         }
-
+        function toggleVideo() {
+            const toggleVideoCheckbox = document.getElementById('toggle-video');
+            fetch('{{APP_LOCATION}}/api/content/set/command', {
+                method: 'POST',
+                body: JSON.stringify({
+                    contentId: `toggleVideo-${Date.now()}`,
+                    type: 'COMMAND',
+                    content: toggleVideoCheckbox.checked ? 'on' : 'off'
+                })
+            });
+        }
         document.addEventListener('DOMContentLoaded', () => {
             addGoLiveEventListener();
             document.getElementById('process-text').addEventListener('click', createBlocks);
@@ -841,6 +861,8 @@
             document.getElementById('trigger-timer-1930').addEventListener('click', triggerTimer.bind(null, 19, 30));
             document.getElementById('trigger-timer-1800').addEventListener('click', triggerTimer.bind(null, 18, 0));
             document.getElementById('clear-regressive').addEventListener('click', clearTimer);
+
+            document.getElementById('toggle-video').addEventListener('change', toggleVideo);
 
             openProcessedText();
             createBlocks();
