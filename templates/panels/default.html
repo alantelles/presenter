@@ -75,6 +75,8 @@ table {
             padding: 20px;
             /* background-color: black; */
             z-index: 99999;
+        }
+        .stroke {
             -webkit-text-stroke: 2px black;
         }
         .auxblock {
@@ -163,7 +165,7 @@ table {
         <div class="presentation auxblock" id='auxblock'>
 
         </div>
-        <div class="presentation" id='liveblock'>
+        <div class="presentation stroke" id='liveblock'>
 
         </div>
     </div>
@@ -207,10 +209,13 @@ table {
         }
         function toggleVideo(data) {
             const bgVideo = document.getElementById('bgvideo');
+            const liveBlock = document.getElementById('liveblock');
             if (data.content === 'on') {
                 bgVideo.style.display = 'block';
+                liveBlock.classList.add('stroke');
                 return;
             }
+            liveBlock.classList.remove('stroke');
             bgVideo.style.display = 'none';
         }
         function limparCronometro(data) {
@@ -373,7 +378,9 @@ table {
             if (params.get('showClock') === 'true') {
                 processTimeline(params);
                 document.getElementById('relogio-container').classList.add('show');
-                document.getElementById('liveblock').style.backgroundColor = 'black';
+                const liveBlock = document.getElementById('liveblock');
+                liveBlock.classList.remove('stroke');
+                liveBlock.style.backgroundColor = 'black';
                 document.getElementById('auxblock').style.display = 'block';
                 document.getElementById('bgvideo').remove();
                 setInterval(showTime, 30 * 1000);
