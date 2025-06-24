@@ -2,6 +2,7 @@ package bible
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"strings"
 
@@ -29,11 +30,18 @@ func CORS(c *gin.Context) {
 func GetBooksList(c *gin.Context) {
 	CORS(c)
 	status := http.StatusOK
+	cached, err := LoadTextFile("books.json")
+	if err == nil && len(cached) > 0 {
+		log.Println("Lista de livros carregada do cache.")
+		c.Data(status, "application/json; charset=utf-8", cached)
+		return
+	}
 	result, err := FetchBooksList()
+	SaveTextFile("books.json", result)
 	if err != nil {
 		status = http.StatusInternalServerError
 		errMsg := strings.ReplaceAll(err.Error(), `"`, `'`)
-		result = fmt.Sprintf(`{"error": "Error fetching books list: %s"}`, errMsg)
+		result = fmt.Sprintf(`{"error": "Erro ao buscar lista de livros: %s"}`, errMsg)
 	}
 	c.Data(status, "application/json; charset=utf-8", []byte(result))
 }
