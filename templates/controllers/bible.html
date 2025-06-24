@@ -269,7 +269,7 @@
     }
     async function fetchCapitulo(livro, numCapitulo) {
       // TODO: permitir selecionar versao
-      resp = await fetch(`{{APP_LOCATION}}/api/bible/chapter/ra/${livro}/${numCapitulo}`);
+      resp = await fetch(`{{APP_LOCATION}}/api/bible/chapter/acf/${livro}/${numCapitulo}`);
       if (!resp.ok) {
         throw new Error('Erro ao buscar capítulo da Bíblia');
       }
@@ -288,6 +288,63 @@
                 contentId: 'bible ' + chapter,
             })
         });
+    }
+    function normalizaTextoVersiculo(verso) {
+      const numero = verso.numero.toString();
+      const versiculo = verso.texto;
+      const LIMIT = 200;
+      if (versiculo.length <= LIMIT) {
+        return [verso];
+      }
+      const versos = [];
+      // Primeiro tenta dividir pelo ; do meio
+      if (versiculo.indexOf(';') > 0) {
+        const dividido = versiculo.split(';');
+        const meio = Math.floor(dividido.length / 2);
+        const joined = dividido.slice(0, meio).join(';');
+        const resto = dividido.slice(meio).join(';');
+        if (resto.search(/[A-Za-z]/) === -1) {
+          // Se o resto não tiver letras, o versículo é curto o suficiente
+          return [verso];
+        }
+        if (joined.length < LIMIT && resto.length < LIMIT) {
+          versos.push({
+            numero: numero.concat('a'),
+            texto: joined + ';'
+          });
+          versos.push({
+            numero: numero.concat('b'),
+            texto: resto
+          });
+          return versos;
+        }
+      }
+      const excessos = Math.floor(versiculo.length / LIMIT);
+      let sobraTexto = '';
+      for (let i = 0; i < excessos; i++) {
+        const parte = versiculo.slice(i * LIMIT, (i + 1) * LIMIT);
+        versos.push({
+          numero: numero.concat(String.fromCharCode(97 + i)),
+          texto: sobraTexto + parte.slice(0, parte.lastIndexOf(' '))
+        });
+        sobraTexto = parte.slice(parte.lastIndexOf(' '));
+      }
+      const ultimoTexto = versiculo.slice(excessos * LIMIT - sobraTexto.length);
+      if (ultimoTexto.split(' ').filter(Boolean).length <= 1) {
+        const last = versos.pop();
+        // Se o último texto é muito curto, adiciona ao penúltimo
+        const letraParte = versos.length > 0 ? String.fromCharCode(97 + excessos - 1) : '';
+        versos.push({
+          numero: numero.concat(letraParte),
+          texto: last.texto + ultimoTexto
+        });
+        return versos;
+      }
+      versos.push({
+        numero: numero.concat(String.fromCharCode(97 + excessos)),
+        texto: versiculo.slice(excessos * LIMIT - sobraTexto.length)
+      });
+      return versos;
     }
     document.addEventListener('DOMContentLoaded', function() {
       const livroSelect = document.getElementById('livro');
@@ -330,11 +387,6 @@
         const livro = selectedOption.textContent;
         const abbrev = selectedOption.value;
         const firstAlphaIndex = abbrev.search(/[A-Za-z]/);
-        const uppercasedAbbrev = firstAlphaIndex >= 0
-          ? abbrev.slice(0, firstAlphaIndex) +
-            abbrev.charAt(firstAlphaIndex).toUpperCase() +
-            abbrev.slice(firstAlphaIndex + 1)
-          : abbrev;
         const capitulo = capituloSelect.value;
 
         // Atualiza o título do capítulo
@@ -344,12 +396,20 @@
         blocosCarregados.innerHTML = '';
         fetchCapitulo(selectedOption.value, capitulo).then(versos => {
           // Preenche os blocos com os versos
+          const versosNormalizados = [];
           versos.forEach(verso => {
+            // Normaliza o texto do verso
+            const versoNormalizado = normalizaTextoVersiculo(verso);
+            versoNormalizado.forEach(texto => {
+              versosNormalizados.push(texto);
+            });
+          });
+          versosNormalizados.forEach(verso => {
             const blocoDiv = document.createElement('div');
             blocoDiv.className = 'bloco';
             blocoDiv.innerHTML = `<span>${verso.numero} </span><p>${verso.texto}</p>`;
             blocoDiv.addEventListener('click', () => {
-              const capituloCompleto = `${uppercasedAbbrev} ${capitulo}`;
+              const capituloCompleto = `${livro} ${capitulo}`;
               emitContent(`${capituloCompleto}:${verso.numero}`, verso.texto)
                 .then(() => console.log('Conteúdo enviado com sucesso'))
                 .catch(error => console.error('Erro ao enviar conteúdo:', error));
