@@ -279,6 +279,15 @@
         texto: verso.text
       }));
     }
+    async function emitContent(content) {
+        return await fetch('{{APP_LOCATION}}/api/content/set/main', {
+            method: 'POST',
+            body: JSON.stringify({
+                content,
+                type: 'TEXT',
+            })
+        });
+    }
     document.addEventListener('DOMContentLoaded', function() {
       const livroSelect = document.getElementById('livro');
       const capituloSelect = document.getElementById('capitulo');
@@ -295,7 +304,6 @@
           livroSelect.appendChild(option);
         });
         preencheCapitulos(); // Preenche os capítulos do primeiro livro
-        preencheVersiculos(); // Carrega o primeiro capítulo
       });
 
       livroSelect.addEventListener('change', preencheCapitulos);
@@ -313,11 +321,19 @@
           option.textContent = i;
           capituloSelect.appendChild(option);
         }
+        preencheVersiculos(); // Carrega o primeiro capítulo
       }
 
       function preencheVersiculos() {
         const selectedOption = livroSelect.options[livroSelect.selectedIndex];
         const livro = selectedOption.textContent;
+        const abbrev = selectedOption.value;
+        const firstAlphaIndex = abbrev.search(/[A-Za-z]/);
+        const uppercasedAbbrev = firstAlphaIndex >= 0
+          ? abbrev.slice(0, firstAlphaIndex) +
+            abbrev.charAt(firstAlphaIndex).toUpperCase() +
+            abbrev.slice(firstAlphaIndex + 1)
+          : abbrev;
         const capitulo = capituloSelect.value;
 
         // Atualiza o título do capítulo
@@ -331,6 +347,12 @@
             const blocoDiv = document.createElement('div');
             blocoDiv.className = 'bloco';
             blocoDiv.innerHTML = `<span>${verso.numero} </span><p>${verso.texto}</p>`;
+            blocoDiv.addEventListener('click', () => {
+              const capituloCompleto = `${uppercasedAbbrev} ${capitulo}`;
+              emitContent(`${capituloCompleto}:${verso.numero} ${verso.texto}`)
+                .then(() => console.log('Conteúdo enviado com sucesso'))
+                .catch(error => console.error('Erro ao enviar conteúdo:', error));
+            });
             blocosCarregados.appendChild(blocoDiv);
           });
         }).catch(error => {
