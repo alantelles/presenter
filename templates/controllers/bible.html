@@ -207,6 +207,7 @@
       flex-direction: column;
       padding: 10px;
       background-color: #d1e8ff;
+      padding-bottom: 70px;
     }
     .bloco {
       font-size: 20px;
@@ -250,6 +251,35 @@
       -ms-user-select: none; /* Internet Explorer/Edge */
       user-select: none; /* Non-prefixed version, currently supported by Chrome, Edge, Opera and Firefox */
     }
+    .container-botoes-troca-versiculos {
+      position: fixed;
+      bottom: 10px;
+      right: 10px;
+      z-index: 1000;
+      background-color: #a3c4e6;
+      padding: 10px;
+      border-radius: 6px;
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+    .container-botoes-troca-versiculos button {
+      padding: 10px;
+      font-size: 16px;
+      background-color: #005bb6;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-right: 10px;
+    }
+    .container-botoes-troca-versiculos button:last-child {
+      margin-right: 0;
+    }
+    .container-botoes-troca-versiculos button:hover {
+      background-color: #004494;
+    }
     @media screen and (max-height: 900px) {
       .bloco {
         font-size: 24px;
@@ -258,6 +288,10 @@
   </style>
 </head>
 <body>
+  <div class="container-botoes-troca-versiculos">
+    <button id="anterior-versiculo">Anterior</button>
+    <button id="proximo-versiculo">Próximo</button>
+  </div>
   <div class="container">
     <div class="fixed">
       <div class="header">
@@ -412,6 +446,24 @@
         preencheVersiculos(); // Carrega o primeiro capítulo
       }
 
+      function enviarVersiculoParaExibicao(event, verso) {
+        const capituloCompleto = `${livro} ${capitulo}`;
+        const clicked = document.getElementById(event.currentTarget.id);
+        clicked.classList.add('bloco-waiting');
+        const prevId = clicked.previousElementSibling ? clicked.previousElementSibling.id : '';
+        const nextId = clicked.nextElementSibling ? clicked.nextElementSibling.id : '';
+        document.getElementById('anterior-versiculo').dataset.versiculo = prevId;
+        document.getElementById('proximo-versiculo').dataset.versiculo = nextId;
+        emitContent(`${capituloCompleto}:${verso.numero}`, verso.texto)
+          .then(() => {
+            removeBlockSelectedClass();
+            console.log('Conteúdo enviado com sucesso');
+            clicked.classList.remove('bloco-waiting');
+            clicked.classList.add('bloco-selected');
+          })
+          .catch(error => console.error('Erro ao enviar conteúdo:', error));
+      }
+
       function preencheVersiculos() {
         const selectedOption = livroSelect.options[livroSelect.selectedIndex];
         const livro = selectedOption.textContent;
@@ -440,18 +492,8 @@
             blocoDiv.className = 'bloco';
             blocoDiv.classList.add('noselect');
             blocoDiv.innerHTML = `<span>${verso.numero} </span><p>${verso.texto}</p>`;
-            blocoDiv.addEventListener('click', (event) => {
-              const capituloCompleto = `${livro} ${capitulo}`;
-              const clicked = document.getElementById(event.currentTarget.id);
-              clicked.classList.add('bloco-waiting');
-              emitContent(`${capituloCompleto}:${verso.numero}`, verso.texto)
-                .then(() => {
-                  removeBlockSelectedClass();
-                  console.log('Conteúdo enviado com sucesso');
-                  clicked.classList.remove('bloco-waiting');
-                  clicked.classList.add('bloco-selected');
-                })
-                .catch(error => console.error('Erro ao enviar conteúdo:', error));
+            blocoDiv.addEventListener('click', event => {
+              enviarVersiculoParaExibicao(event, verso);
             });
             blocosCarregados.appendChild(blocoDiv);
           });
@@ -461,6 +503,17 @@
       };
 
       capituloSelect.addEventListener('change', preencheVersiculos);
+      document.querySelectorAll('.container-botoes-troca-versiculos button').forEach(button => {
+        button.addEventListener('click', function(event) {
+          const versiculoId = event.currentTarget.dataset.versiculo;
+          if (versiculoId) {
+            const bloco = document.getElementById(versiculoId);
+            if (bloco) {
+              bloco.click();
+            }
+          }
+        });
+      });
     });
   </script>
 </body>
