@@ -164,10 +164,6 @@
             width: calc(100vw - 17px);
         }
 
-        .inner {
-            margin-top: 234px;
-        }
-
         .inner div {
             padding: 10px;
             margin-bottom: 10px;
@@ -279,7 +275,6 @@
 
         .functions-buttons {
             padding: 10px;
-            height: 140px;
             top: 0;
             left: 0;
             width: 100%;
@@ -354,6 +349,21 @@
 
         .hide {
             display: none;
+        }
+        .functions-buttons-group {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 5px;
+        }
+        .functions-buttons-group button {
+            margin-right: 5px;
+        }
+        .functions-buttons-group p {
+            margin-right: 10px;
+            padding-top: 10px;
+            font-weight: bold;
+            font-size: 20px;
+            color: black;
         }
     </style>
     <style type="text/css">
@@ -460,20 +470,33 @@
                 <h1>Presenter - Músicas e texto</h1>
             </div>
             <div class="functions-buttons">
-                <button type="button" class="button button-big" id="clear-screen">Limpar tela</button>
-                <button type="button" class="button button-big" id="clear-text-input">Apagar texto</button>
-                <button type="button" class="button button-big" id="trigger-timer-1930">Cronometro até 19:30</button>
-                <button type="button" class="button button-big" id="trigger-timer-1800">Cronometro até 18:00</button>
+                <div class="functions-buttons-group">
+                    <p>Exibição</p>
+                    <div>
+                        <button type="button" class="button button-big" id="clear-screen">Limpar tela</button>
+                        <button type="button" class="button button-big" id="clear-text-input">Apagar texto</button>
+                    </div>
+                </div>
+                <div class="functions-buttons-group">
+                    <p>Regressivos</p>
+                    <div>
+                        <button type="button" class="button button-big" id="trigger-timer-1930">Até 19:30</button>
+                        <button type="button" class="button button-big" id="trigger-timer-1800">Até 18:00</button>
+                        <button type="button" class="button button-big" id="clear-regressive">Limpar</button>
+                    </div>
+                </div>
                 <!-- <button type="button" class="button button-big" id="open-modal-letras">Buscar no letras.mus</button> -->
                 <!-- <button type="button" class="button button-big" id="paste-to-text-input">Colar texto</button> -->
-                <div class="select-text">
-                    <select class="select " name="select-text" id="select-text-options">
-                    </select>
-                </div>
-                <div class="select-text">
-                    <button type="button" class="button" id="carregar-texto">Carregar texto</button>
-                    <button type="button" class="button" id="carregar-lista-musicas">Carregar lista</button>
-                    <button type="button" class="button" id="open-modal-procurar">Procurar músicas</button>
+                <div class="functions-buttons-group">
+                    <p>Selecionar texto</p>
+                    <div>
+                        <select class="select " name="select-text" id="select-text-options"></select>                        
+                    </div>
+                    <div>
+                        <button type="button" class="button" id="carregar-texto">Carregar texto</button>
+                        <button type="button" class="button" id="carregar-lista-musicas">Carregar lista</button>
+                        <button type="button" class="button" id="open-modal-procurar">Procurar músicas</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -812,7 +835,15 @@
             createBlocks();
             getSongList();
             getSongFolders();
-        })
+            setInnerMarginTop();
+        });
+        function setInnerMarginTop() {
+            const fixed = document.querySelector('.fixed');
+            const inner = document.querySelector('.inner');
+            const fixedHeight = fixed.offsetHeight;
+            console.log(`Fixed height: ${fixedHeight}`);
+            inner.style.marginTop = `${fixedHeight}px`;
+        }
 
     </script>
 </body>
