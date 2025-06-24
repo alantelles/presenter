@@ -599,6 +599,16 @@
             });
         }
 
+        function clearTimer() {
+            fetch('{{APP_LOCATION}}/api/content/set/command', {
+                method: 'POST',
+                body: JSON.stringify({
+                    contentId: `limparCronometro-${Date.now()}`,
+                    type: 'COMMAND',
+                })
+            });
+        }
+
         async function emitContent(content) {
             return await fetch('{{APP_LOCATION}}/api/content/set/main', {
                 method: 'POST',
@@ -830,6 +840,7 @@
 
             document.getElementById('trigger-timer-1930').addEventListener('click', triggerTimer.bind(null, 19, 30));
             document.getElementById('trigger-timer-1800').addEventListener('click', triggerTimer.bind(null, 18, 0));
+            document.getElementById('clear-regressive').addEventListener('click', clearTimer);
 
             openProcessedText();
             createBlocks();
