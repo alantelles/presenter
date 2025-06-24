@@ -219,8 +219,20 @@
       cursor: pointer;
       transition: background-color 0.2s ease;
     }
-    .bloco:hover {
+    .bloco:hover:not(.bloco-selected):not(.bloco-waiting) {
       background-color: #065099;
+      color: white;
+    }
+
+    .bloco-waiting {
+      background-color: rgb(196, 196, 196);
+      color: rgb(48, 48, 48);
+    }
+
+    .bloco-selected {
+      background-color: rgb(51, 100, 204);
+      color: rgb(255, 255, 255);
+      box-shadow: inset -10px -5px 5px 0px #094bad;
     }
     .bloco p {
       text-indent: 10px;
@@ -232,12 +244,11 @@
     }
     .noselect {
       -webkit-touch-callout: none; /* iOS Safari */
-        -webkit-user-select: none; /* Safari */
-        -khtml-user-select: none; /* Konqueror HTML */
-          -moz-user-select: none; /* Old versions of Firefox */
-            -ms-user-select: none; /* Internet Explorer/Edge */
-                user-select: none; /* Non-prefixed version, currently
-                                      supported by Chrome, Edge, Opera and Firefox */
+      -webkit-user-select: none; /* Safari */
+      -khtml-user-select: none; /* Konqueror HTML */
+      -moz-user-select: none; /* Old versions of Firefox */
+      -ms-user-select: none; /* Internet Explorer/Edge */
+      user-select: none; /* Non-prefixed version, currently supported by Chrome, Edge, Opera and Firefox */
     }
     @media screen and (max-height: 900px) {
       .bloco {
@@ -360,6 +371,11 @@
       });
       return versos;
     }
+    function removeBlockSelectedClass() {
+        document.querySelectorAll('.bloco-selected').forEach(elemQuery => {
+            const elem = document.getElementById(elemQuery.id).classList.remove('bloco-selected');
+        });
+    }
     document.addEventListener('DOMContentLoaded', function() {
       const livroSelect = document.getElementById('livro');
       const capituloSelect = document.getElementById('capitulo');
@@ -420,13 +436,21 @@
           });
           versosNormalizados.forEach(verso => {
             const blocoDiv = document.createElement('div');
+            blocoDiv.id = `bloco-${abbrev}-${capitulo}-${verso.numero}`;
             blocoDiv.className = 'bloco';
             blocoDiv.classList.add('noselect');
             blocoDiv.innerHTML = `<span>${verso.numero} </span><p>${verso.texto}</p>`;
-            blocoDiv.addEventListener('click', () => {
+            blocoDiv.addEventListener('click', (event) => {
               const capituloCompleto = `${livro} ${capitulo}`;
+              const clicked = document.getElementById(event.currentTarget.id);
+              clicked.classList.add('bloco-waiting');
               emitContent(`${capituloCompleto}:${verso.numero}`, verso.texto)
-                .then(() => console.log('Conteúdo enviado com sucesso'))
+                .then(() => {
+                  removeBlockSelectedClass();
+                  console.log('Conteúdo enviado com sucesso');
+                  clicked.classList.remove('bloco-waiting');
+                  clicked.classList.add('bloco-selected');
+                })
                 .catch(error => console.error('Erro ao enviar conteúdo:', error));
             });
             blocosCarregados.appendChild(blocoDiv);
