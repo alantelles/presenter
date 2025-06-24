@@ -284,6 +284,10 @@
       .bloco {
         font-size: 24px;
       }
+      .container-botoes-troca-versiculos button {
+        padding: 12px;
+        font-size: 23px;
+      }
     }
   </style>
 </head>
@@ -446,7 +450,7 @@
         preencheVersiculos(); // Carrega o primeiro capítulo
       }
 
-      function enviarVersiculoParaExibicao(event, verso) {
+      function enviarVersiculoParaExibicao(event, verso, livro, capitulo) {
         const capituloCompleto = `${livro} ${capitulo}`;
         const clicked = document.getElementById(event.currentTarget.id);
         clicked.classList.add('bloco-waiting');
@@ -493,7 +497,7 @@
             blocoDiv.classList.add('noselect');
             blocoDiv.innerHTML = `<span>${verso.numero} </span><p>${verso.texto}</p>`;
             blocoDiv.addEventListener('click', event => {
-              enviarVersiculoParaExibicao(event, verso);
+              enviarVersiculoParaExibicao(event, verso, livro, capitulo);
             });
             blocosCarregados.appendChild(blocoDiv);
           });
