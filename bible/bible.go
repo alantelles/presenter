@@ -63,7 +63,12 @@ func GetChapter(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Capítulo inválido"})
 		return
 	}
-
+	cached, err := LoadChapter(book, version, chapterNumber)
+	if err == nil && len(cached) > 0 {
+		log.Println("Capítulo carregado do cache.")
+		c.Data(http.StatusOK, "application/json; charset=utf-8", cached)
+		return
+	}
 	result, status, err := FetchChapter(version, book, chapterNumber)
 	if err != nil {
 		errMsg := strings.ReplaceAll(err.Error(), `"`, `'`)
@@ -83,4 +88,10 @@ func SaveChapter(book, version string, chapter int, content string) {
 	path := fmt.Sprintf("%s/%s", version, book)
 	CreateFolder(path)
 	SaveTextFile(path+"/"+fileName, content)
+}
+
+func LoadChapter(book, version string, chapter int) ([]byte, error) {
+	fileName := fmt.Sprintf("%s_%s_%d.json", version, book, chapter)
+	path := fmt.Sprintf("%s/%s", version, book)
+	return LoadTextFile(path + "/" + fileName)
 }
