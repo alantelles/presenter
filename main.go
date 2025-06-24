@@ -171,6 +171,7 @@ func main() {
 	router.GET("/api/lyrics/letras/song", getSongLyricFromLetrasByUrl)
 
 	router.GET("/api/bible/books", bible.GetBooksList)
+	router.GET("/api/bible/chapter/:version/:book/:chapter", bible.GetChapter)
 
 	log.Print("PRESENTER - Desenvolvido por Alan Telles")
 	log.Print("Iniciando serviço...")

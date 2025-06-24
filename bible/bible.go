@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -44,4 +45,31 @@ func GetBooksList(c *gin.Context) {
 		result = fmt.Sprintf(`{"error": "Erro ao buscar lista de livros: %s"}`, errMsg)
 	}
 	c.Data(status, "application/json; charset=utf-8", []byte(result))
+}
+
+func GetChapter(c *gin.Context) {
+	CORS(c)
+	version := c.Param("version")
+	book := c.Param("book")
+	chapter := c.Param("chapter")
+
+	if version == "" || book == "" || chapter == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Parâmetros inválidos"})
+		return
+	}
+
+	chapterNumber, err := strconv.Atoi(chapter)
+	if err != nil || chapterNumber <= 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Capítulo inválido"})
+		return
+	}
+
+	result, err := FetchChapter(version, book, chapterNumber)
+	if err != nil {
+		errMsg := strings.ReplaceAll(err.Error(), `"`, `'`)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("Erro ao buscar capítulo: %s", errMsg)})
+		return
+	}
+
+	c.Data(http.StatusOK, "application/json; charset=utf-8", []byte(result))
 }
