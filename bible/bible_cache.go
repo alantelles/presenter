@@ -7,6 +7,31 @@ import (
 	"os"
 )
 
+// exists returns whether the given file or directory exists
+func PathExists(path string) (bool, error) {
+	_, err := os.Stat(path)
+	if err == nil {
+		return true, nil
+	}
+	if os.IsNotExist(err) {
+		return false, nil
+	}
+	return false, err
+}
+
+func CreateFolder(path string) {
+	exists, _ := PathExists(path)
+	if exists {
+		return
+	}
+	err := os.MkdirAll(path, 0755)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	log.Printf("Diretório %s criado com sucesso", path)
+}
+
 func SaveTextFile(fileName string, content string) {
 	path := "bible/fetched/" + fileName
 	f, err := os.Create(path)

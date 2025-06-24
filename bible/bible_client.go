@@ -46,23 +46,26 @@ func FetchBooksList() (string, error) {
 	return string(body), nil
 }
 
-func FetchChapter(version, book string, chapter int) (string, error) {
+func FetchChapter(version, book string, chapter int) (string, int, error) {
 	url := fmt.Sprintf("%s/verses/%s/%s/%d", BibleApiUrl, version, book, chapter)
 	log.Println("Buscando capítulo em: " + url)
 	req, err := GetRequest(url)
 	if err != nil {
-		return "Erro ao buscar o capítulo: " + err.Error(), err
+		return "Erro ao buscar o capítulo: " + err.Error(), http.StatusInternalServerError, err
 	}
 	resp, err := client.Do(req)
 	if err != nil {
-		return "Erro ao buscar o capítulo: " + err.Error(), err
+		return "Erro ao buscar o capítulo: " + err.Error(), resp.StatusCode, err
+	}
+	if resp.StatusCode == http.StatusNotFound {
+		return "Erro ao buscar o capítulo: Capítulo não encontrado. Verifique número ou se versão existe", resp.StatusCode, nil
 	}
 	defer resp.Body.Close()
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return "Error reading response body: " + err.Error(), err
+		return "Error reading response body: " + err.Error(), resp.StatusCode, err
 	}
-	return string(body), nil
+	return string(body), resp.StatusCode, nil
 }
 
 func GetRequest(url string) (*http.Request, error) {

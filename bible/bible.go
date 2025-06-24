@@ -64,12 +64,21 @@ func GetChapter(c *gin.Context) {
 		return
 	}
 
-	result, err := FetchChapter(version, book, chapterNumber)
+	result, status, err := FetchChapter(version, book, chapterNumber)
 	if err != nil {
 		errMsg := strings.ReplaceAll(err.Error(), `"`, `'`)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("Erro ao buscar capítulo: %s", errMsg)})
+		c.JSON(status, gin.H{"error": fmt.Sprintf("Erro ao buscar capítulo: %s", errMsg)})
 		return
 	}
+	if status == http.StatusNotFound {
+		c.JSON(status, gin.H{"error": fmt.Sprintf("Capítulo %d do livro %s na versão %s não encontrado", chapterNumber, book, version)})
+		return
+	}
+	SaveChapter(book, version, chapterNumber, result)
+	c.Data(status, "application/json; charset=utf-8", []byte(result))
+}
 
-	c.Data(http.StatusOK, "application/json; charset=utf-8", []byte(result))
+func SaveChapter(book, version string, chapter int, content string) {
+	fileName := fmt.Sprintf("%s_%s_%d.json", version, book, chapter)
+	SaveTextFile(fileName, content)
 }
