@@ -67,6 +67,13 @@ table {
             justify-content: center;
             height: 100vh;
         }
+        .bible-chapter {
+            position: absolute;
+            top: 10px; left: 10px;
+            font-size: 40px;
+            font-weight: bold;
+            color: white;
+        }
         .presentation {
             font-size: calc((100vw / 100) * 5.3 );
             text-align: center;
@@ -159,21 +166,21 @@ table {
         <p class="momento-cronograma" id="momento-cronograma-atual"></p>
     </div>
     <div class="container">
-        <div class="presentation cronometro" id='cronometro'>
-
-        </div>
-        <div class="presentation auxblock" id='auxblock'>
-
-        </div>
-        <div class="presentation stroke" id='liveblock'>
-
-        </div>
+        <div class="bible-chapter"></div>
+        <div class="presentation cronometro" id='cronometro'></div>
+        <div class="presentation auxblock" id='auxblock'></div>
+        <div class="presentation stroke" id='liveblock'></div>
     </div>
     <script>
         var lastCommandId = window.sessionStorage.getItem('lastCommandId') || undefined;
         var lastChronoId = undefined;
         var lastMainText = '';
         var lastAuxText = '';
+        function processBibleData(contentId) {
+            const capitulo = contentId.slice(contentId.indexOf(' ') + 1);
+            const bibleChapter = document.querySelector('.bible-chapter');
+            bibleChapter.textContent = capitulo;
+        }
         function processMainProviderData(data) {
             const liveBlock = document.getElementById('liveblock');            
             if (isShowClockMode()) {
@@ -188,6 +195,15 @@ table {
             }
             lastMainText = data.content;
             liveBlock.innerHTML = data.content.replaceAll('\n', '<br>');
+            if (data.contentId.startsWith('bible ')) {
+                processBibleData(data.contentId);
+                toggleVideo({content: 'off'}); // Desliga o vídeo se for um capítulo da Bíblia
+            } else {
+                // Se não for um capítulo da Bíblia, remove o capítulo
+                const bibleChapter = document.querySelector('.bible-chapter');
+                bibleChapter.textContent = '';
+                toggleVideo({content: 'on'}); // Liga o vídeo para outros conteúdos
+            }
         }
         function processAuxProviderData(data) {
             if (!data) {

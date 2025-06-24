@@ -279,12 +279,13 @@
         texto: verso.text
       }));
     }
-    async function emitContent(content) {
+    async function emitContent(chapter, content) {
         return await fetch('{{APP_LOCATION}}/api/content/set/main', {
             method: 'POST',
             body: JSON.stringify({
                 content,
                 type: 'TEXT',
+                contentId: 'bible ' + chapter,
             })
         });
     }
@@ -349,7 +350,7 @@
             blocoDiv.innerHTML = `<span>${verso.numero} </span><p>${verso.texto}</p>`;
             blocoDiv.addEventListener('click', () => {
               const capituloCompleto = `${uppercasedAbbrev} ${capitulo}`;
-              emitContent(`${capituloCompleto}:${verso.numero} ${verso.texto}`)
+              emitContent(`${capituloCompleto}:${verso.numero}`, verso.texto)
                 .then(() => console.log('Conteúdo enviado com sucesso'))
                 .catch(error => console.error('Erro ao enviar conteúdo:', error));
             });
