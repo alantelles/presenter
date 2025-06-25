@@ -280,6 +280,18 @@
     .container-botoes-troca-versiculos button:hover {
       background-color: #004494;
     }
+    .container-botoes-troca-versiculos button:disabled {
+      background-color: #ccc;
+      cursor: not-allowed;
+      color: #4d4d4d;
+    }
+    .container-botoes-troca-versiculos button span {
+      font-weight: bold;
+      display: inline-block;
+      font-size: 22px;
+      margin-bottom: -5px;
+      margin-top: -5px;
+    }
     @media screen and (max-height: 900px) {
       .bloco {
         font-size: 24px;
@@ -293,8 +305,8 @@
 </head>
 <body>
   <div class="container-botoes-troca-versiculos">
-    <button id="anterior-versiculo">Anterior</button>
-    <button id="proximo-versiculo">Próximo</button>
+    <button id="anterior-versiculo" disabled><span>&#xab;</span> Anterior</button>
+    <button id="proximo-versiculo" disabled>Próximo <span>&#xbb;</span></button>
   </div>
   <div class="container">
     <div class="fixed">
@@ -456,8 +468,12 @@
         clicked.classList.add('bloco-waiting');
         const prevId = clicked.previousElementSibling ? clicked.previousElementSibling.id : '';
         const nextId = clicked.nextElementSibling ? clicked.nextElementSibling.id : '';
-        document.getElementById('anterior-versiculo').dataset.versiculo = prevId;
-        document.getElementById('proximo-versiculo').dataset.versiculo = nextId;
+        const versiculoAnterior = document.getElementById('anterior-versiculo');
+        const versiculoProximo = document.getElementById('proximo-versiculo');
+        versiculoAnterior.disabled = !prevId;
+        versiculoProximo.disabled = !nextId;
+        versiculoAnterior.dataset.versiculo = prevId;
+        versiculoProximo.dataset.versiculo = nextId;
         emitContent(`${capituloCompleto}:${verso.numero}`, verso.texto)
           .then(() => {
             removeBlockSelectedClass();
@@ -466,6 +482,7 @@
             clicked.classList.add('bloco-selected');
           })
           .catch(error => console.error('Erro ao enviar conteúdo:', error));
+        return clicked;
       }
 
       function preencheVersiculos() {
@@ -481,6 +498,13 @@
         // Limpa os blocos carregados
         blocosCarregados.innerHTML = '';
         fetchCapitulo(selectedOption.value, capitulo).then(versos => {
+          ['anterior-versiculo', 'proximo-versiculo'].forEach(elem => {
+            const button = document.getElementById(elem);
+            if (button) {
+              button.disabled = true;
+              button.dataset.versiculo = '';
+            }
+          });
           // Preenche os blocos com os versos
           const versosNormalizados = [];
           versos.forEach(verso => {
@@ -497,7 +521,14 @@
             blocoDiv.classList.add('noselect');
             blocoDiv.innerHTML = `<span>${verso.numero} </span><p>${verso.texto}</p>`;
             blocoDiv.addEventListener('click', event => {
-              enviarVersiculoParaExibicao(event, verso, livro, capitulo);
+              const clicked = enviarVersiculoParaExibicao(event, verso, livro, capitulo);
+              const headerOffset = document.querySelector('.fixed').offsetHeight;
+              const elementPosition = clicked.getBoundingClientRect().top + window.pageYOffset;
+              const offsetPosition = elementPosition - headerOffset - 10;
+              window.scrollTo({
+                top: offsetPosition,
+                behavior: 'smooth'
+              });
             });
             blocosCarregados.appendChild(blocoDiv);
           });
