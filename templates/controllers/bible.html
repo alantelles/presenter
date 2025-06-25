@@ -441,12 +441,19 @@
           option.dataset.capitulos = livro.capitulos;
           livroSelect.appendChild(option);
         });
-        preencheCapitulos(); // Preenche os capítulos do primeiro livro
+        const [abbrev, capitulo, versiculo] = window.sessionStorage.getItem('bibleChapter')?.split(' ') || ['gn', '1'];
+        livroSelect.value = abbrev;
+        capituloSelect.value = capitulo;
+        livroCapituloHeader.textContent = `${livroSelect.options[livroSelect.selectedIndex].textContent} ${capitulo}`;        
+        preencheCapitulos(capitulo); // Preenche os capítulos do primeiro livro
       });
 
-      livroSelect.addEventListener('change', preencheCapitulos);
+      livroSelect.addEventListener('change', () => {
+        window.sessionStorage.removeItem('bibleChapter');
+        preencheCapitulos();
+      });
 
-      function preencheCapitulos() {
+      function preencheCapitulos(capituloSelecionado = 1) {
         const livro = livroSelect.value;
         const selectedOption = livroSelect.options[livroSelect.selectedIndex];
         const capitulos = selectedOption.dataset.capitulos;
@@ -459,6 +466,7 @@
           option.textContent = i;
           capituloSelect.appendChild(option);
         }
+        capituloSelect.value = capituloSelecionado;
         preencheVersiculos(); // Carrega o primeiro capítulo
       }
 
@@ -474,6 +482,8 @@
         versiculoProximo.disabled = !nextId;
         versiculoAnterior.dataset.versiculo = prevId;
         versiculoProximo.dataset.versiculo = nextId;
+        const [abbrev, capituloStored, versiculoNum] = window.sessionStorage.getItem('bibleChapter')?.split(' ') || ['gn', '1', '1'];
+        window.sessionStorage.setItem('bibleChapter', `${abbrev} ${capituloStored} ${verso.numero}`);
         emitContent(`${capituloCompleto}:${verso.numero}`, verso.texto)
           .then(() => {
             removeBlockSelectedClass();
@@ -489,7 +499,6 @@
         const selectedOption = livroSelect.options[livroSelect.selectedIndex];
         const livro = selectedOption.textContent;
         const abbrev = selectedOption.value;
-        const firstAlphaIndex = abbrev.search(/[A-Za-z]/);
         const capitulo = capituloSelect.value;
 
         // Atualiza o título do capítulo
@@ -497,6 +506,8 @@
 
         // Limpa os blocos carregados
         blocosCarregados.innerHTML = '';
+        const versiculo = window.sessionStorage.getItem('bibleChapter')?.split(' ')[2] || '';
+        window.sessionStorage.setItem('bibleChapter', `${abbrev} ${capitulo}`);
         fetchCapitulo(selectedOption.value, capitulo).then(versos => {
           ['anterior-versiculo', 'proximo-versiculo'].forEach(elem => {
             const button = document.getElementById(elem);
@@ -532,12 +543,21 @@
             });
             blocosCarregados.appendChild(blocoDiv);
           });
+          if (versiculo) {
+            const blocoSelecionado = document.getElementById(`bloco-${abbrev}-${capitulo}-${versiculo}`);
+            if (blocoSelecionado) {
+              blocoSelecionado.click();
+            }
+          }
         }).catch(error => {
           console.error('Erro ao carregar capítulo:', error);
         });
       };
 
-      capituloSelect.addEventListener('change', preencheVersiculos);
+      capituloSelect.addEventListener('change', () => {
+        window.sessionStorage.removeItem('bibleChapter');
+        preencheVersiculos();
+      });
       document.querySelectorAll('.container-botoes-troca-versiculos button').forEach(button => {
         button.addEventListener('click', function(event) {
           const versiculoId = event.currentTarget.dataset.versiculo;
