@@ -166,6 +166,26 @@
       font-size: 25px;
       border-bottom: 1px solid #dee2e6;
     }
+    .alerts {
+      position: fixed;
+      flex-direction: column;
+      top: 20px;
+      right: 20px;
+      display: flex;      
+      z-index: 9000;
+    }
+    .alert {
+      width: 300px;
+      background-color: #f8d7da;
+      color: #721c24;
+      padding: 15px;
+      border: 1px solid #f5c6cb;
+      border-radius: 4px;
+      margin-bottom: 2px;
+    }
+    .alert p {
+      line-height: 1.2;
+    }
     .seletor-capitulo {
       display: flex;
       flex-direction: row;
@@ -300,10 +320,16 @@
         padding: 12px;
         font-size: 20px;
       }
+      .alerts {
+        top: 110px;
+      }
     }
   </style>
 </head>
 <body>
+  <div class="alerts">
+    <!-- Alertas serão adicionados aqui dinamicamente -->
+  </div>
   <div class="container-botoes-troca-versiculos">
     <button id="anterior-versiculo" disabled><span>&#xab;</span> Anterior</button>
     <button id="proximo-versiculo" disabled>Próximo <span>&#xbb;</span></button>
@@ -347,7 +373,8 @@
       // TODO: permitir selecionar versao
       resp = await fetch(`{{APP_LOCATION}}/api/bible/chapter/acf/${livro}/${numCapitulo}`);
       if (!resp.ok) {
-        throw new Error('Erro ao buscar capítulo da Bíblia');
+        const body = await resp.json();
+        throw new Error(body.error || 'Erro ao buscar capítulo da Bíblia');
       }
       const capitulo = await resp.json();
       return capitulo.verses.map(verso => ({
@@ -514,9 +541,10 @@
         const livro = selectedOption.textContent;
         const abbrev = selectedOption.value;
         const capitulo = capituloSelect.value;
+        const header = `${livro} ${capitulo}`.toString();
 
         // Atualiza o título do capítulo
-        livroCapituloHeader.textContent = `${livro} ${capitulo}`;
+        livroCapituloHeader.textContent = header;
 
         // Limpa os blocos carregados
         blocosCarregados.innerHTML = '';
@@ -565,8 +593,21 @@
           }
         }).catch(error => {
           console.error('Erro ao carregar capítulo:', error);
+          const message = error.toString().replace('Error: ', header + ' - ');
+          addAlert(message || 'Erro ao carregar capítulo');
         });
       };
+      function addAlert(message) {
+        const alertsContainer = document.querySelector('.alerts');
+        const alertDiv = document.createElement('div');
+        alertDiv.className = 'alert';
+        alertDiv.innerHTML = `<p>${message}</p>`;
+        alertsContainer.prepend(alertDiv);
+        setTimeout(() => {
+          alertDiv.style.display = 'none';
+          alertDiv.remove();
+        }, 57000);
+      }
 
       capituloSelect.addEventListener('change', () => {
         window.sessionStorage.removeItem('bibleChapter');
