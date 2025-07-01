@@ -220,7 +220,7 @@
       cursor: pointer;
       transition: background-color 0.2s ease;
     }
-    .bloco:hover:not(.bloco-selected):not(.bloco-waiting) {
+    .bloco:hover:not(.bloco-selected):not(.bloco-waiting), .hilited {
       background-color: #065099;
       color: white;
     }
@@ -432,7 +432,10 @@
     }
     function removeBlockSelectedClass() {
         document.querySelectorAll('.bloco-selected').forEach(elemQuery => {
-            const elem = document.getElementById(elemQuery.id).classList.remove('bloco-selected');
+            const elem = document.getElementById(elemQuery.id);
+            elem.classList.remove('bloco-selected');
+            elem.classList.remove('hilited');
+            elem.classList.remove('bloco-waiting');
         });
     }
     document.addEventListener('DOMContentLoaded', function() {
@@ -557,7 +560,7 @@
           if (versiculo) {
             const blocoSelecionado = document.getElementById(`bloco-${abbrev}-${capitulo}-${versiculo}`);
             if (blocoSelecionado) {
-              blocoSelecionado.click();
+              blocoSelecionado.classList.add('hilited');
             }
           }
         }).catch(error => {
