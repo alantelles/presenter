@@ -298,7 +298,7 @@
       }
       .container-botoes-troca-versiculos button {
         padding: 12px;
-        font-size: 23px;
+        font-size: 20px;
       }
     }
   </style>
@@ -307,6 +307,7 @@
   <div class="container-botoes-troca-versiculos">
     <button id="anterior-versiculo" disabled><span>&#xab;</span> Anterior</button>
     <button id="proximo-versiculo" disabled>Próximo <span>&#xbb;</span></button>
+    <button id="limpar-tela">Limpar tela</button>
   </div>
   <div class="container">
     <div class="fixed">
@@ -363,6 +364,14 @@
                 contentId: 'bible ' + chapter,
             })
         });
+    }
+    async function limparTela() {
+      emitContent('', '')
+        .then(() => {
+          removeBlockSelectedClass();
+          window.sessionStorage.removeItem('bibleChapter');
+        })
+        .catch(error => console.error('Erro ao limpar tela:', error));
     }
     function normalizaTextoVersiculo(verso) {
       const numero = verso.numero.toString();
@@ -431,6 +440,8 @@
       const capituloSelect = document.getElementById('capitulo');
       const livroCapituloHeader = document.getElementById('livro-capitulo');
       const blocosCarregados = document.querySelector('.blocos-carregados');
+
+      document.getElementById('limpar-tela').addEventListener('click', limparTela);
 
       fetchLivros().then(livros => {
         // Preenche o seletor de livros
