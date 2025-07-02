@@ -188,9 +188,9 @@
 
         .input-text {
             justify-content: center;
-            margin-left: 10px;
+            margin-left: 5px;
             color: black;
-            width: calc(100% - 20px);
+            width: calc(100% - 10px);
             border-top: solid 4px rgb(9, 7, 129);
         }
 
@@ -243,6 +243,9 @@
         .button-small {
             font-size: 14px;
             padding: 5px;
+        }
+        .text-trigger-button {
+            background-color: crimson;
         }
 
         .bloco {
@@ -380,7 +383,7 @@
             display: flex;
             flex-direction: column;
             margin-bottom: 5px;
-            margin-left: 10px;
+            margin-left: 5px;
         }
         .functions-buttons-group button {
             margin-right: 5px;
@@ -402,9 +405,6 @@
             margin-right: 5px;
         }
         @media screen and (max-width: 1000px) {
-            .container {
-                height: 160vh;
-            }
             .functions-buttons-group button {
                 margin-bottom: 5px;
             }
@@ -422,6 +422,7 @@
             }
             .functions button {
                 margin-bottom: 6px;
+                margin-right: 0;
             }
             .instrucoes {
                 display: none;
@@ -533,8 +534,13 @@
         <div class="fixed">
             <div class="title">
                 <h1>Presenter - Músicas e texto</h1>
-            </div>
+            </div>            
             <div class="functions-buttons">
+                <div class="functions-buttons-group">
+                    <p>Trigger texto</p>
+                    <div class="functions-triggers" id="text-triggers">                        
+                    </div>
+                </div>
                 <div class="functions-buttons-group">
                     <p>Exibição</p>
                     <div class="functions-triggers">
@@ -763,6 +769,12 @@
             const text = await loadTextFromBackend(fileName);
             createBlocks(text);
         }
+        async function loadAndCreateBlocksFromTrigger(event) {
+            console.log(event);
+            const fileName = event.target.value;
+            const text = await loadTextFromBackend(fileName);
+            createBlocks(text);
+        }
 
         async function loadTextFromBackend(song) {
             const params = new URLSearchParams({ song }).toString();
@@ -775,6 +787,7 @@
             const res = await fetch('{{APP_LOCATION}}/api/songs');
             const json = await res.json();
             fillSongsOption(json.mediaList);
+            fillSongsInButtonTriggers(json.mediaList);
         }
 
         async function getSongFolders() {
@@ -860,6 +873,19 @@
                 optionElem.value = songName;
                 optionElem.textContent = songName;
                 selectSong.appendChild(optionElem);
+            });
+        }
+
+        function fillSongsInButtonTriggers(mediaList) {
+            const textTriggersContainer = document.getElementById('text-triggers');
+            textTriggersContainer.textContent = '';
+            mediaList.sort().forEach(songName => {
+                const triggerElem = document.createElement('button');
+                triggerElem.classList.add('button', 'button-big', 'text-trigger-button')
+                triggerElem.value = songName;
+                triggerElem.textContent = songName.replace('.txt', '');
+                triggerElem.addEventListener('click', loadAndCreateBlocksFromTrigger);
+                textTriggersContainer.appendChild(triggerElem);
             });
         }
 
