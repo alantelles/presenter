@@ -163,6 +163,8 @@ func main() {
 	router.GET("/api/songs/folder", getAllSongsFromFolder)
 
 	router.GET("/controller/:page", viewController)
+	router.GET("/controller", viewHome)
+	router.GET("/", viewHome)
 	router.GET("/live", viewPanel)
 
 	router.GET("/api/discover", discover)
