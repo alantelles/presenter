@@ -187,6 +187,10 @@
 
         .input-text {
             justify-content: center;
+            margin-left: 10px;
+            color: black;
+            width: calc(100% - 20px);
+            border-top: solid 4px rgb(9, 7, 129);
         }
 
         .input-text p {
@@ -195,13 +199,16 @@
         }
 
         .cont-text-to-show {
-            width: calc(100% - 24px);
+            width: calc(100% - 6px);
+            margin-bottom: 10px;
         }
 
         .text-to-show {
             font-size: 16px;
             width: 100%;
             height: 200px;
+            border: solid 2px rgb(93, 91, 182);
+            border-radius: 6px;
         }
 
         .button {
@@ -218,7 +225,7 @@
         }
 
         .button-big {
-            font-size: 20px;
+            font-size: 15px;
             font-weight: bold;
         }
 
@@ -372,7 +379,7 @@
             margin-right: 10px;
             padding-top: 10px;
             font-weight: bold;
-            font-size: 20px;
+            font-size: 15px;
             color: black;
         }
         .functions-buttons-group label {
@@ -532,22 +539,23 @@
                         <button type="button" class="button" id="open-modal-procurar">Procurar músicas</button>
                     </div>
                 </div>
+                <div class="input-text">
+                    <p>Insira um texto neste campo e clique em "Criar blocos" quando estiver pronto.</p>
+                    <p>Para exibir um conteúdo na apresentação clique no bloco gerado com o texto</p>
+                    <div class="cont-text-to-show">
+                        <textarea class="text-to-show" name="text-to-show" id="text-to-show"></textarea>
+                    </div>
+                    <div class="functions">
+                        <button class="button" type="button" id="process-text">Criar blocos</button>
+                        <button class="button" type="button" id="save-text">Salvar texto</button>
+                        <button class="button" type="button" id="set-aux-text">Exibir auxiliar</button>
+                        <button class="button" type="button" id="clean-aux-text">Limpar auxiliar</button>
+                    </div>
+                </div>
+                
             </div>
         </div>
-        <div class="inner">
-            <div class="input-text">
-                <p>Insira um texto neste campo e clique em "Criar blocos" quando estiver pronto.</p>
-                <p>Para exibir um conteúdo na apresentação clique no bloco gerado com o texto</p>
-                <div class="cont-text-to-show">
-                    <textarea class="text-to-show" name="text-to-show" id="text-to-show"></textarea>
-                </div>
-            </div>
-            <div class="functions">
-                <button class="button" type="button" id="process-text">Criar blocos</button>
-                <button class="button" type="button" id="save-text">Salvar texto</button>
-                <button class="button" type="button" id="set-aux-text">Exibir auxiliar</button>
-                <button class="button" type="button" id="clean-aux-text">Limpar auxiliar</button>
-            </div>
+        <div class="inner">            
             <div class="blocos" id="blocos">
             </div>
         </div>
