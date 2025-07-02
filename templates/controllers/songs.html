@@ -162,14 +162,15 @@
             display: flex;
             flex-direction: column;
             width: calc(100vw - 17px);
+            height: 100vh;
         }
         .inner  {
             position: fixed;
             top: 0;
             left: 50vw;
             width: 50vw;
-            height: 100vh;
-            overflow-y: auto;
+            height: 100%;
+            overflow: auto;
         }
 
         .inner div {
@@ -196,6 +197,15 @@
         .input-text p {
             font-size: 18px;
             line-height: 1.2;
+        }
+
+        .functions {
+            display: flex;
+            flex-direction: row;
+            justify-content: start;
+        }
+        .functions button {
+            margin-right: 5px;
         }
 
         .cont-text-to-show {
@@ -286,17 +296,16 @@
         .fixed {
             position: fixed;
             width: 50vw;
-            height: 100vh;
-            background-color: #409cff;
+            height: 100%;
+            background-color: #e8eafa;
+            overflow: auto;
         }
 
         .functions-buttons {
             top: 0;
             left: 0;
             width: 100%;
-            height: 100vh;
             background-color: rgb(232, 234, 250);
-            border-bottom: solid 2px rgb(9, 7, 129);
         }
 
         .select-text {
@@ -378,6 +387,7 @@
         }
         .functions-buttons-group p {
             margin-right: 10px;
+            margin-bottom: 6px;
             padding-top: 10px;
             font-weight: bold;
             font-size: 15px;
@@ -391,19 +401,34 @@
         .functions-buttons-group input[type=checkbox] {
             margin-right: 5px;
         }
-        @media screen and (max-width: 600px) {
-            .functions-buttons-group {
-                flex-direction: row;
-                flex-wrap: wrap;
+        @media screen and (max-width: 1000px) {
+            .container {
+                height: 160vh;
             }
             .functions-buttons-group button {
                 margin-bottom: 5px;
+            }
+            .functions-buttons-group .functions-triggers {
+                display: flex;
+                flex-direction: column;
+                align-items: left;
             }
             .functions-buttons-group p {
                 margin-right: 0;
                 margin-bottom: 5px;
             }
-            
+            .functions {
+                flex-direction: column;
+            }
+            .functions button {
+                margin-bottom: 6px;
+            }
+            .instrucoes {
+                display: none;
+            }
+            .text-to-show {
+                margin-top: 8px;
+            }
         }
     </style>
     <style type="text/css">
@@ -512,16 +537,18 @@
             <div class="functions-buttons">
                 <div class="functions-buttons-group">
                     <p>Exibição</p>
-                    <div>
+                    <div class="functions-triggers">
                         <button type="button" class="button button-big" id="clear-screen">Limpar tela</button>
                         <button type="button" class="button button-big" id="clear-text-input">Apagar texto</button>
-                        <input type="checkbox" name="toggle-video" id="toggle-video" checked>
-                        <label for="toggle-video">Exibir vídeo</label>
+                        <div style="display: inline;">
+                            <input type="checkbox" name="toggle-video" id="toggle-video" checked>
+                            <label for="toggle-video">Exibir vídeo</label>
+                        </div>
                     </div>
                 </div>
                 <div class="functions-buttons-group">
                     <p>Regressivos</p>
-                    <div>
+                    <div class="functions-triggers">
                         <button type="button" class="button button-big" id="trigger-timer-1930">Até 19:30</button>
                         <button type="button" class="button button-big" id="trigger-timer-1800">Até 18:00</button>
                         <button type="button" class="button button-big" id="clear-regressive">Limpar</button>
@@ -531,18 +558,18 @@
                 <!-- <button type="button" class="button button-big" id="paste-to-text-input">Colar texto</button> -->
                 <div class="functions-buttons-group">
                     <p>Selecionar texto</p>
-                    <div>
-                        <select class="select " name="select-text" id="select-text-options"></select>                        
-                    </div>
-                    <div>
-                        <button type="button" class="button" id="carregar-texto">Carregar texto</button>
-                        <button type="button" class="button" id="carregar-lista-musicas">Carregar lista</button>
-                        <button type="button" class="button" id="open-modal-procurar">Procurar músicas</button>
+                    <div class="functions-triggers">
+                        <select class="select " name="select-text" id="select-text-options"></select>
+                        <div class="functions-triggers">
+                            <button type="button" class="button" id="carregar-texto">Carregar texto</button>
+                            <button type="button" class="button" id="carregar-lista-musicas">Carregar lista</button>
+                            <button type="button" class="button" id="open-modal-procurar">Procurar músicas</button>
+                        </div>
                     </div>
                 </div>
                 <div class="input-text">
-                    <p>Insira um texto neste campo e clique em "Criar blocos" quando estiver pronto.</p>
-                    <p>Para exibir um conteúdo na apresentação clique no bloco gerado com o texto</p>
+                    <p class="instrucoes">Insira um texto neste campo e clique em "Criar blocos" quando estiver pronto.</p>
+                    <p class="instrucoes">Para exibir um conteúdo na apresentação clique no bloco gerado com o texto</p>
                     <div class="cont-text-to-show">
                         <textarea class="text-to-show" name="text-to-show" id="text-to-show"></textarea>
                     </div>
