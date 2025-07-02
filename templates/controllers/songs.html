@@ -561,6 +561,7 @@
                     <div class="functions-triggers">
                         <select class="select " name="select-text" id="select-text-options"></select>
                         <div class="functions-triggers">
+                            <button type="button" class="button" id="carregar-blocos">Carregar blocos</button>
                             <button type="button" class="button" id="carregar-texto">Carregar texto</button>
                             <button type="button" class="button" id="carregar-lista-musicas">Carregar lista</button>
                             <button type="button" class="button" id="open-modal-procurar">Procurar músicas</button>
@@ -597,9 +598,14 @@
                 return pNode;
             });
         }
-        function createBlocks() {
-            const textToShow = document.getElementById('text-to-show').value;
-            saveProcessedText(textToShow);
+        function createBlocks(content = null) {
+            let textToShow;
+            if (typeof(content) === 'string') {
+                textToShow = content;
+            } else {
+                textToShow = document.getElementById('text-to-show').value;
+                saveProcessedText(textToShow);
+            }
             const splittedParagraphs = textToShow.split('\n\n')
                 .map(line => line.trim())
                 .filter(e => e.length > 0);
@@ -752,6 +758,11 @@
             const fileName = document.getElementById('select-text-options').value;
             clearTextInput().value = await loadTextFromBackend(fileName);
         }
+        async function loadAndCreateBlocks() {
+            const fileName = document.getElementById('select-text-options').value;
+            const text = await loadTextFromBackend(fileName);
+            createBlocks(text);
+        }
 
         async function loadTextFromBackend(song) {
             const params = new URLSearchParams({ song }).toString();
@@ -897,6 +908,7 @@
                 setAuxTextToBackend('');
             });
             document.getElementById('carregar-texto').addEventListener('click', fillTextInput);
+            document.getElementById('carregar-blocos').addEventListener('click', loadAndCreateBlocks);
             // document.getElementById('open-modal-letras').addEventListener('click', () => {
             //     document.getElementById('modal').classList.remove('hide');
             //     document.getElementById('buscar-letra').classList.remove('hide');
