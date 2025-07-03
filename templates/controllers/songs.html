@@ -404,6 +404,24 @@
         .functions-buttons-group input[type=checkbox] {
             margin-right: 5px;
         }
+        .toggle-controller {
+            display: none;
+            z-index: 10000;
+            position: fixed;
+            top: 10px; right: 10px;
+        }
+        .toggle-controller button {
+            border-radius: 25px;
+            border: none;
+            background-color: #409cff;
+            color: white;
+            font-size: 29px;
+            height: 50px; width: 50px;
+            cursor: pointer;
+        }
+        .toggle-off {
+            background-color: #9ABAD9 !important;
+        }
         @media screen and (max-width: 1000px) {
             .functions-buttons-group button {
                 margin-bottom: 5px;
@@ -433,6 +451,9 @@
             }
             .text-to-show {
                 margin-top: 8px;
+            }
+            .toggle-controller {
+                display: block;
             }
         }
     </style>
@@ -486,6 +507,9 @@
 </head>
 
 <body>
+    <div class="toggle-controller">
+        <button id="toggle-controller-button">&#x2699;</button>
+    </div>
     <div id="modal" class="hide">
         <div class="content-modal hide" id="buscar-letra">
             <div class="close-button">
@@ -535,7 +559,7 @@
         </div>
     </div>
     <div class="container">
-        <div class="fixed">
+        <div id="controller-panel" class="fixed">
             <div class="title">
                 <h1>Presenter - Músicas e texto</h1>
             </div>            
@@ -594,7 +618,7 @@
                 
             </div>
         </div>
-        <div class="inner">            
+        <div id="blocks-panel" class="inner">            
             <div class="blocos" id="blocos">
             </div>
         </div>
@@ -774,10 +798,10 @@
             createBlocks(text);
         }
         async function loadAndCreateBlocksFromTrigger(event) {
-            console.log(event);
             const fileName = event.target.value;
             const text = await loadTextFromBackend(fileName);
             createBlocks(text);
+            toggleController(null);
         }
 
         async function loadTextFromBackend(song) {
@@ -914,13 +938,40 @@
                 })
             });
         }
+        function toggleController(event) {
+            _toggleController(event);
+        }
+        function toggleControllerForce() {
+            _toggleController(null);
+        }
+        function _toggleController(event) {
+            const controller = document.getElementById('controller-panel');
+            const blocks = document.getElementById('blocks-panel');
+            const toggler = document.getElementById('toggle-controller-button');
+            const showed = controller.style.display !== 'none';
+            if (showed || !event) {
+                blocks.style.width = '100%';
+                blocks.style.left = '0';
+                controller.style.display = 'none';
+                toggler.classList.add('toggle-off');
+            } else {
+                blocks.style.width = '50%';
+                blocks.style.left = '50%';
+                controller.style.display = 'block';
+                toggler.classList.remove('toggle-off');
+            }
+        }
         document.addEventListener('DOMContentLoaded', () => {
             addGoLiveEventListener();
-            document.getElementById('process-text').addEventListener('click', createBlocks);
+            document.getElementById('process-text').addEventListener('click', (event) => {
+                createBlocks(event);
+                toggleControllerForce();
+            });
             document.getElementById('clear-screen').addEventListener('click', () => {
                 removeBlockSelectedClass();
                 emitContent('');
             });
+            document.getElementById('toggle-controller-button').addEventListener('click', toggleController);
             document.getElementById('carregar-lista-musicas').addEventListener('click', getSongList);            
             document.getElementById('clear-text-input').addEventListener('click', clearTextInput);
             document.getElementById('get-lyrics-letras-by-url').addEventListener('click', getLyricsFromLetrasByUrl);
