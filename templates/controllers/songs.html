@@ -419,6 +419,7 @@
             height: 70px; width: 70px;
             cursor: pointer;
             box-shadow: 4px 4px 6px 2px rgb(196, 196, 196);
+            margin-bottom: 8px;
         }
         .toggle-off {
             background-color: #9ABAD9 !important;
@@ -461,10 +462,14 @@
                 margin-top: 8px;
             }
             .toggle-controller {
-                display: block;
+                display: flex;
+                flex-direction: column;
             }
             .functions-triggers button, .functions button {
                 font-size: 24px;
+            }
+            #toggle-controller-button-clear {
+                background-color: #a03b3b;
             }
         }
     </style>
@@ -520,6 +525,7 @@
 <body>
     <div id="toggle-controller-container" class="toggle-controller">
         <button id="toggle-controller-button">&#x274F;</button>
+        <button id="toggle-controller-button-clear">&#x2613;</button>
     </div>
     <div id="modal" class="hide">
         <div class="content-modal hide" id="buscar-letra">
@@ -999,6 +1005,10 @@
             document.getElementById('save-text').addEventListener('click', () => {
                 const content = document.getElementById('text-to-show').value;
                 saveProcessedTextToBackend(content);
+            });
+            document.getElementById('toggle-controller-button-clear').addEventListener('click', () => {
+                removeBlockSelectedClass();
+                emitContent('');
             });
             document.getElementById('set-aux-text').addEventListener('click', () => {
                 const content = document.getElementById('text-to-show').value;
