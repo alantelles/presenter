@@ -6,6 +6,8 @@ import (
 	"log"
 	"net"
 	"os"
+	"presenter/bible"
+	"presenter/flags"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -28,10 +30,6 @@ const (
 	TypeBinary  = "BINARY"
 )
 
-type flagsSetup struct {
-	Location string
-}
-
 type ProviderData struct {
 	Content   string `json:"content"`
 	Type      string `json:"type,omitempty"`
@@ -53,8 +51,6 @@ type returnBody struct {
 	Type       string  `json:"type"`
 	ContentId  string  `json:"contentId,omitempty"`
 }
-
-var flagsUsed flagsSetup
 
 var port = 8080 // TODO: receive this by running argument
 var location string
@@ -88,7 +84,7 @@ func setLocation() string {
 }
 
 func varSetup() {
-	location = flagsUsed.Location
+	location = flags.GetLocation()
 	if location == "" {
 		location = setLocation()
 	}
@@ -147,7 +143,7 @@ func createDefaultFolders() {
 
 func main() {
 
-	processFlags()
+	flags.ProcessFlags()
 	varSetup()
 	createDefaultFolders()
 	gin.SetMode(gin.ReleaseMode)
@@ -166,13 +162,18 @@ func main() {
 	router.GET("/api/songs/folders", getSongsFolderList)
 	router.GET("/api/songs/folder", getAllSongsFromFolder)
 
-	router.GET("/controller", viewController)
+	router.GET("/controller/:page", viewController)
+	router.GET("/controller", viewHome)
+	router.GET("/", viewHome)
 	router.GET("/live", viewPanel)
 
 	router.GET("/api/discover", discover)
 
 	router.GET("/api/lyrics/letras", getSongLyricsFromLetras)
 	router.GET("/api/lyrics/letras/song", getSongLyricFromLetrasByUrl)
+
+	router.GET("/api/bible/books", bible.GetBooksList)
+	router.GET("/api/bible/chapter/:version/:book/:chapter", bible.GetChapter)
 
 	log.Print("PRESENTER - Desenvolvido por Alan Telles")
 	log.Print("Iniciando serviço...")

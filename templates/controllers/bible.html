@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Presenter - Bíblia</title>
+  <style>
+        /* http://meyerweb.com/eric/tools/css/reset/ 
+   v2.0 | 20110126
+   License: none (public domain)
+*/
+
+        html,
+        body,
+        div,
+        span,
+        applet,
+        object,
+        iframe,
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        h6,
+        p,
+        blockquote,
+        pre,
+        a,
+        abbr,
+        acronym,
+        address,
+        big,
+        cite,
+        code,
+        del,
+        dfn,
+        em,
+        img,
+        ins,
+        kbd,
+        q,
+        s,
+        samp,
+        small,
+        strike,
+        strong,
+        sub,
+        sup,
+        tt,
+        var,
+        b,
+        u,
+        i,
+        center,
+        dl,
+        dt,
+        dd,
+        ol,
+        ul,
+        li,
+        fieldset,
+        form,
+        label,
+        legend,
+        table,
+        caption,
+        tbody,
+        tfoot,
+        thead,
+        tr,
+        th,
+        td,
+        article,
+        aside,
+        canvas,
+        details,
+        embed,
+        figure,
+        figcaption,
+        footer,
+        header,
+        hgroup,
+        menu,
+        nav,
+        output,
+        ruby,
+        section,
+        summary,
+        time,
+        mark,
+        audio,
+        video {
+            margin: 0;
+            padding: 0;
+            border: 0;
+            font-size: 100%;
+            font: inherit;
+            vertical-align: baseline;
+        }
+
+        /* HTML5 display-role reset for older browsers */
+        article,
+        aside,
+        details,
+        figcaption,
+        figure,
+        footer,
+        header,
+        hgroup,
+        menu,
+        nav,
+        section {
+            display: block;
+        }
+
+        body {
+            line-height: 1;
+        }
+
+        ol,
+        ul {
+            list-style: none;
+        }
+
+        blockquote,
+        q {
+            quotes: none;
+        }
+
+        blockquote:before,
+        blockquote:after,
+        q:before,
+        q:after {
+            content: '';
+            content: none;
+        }
+
+        table {
+            border-collapse: collapse;
+            border-spacing: 0;
+        }
+  </style>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+    }
+    button {
+      cursor: pointer;
+    }
+    .fixed {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      z-index: 1000;
+    }
+    .container {
+      display: flex;
+      flex-direction: column;
+    }
+    .header {
+      background-color: #005bb6;
+      color: white;
+      padding: 10px;
+      font-size: 25px;
+      border-bottom: 1px solid #dee2e6;
+    }
+    .alerts {
+      position: fixed;
+      flex-direction: column;
+      top: 20px;
+      right: 20px;
+      display: flex;      
+      z-index: 9000;
+    }
+    .alert {
+      width: 300px;
+      background-color: #f8d7da;
+      color: #721c24;
+      padding: 15px;
+      border: 1px solid #f5c6cb;
+      border-radius: 4px;
+      margin-bottom: 2px;
+    }
+    .alert p {
+      line-height: 1.2;
+    }
+    .seletor-capitulo {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      padding: 10px;
+      background-color: #a3c4e6;
+    }
+    .seletor-capitulo > * {
+      margin-right: 10px;
+    }
+    .seletor-capitulo p {
+      padding-top: 8px;
+    }
+    .seletor-capitulo select {
+      padding: 5px;
+      width: 250px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    .seletor-capitulo select[name=capitulo] {
+      width: 100px;
+    }
+    .seletor-capitulo button {
+      padding: 5px 10px;
+      font-size: 16px;
+      background-color: #005bb6;
+      color: white;
+      border: none;
+      border-radius: 4px;
+    }
+    .seletor-capitulo button:hover {
+      background-color: #004494;
+    }
+    .blocos {
+      margin-top: 98px;
+      min-height: calc(100vh - 20vh);
+      border-top: #74b1f7 1px solid;
+      display: flex;
+      flex-direction: column;
+      padding: 10px;
+      background-color: #d1e8ff;
+      padding-bottom: 70px;
+    }
+    .bloco {
+      font-size: 20px;
+      padding: 10px;
+      border: 1px solid #dee2e6;
+      border-radius: 6px;
+      margin-bottom: 10px;
+      background-color: rgb(0, 40, 87);
+      color: white;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+    }
+    .bloco:hover:not(.bloco-selected):not(.bloco-waiting), .hilited {
+      background-color: #065099;
+      color: white;
+    }
+
+    .bloco-waiting {
+      background-color: rgb(196, 196, 196);
+      color: rgb(48, 48, 48);
+    }
+
+    .bloco-selected {
+      background-color: rgb(51, 100, 204);
+      color: rgb(255, 255, 255);
+      box-shadow: inset -10px -5px 5px 0px #094bad;
+    }
+    .bloco p {
+      text-indent: 10px;
+      padding: 5px 0;
+    }
+    .blocos h2 {
+      font-size: 32px;
+      margin-bottom: 15px;
+    }
+    .noselect {
+      -webkit-touch-callout: none; /* iOS Safari */
+      -webkit-user-select: none; /* Safari */
+      -khtml-user-select: none; /* Konqueror HTML */
+      -moz-user-select: none; /* Old versions of Firefox */
+      -ms-user-select: none; /* Internet Explorer/Edge */
+      user-select: none; /* Non-prefixed version, currently supported by Chrome, Edge, Opera and Firefox */
+    }
+    .container-botoes-troca-versiculos {
+      position: fixed;
+      bottom: 10px;
+      right: 10px;
+      z-index: 1000;
+      background-color: #a3c4e6;
+      padding: 10px;
+      border-radius: 6px;
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+    .container-botoes-troca-versiculos button {
+      padding: 10px;
+      font-size: 16px;
+      background-color: #005bb6;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-right: 10px;
+    }
+    .container-botoes-troca-versiculos button:last-child {
+      margin-right: 0;
+    }
+    .container-botoes-troca-versiculos button:hover {
+      background-color: #004494;
+    }
+    .container-botoes-troca-versiculos button:disabled {
+      background-color: #ccc;
+      cursor: not-allowed;
+      color: #4d4d4d;
+    }
+    .container-botoes-troca-versiculos button span {
+      font-weight: bold;
+      display: inline-block;
+      font-size: 22px;
+      margin-bottom: -5px;
+      margin-top: -5px;
+    }
+    @media screen and (max-height: 900px) {
+      .bloco {
+        font-size: 24px;
+      }
+      .container-botoes-troca-versiculos button {
+        padding: 12px;
+        font-size: 20px;
+      }
+      .alerts {
+        top: 110px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="alerts">
+    <!-- Alertas serão adicionados aqui dinamicamente -->
+  </div>
+  <div class="container-botoes-troca-versiculos">
+    <button id="anterior-versiculo" disabled><span>&#xab;</span> Anterior</button>
+    <button id="proximo-versiculo" disabled>Próximo <span>&#xbb;</span></button>
+    <button id="limpar-tela">Limpar tela</button>
+  </div>
+  <div class="container">
+    <div class="fixed">
+      <div class="header">
+        <h1>Presenter - Bíblia</h1>
+      </div>
+      <div class="seletor-capitulo">
+        <!-- TODO: permitir selecionar versao -->
+        <p>Livro</p>
+        <select name="livro" id="livro">
+        </select>
+        <p>Capítulo</p>
+        <select name="capitulo" id="capitulo">
+        </select>
+      </div>
+    </div>
+    <div class="blocos">
+      <h2 id="livro-capitulo"></h2>
+      <div class="blocos-carregados">        
+      </div>
+    </div>
+  </div>
+  <script>
+    async function fetchLivros() {
+      resp = await fetch('{{APP_LOCATION}}/api/bible/books');
+      if (!resp.ok) {
+        throw new Error('Erro ao buscar livros da Bíblia');
+      }
+      const livros = await resp.json();
+      return livros.map(livro => ({
+        id: livro.abbrev.pt,
+        nome: livro.name,
+        capitulos: livro.chapters
+      }));
+    }
+    async function fetchCapitulo(livro, numCapitulo) {
+      // TODO: permitir selecionar versao
+      resp = await fetch(`{{APP_LOCATION}}/api/bible/chapter/acf/${livro}/${numCapitulo}`);
+      if (!resp.ok) {
+        const body = await resp.json();
+        throw new Error(body.error || 'Erro ao buscar capítulo da Bíblia');
+      }
+      const capitulo = await resp.json();
+      return capitulo.verses.map(verso => ({
+        numero: verso.number,
+        texto: verso.text
+      }));
+    }
+    async function emitContent(chapter, content) {
+        return await fetch('{{APP_LOCATION}}/api/content/set/main', {
+            method: 'POST',
+            body: JSON.stringify({
+                content,
+                type: 'TEXT',
+                contentId: 'bible ' + chapter,
+            })
+        });
+    }
+    async function limparTela() {
+      emitContent('', '')
+        .then(() => {
+          removeBlockSelectedClass();
+          window.sessionStorage.removeItem('bibleChapter');
+        })
+        .catch(error => console.error('Erro ao limpar tela:', error));
+    }
+    function normalizaTextoVersiculo(verso) {
+      const numero = verso.numero.toString();
+      const versiculo = verso.texto;
+      const LIMIT = 200;
+      if (versiculo.length <= LIMIT) {
+        return [verso];
+      }
+      const versos = [];
+      // Primeiro tenta dividir pelo ; do meio
+      if (versiculo.indexOf(';') > 0) {
+        const dividido = versiculo.split(';');
+        const meio = Math.floor(dividido.length / 2);
+        const joined = dividido.slice(0, meio).join(';');
+        const resto = dividido.slice(meio).join(';');
+        if (resto.search(/[A-Za-z]/) === -1) {
+          // Se o resto não tiver letras, o versículo é curto o suficiente
+          return [verso];
+        }
+        if (joined.length < LIMIT && resto.length < LIMIT) {
+          versos.push({
+            numero: numero.concat('a'),
+            texto: joined + ';'
+          });
+          versos.push({
+            numero: numero.concat('b'),
+            texto: resto
+          });
+          return versos;
+        }
+      }
+      const excessos = Math.floor(versiculo.length / LIMIT);
+      let sobraTexto = '';
+      for (let i = 0; i < excessos; i++) {
+        const parte = versiculo.slice(i * LIMIT, (i + 1) * LIMIT);
+        versos.push({
+          numero: numero.concat(String.fromCharCode(97 + i)),
+          texto: sobraTexto + parte.slice(0, parte.lastIndexOf(' '))
+        });
+        sobraTexto = parte.slice(parte.lastIndexOf(' '));
+      }
+      const ultimoTexto = versiculo.slice(excessos * LIMIT - sobraTexto.length);
+      if (ultimoTexto.split(' ').filter(Boolean).length <= 1) {
+        const last = versos.pop();
+        // Se o último texto é muito curto, adiciona ao penúltimo
+        const letraParte = versos.length > 0 ? String.fromCharCode(97 + excessos - 1) : '';
+        versos.push({
+          numero: numero.concat(letraParte),
+          texto: last.texto + ultimoTexto
+        });
+        return versos;
+      }
+      versos.push({
+        numero: numero.concat(String.fromCharCode(97 + excessos)),
+        texto: versiculo.slice(excessos * LIMIT - sobraTexto.length)
+      });
+      return versos;
+    }
+    function removeBlockSelectedClass() {
+        document.querySelectorAll('.bloco-selected').forEach(elemQuery => {
+            const elem = document.getElementById(elemQuery.id);
+            elem.classList.remove('bloco-selected');
+            elem.classList.remove('hilited');
+            elem.classList.remove('bloco-waiting');
+        });
+    }
+    document.addEventListener('DOMContentLoaded', function() {
+      const livroSelect = document.getElementById('livro');
+      const capituloSelect = document.getElementById('capitulo');
+      const livroCapituloHeader = document.getElementById('livro-capitulo');
+      const blocosCarregados = document.querySelector('.blocos-carregados');
+
+      document.getElementById('limpar-tela').addEventListener('click', limparTela);
+
+      fetchLivros().then(livros => {
+        // Preenche o seletor de livros
+        livros.forEach(livro => {
+          const option = document.createElement('option');
+          option.value = livro.id;
+          option.textContent = livro.nome;
+          option.dataset.capitulos = livro.capitulos;
+          livroSelect.appendChild(option);
+        });
+        const [abbrev, capitulo, versiculo] = window.sessionStorage.getItem('bibleChapter')?.split(' ') || ['gn', '1'];
+        livroSelect.value = abbrev;
+        capituloSelect.value = capitulo;
+        livroCapituloHeader.textContent = `${livroSelect.options[livroSelect.selectedIndex].textContent} ${capitulo}`;        
+        preencheCapitulos(capitulo); // Preenche os capítulos do primeiro livro
+      });
+
+      livroSelect.addEventListener('change', () => {
+        window.sessionStorage.removeItem('bibleChapter');
+        preencheCapitulos();
+      });
+
+      function preencheCapitulos(capituloSelecionado = 1) {
+        const livro = livroSelect.value;
+        const selectedOption = livroSelect.options[livroSelect.selectedIndex];
+        const capitulos = selectedOption.dataset.capitulos;
+
+        // Atualiza o seletor de capítulos
+        capituloSelect.innerHTML = '';
+        for (let i = 1; i <= capitulos; i++) {
+          const option = document.createElement('option');
+          option.value = i;
+          option.textContent = i;
+          capituloSelect.appendChild(option);
+        }
+        capituloSelect.value = capituloSelecionado;
+        preencheVersiculos(); // Carrega o primeiro capítulo
+      }
+
+      function enviarVersiculoParaExibicao(event, verso, livro, capitulo) {
+        const capituloCompleto = `${livro} ${capitulo}`;
+        const clicked = document.getElementById(event.currentTarget.id);
+        clicked.classList.add('bloco-waiting');
+        const prevId = clicked.previousElementSibling ? clicked.previousElementSibling.id : '';
+        const nextId = clicked.nextElementSibling ? clicked.nextElementSibling.id : '';
+        const versiculoAnterior = document.getElementById('anterior-versiculo');
+        const versiculoProximo = document.getElementById('proximo-versiculo');
+        versiculoAnterior.disabled = !prevId;
+        versiculoProximo.disabled = !nextId;
+        versiculoAnterior.dataset.versiculo = prevId;
+        versiculoProximo.dataset.versiculo = nextId;
+        const [abbrev, capituloStored, versiculoNum] = window.sessionStorage.getItem('bibleChapter')?.split(' ') || ['gn', '1', '1'];
+        window.sessionStorage.setItem('bibleChapter', `${abbrev} ${capituloStored} ${verso.numero}`);
+        emitContent(`${capituloCompleto}:${verso.numero}`, verso.texto)
+          .then(() => {
+            removeBlockSelectedClass();
+            console.log('Conteúdo enviado com sucesso');
+            clicked.classList.remove('bloco-waiting');
+            clicked.classList.add('bloco-selected');
+          })
+          .catch(error => console.error('Erro ao enviar conteúdo:', error));
+        return clicked;
+      }
+
+      function preencheVersiculos() {
+        const selectedOption = livroSelect.options[livroSelect.selectedIndex];
+        const livro = selectedOption.textContent;
+        const abbrev = selectedOption.value;
+        const capitulo = capituloSelect.value;
+        const header = `${livro} ${capitulo}`.toString();
+
+        // Atualiza o título do capítulo
+        livroCapituloHeader.textContent = header;
+
+        // Limpa os blocos carregados
+        blocosCarregados.innerHTML = '';
+        const versiculo = window.sessionStorage.getItem('bibleChapter')?.split(' ')[2] || '';
+        window.sessionStorage.setItem('bibleChapter', `${abbrev} ${capitulo}`);
+        fetchCapitulo(selectedOption.value, capitulo).then(versos => {
+          ['anterior-versiculo', 'proximo-versiculo'].forEach(elem => {
+            const button = document.getElementById(elem);
+            if (button) {
+              button.disabled = true;
+              button.dataset.versiculo = '';
+            }
+          });
+          // Preenche os blocos com os versos
+          const versosNormalizados = [];
+          versos.forEach(verso => {
+            // Normaliza o texto do verso
+            const versoNormalizado = normalizaTextoVersiculo(verso);
+            versoNormalizado.forEach(texto => {
+              versosNormalizados.push(texto);
+            });
+          });
+          versosNormalizados.forEach(verso => {
+            const blocoDiv = document.createElement('div');
+            blocoDiv.id = `bloco-${abbrev}-${capitulo}-${verso.numero}`;
+            blocoDiv.className = 'bloco';
+            blocoDiv.classList.add('noselect');
+            blocoDiv.innerHTML = `<span>${verso.numero} </span><p>${verso.texto}</p>`;
+            blocoDiv.addEventListener('click', event => {
+              const clicked = enviarVersiculoParaExibicao(event, verso, livro, capitulo);
+              const headerOffset = document.querySelector('.fixed').offsetHeight;
+              const elementPosition = clicked.getBoundingClientRect().top + window.pageYOffset;
+              const offsetPosition = elementPosition - headerOffset - 10;
+              window.scrollTo({
+                top: offsetPosition,
+                behavior: 'smooth'
+              });
+            });
+            blocosCarregados.appendChild(blocoDiv);
+          });
+          if (versiculo) {
+            const blocoSelecionado = document.getElementById(`bloco-${abbrev}-${capitulo}-${versiculo}`);
+            if (blocoSelecionado) {
+              blocoSelecionado.classList.add('hilited');
+            }
+          }
+        }).catch(error => {
+          console.error('Erro ao carregar capítulo:', error);
+          const message = error.toString().replace('Error: ', header + ' - ');
+          addAlert(message || 'Erro ao carregar capítulo');
+        });
+      };
+      function addAlert(message) {
+        const alertsContainer = document.querySelector('.alerts');
+        const alertDiv = document.createElement('div');
+        alertDiv.className = 'alert';
+        alertDiv.innerHTML = `<p>${message}</p>`;
+        alertsContainer.prepend(alertDiv);
+        setTimeout(() => {
+          alertDiv.style.display = 'none';
+          alertDiv.remove();
+        }, 6000);
+      }
+
+      capituloSelect.addEventListener('change', () => {
+        window.sessionStorage.removeItem('bibleChapter');
+        preencheVersiculos();
+      });
+      document.querySelectorAll('.container-botoes-troca-versiculos button').forEach(button => {
+        button.addEventListener('click', function(event) {
+          const versiculoId = event.currentTarget.dataset.versiculo;
+          if (versiculoId) {
+            const bloco = document.getElementById(versiculoId);
+            if (bloco) {
+              bloco.click();
+            }
+          }
+        });
+      });
+    });
+  </script>
+</body>
+</html>

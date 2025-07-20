@@ -1,8 +1,11 @@
-module main
+module presenter/bible
 
 go 1.23.4
 
-require github.com/gin-gonic/gin v1.10.1
+require (
+	github.com/gin-gonic/gin v1.10.1
+	presenter/flags v0.0.0-00010101000000-000000000000
+)
 
 require (
 	github.com/bytedance/sonic v1.11.6 // indirect
@@ -31,10 +34,6 @@ require (
 	golang.org/x/text v0.15.0 // indirect
 	google.golang.org/protobuf v1.34.1 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
-	presenter/bible v0.0.0-00010101000000-000000000000
-	presenter/flags v0.0.0-00010101000000-000000000000
 )
 
-replace presenter/bible => ./bible
-
-replace presenter/flags => ./flags
+replace presenter/flags => ../flags

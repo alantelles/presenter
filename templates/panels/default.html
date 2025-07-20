@@ -67,6 +67,13 @@ table {
             justify-content: center;
             height: 100vh;
         }
+        .bible-chapter {
+            position: absolute;
+            top: 10px; left: 10px;
+            font-size: 40px;
+            font-weight: bold;
+            color: white;
+        }
         .presentation {
             font-size: calc((100vw / 100) * 5.3 );
             text-align: center;
@@ -75,6 +82,8 @@ table {
             padding: 20px;
             /* background-color: black; */
             z-index: 99999;
+        }
+        .stroke {
             -webkit-text-stroke: 2px black;
         }
         .auxblock {
@@ -157,21 +166,21 @@ table {
         <p class="momento-cronograma" id="momento-cronograma-atual"></p>
     </div>
     <div class="container">
-        <div class="presentation cronometro" id='cronometro'>
-
-        </div>
-        <div class="presentation auxblock" id='auxblock'>
-
-        </div>
-        <div class="presentation" id='liveblock'>
-
-        </div>
+        <div class="bible-chapter"></div>
+        <div class="presentation cronometro" id='cronometro'></div>
+        <div class="presentation auxblock" id='auxblock'></div>
+        <div class="presentation stroke" id='liveblock'></div>
     </div>
     <script>
         var lastCommandId = window.sessionStorage.getItem('lastCommandId') || undefined;
         var lastChronoId = undefined;
         var lastMainText = '';
         var lastAuxText = '';
+        function processBibleData(contentId) {
+            const capitulo = contentId.slice(contentId.indexOf(' ') + 1);
+            const bibleChapter = document.querySelector('.bible-chapter');
+            bibleChapter.textContent = capitulo;
+        }
         function processMainProviderData(data) {
             const liveBlock = document.getElementById('liveblock');            
             if (isShowClockMode()) {
@@ -186,6 +195,15 @@ table {
             }
             lastMainText = data.content;
             liveBlock.innerHTML = data.content.replaceAll('\n', '<br>');
+            if (data.contentId && data.contentId.startsWith('bible ')) {
+                processBibleData(data.contentId);
+                toggleVideo({content: 'off'}); // Desliga o vídeo se for um capítulo da Bíblia
+            } else {
+                // Se não for um capítulo da Bíblia, remove o capítulo
+                const bibleChapter = document.querySelector('.bible-chapter');
+                bibleChapter.textContent = '';
+                toggleVideo({content: 'on'}); // Liga o vídeo para outros conteúdos
+            }
         }
         function processAuxProviderData(data) {
             if (!data) {
@@ -205,7 +223,18 @@ table {
             lastAuxText = data.content;
             auxBlock.innerHTML = data.content.replaceAll('\n', '<br>');
         }
-        function limparCronometro() {
+        function toggleVideo(data) {
+            const bgVideo = document.getElementById('bgvideo');
+            const liveBlock = document.getElementById('liveblock');
+            if (data.content === 'on') {
+                bgVideo.style.display = 'block';
+                liveBlock.classList.add('stroke');
+                return;
+            }
+            liveBlock.classList.remove('stroke');
+            bgVideo.style.display = 'none';
+        }
+        function limparCronometro(data) {
             try {
                 clearInterval(lastChronoId);
             } catch (e) {
@@ -249,20 +278,27 @@ table {
                 }
             }, 1000);
         }
+        const commandHandlers = {
+            'cronometro': cronometro,
+            'limparCronometro': limparCronometro,
+            'toggleVideo': toggleVideo,
+        };
         function processCommandData(data) {
             if (data.contentId === lastCommandId) {
                 return;
             }
             lastCommandId = data.contentId;
             window.sessionStorage.setItem('lastCommandId', lastCommandId);
-            if (data.contentId.startsWith('cronometro-')) {
-                cronometro(data);
+            executeCommand(data);
+        }
+
+        function executeCommand(data) {
+            const target = data.contentId.split('-')[0]; // o comando sempre precisa estar em camelCase
+            if (Object.keys(commandHandlers).includes(target)) {
+                commandHandlers[target](data);
                 return;
             }
-            if (data.contentId.startsWith('limpar-cronometro')) {
-                limparCronometro(data);
-                return;
-            }
+            console.warn(`Comando desconhecido: ${target}; Dados: ${JSON.stringify(data)}`);
         }
 
         function isShowClockMode() {
@@ -358,7 +394,9 @@ table {
             if (params.get('showClock') === 'true') {
                 processTimeline(params);
                 document.getElementById('relogio-container').classList.add('show');
-                document.getElementById('liveblock').style.backgroundColor = 'black';
+                const liveBlock = document.getElementById('liveblock');
+                liveBlock.classList.remove('stroke');
+                liveBlock.style.backgroundColor = 'black';
                 document.getElementById('auxblock').style.display = 'block';
                 document.getElementById('bgvideo').remove();
                 setInterval(showTime, 30 * 1000);
