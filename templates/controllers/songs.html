@@ -614,6 +614,7 @@
                         <div class="functions-triggers">
                             <button type="button" class="button" id="carregar-blocos">Carregar blocos</button>
                             <button type="button" class="button" id="carregar-texto">Carregar texto</button>
+                            <button type="button" class="button" id="ocultar-texto">Ocultar texto</button>
                             <button type="button" class="button" id="carregar-lista-musicas">Carregar lista</button>
                             <button type="button" class="button" id="open-modal-procurar">Procurar músicas</button>
                         </div>
@@ -808,6 +809,19 @@
         async function fillTextInput() {
             const fileName = document.getElementById('select-text-options').value;
             clearTextInput().value = await loadTextFromBackend(fileName);
+        }
+        async function hideText() {
+            const fileName = document.getElementById('select-text-options').value;
+            const hidden = window.sessionStorage.getItem('hidden');
+            if (hidden) {
+                const parsed = JSON.parse(hidden);
+                if (!parsed.includes(fileName))
+                    parsed.push(fileName);
+                window.sessionStorage.setItem('hidden', JSON.stringify(parsed));
+            } else {
+                const serid = JSON.stringify([fileName]);
+                window.sessionStorage.setItem('hidden', serid);
+            }
         }
         async function loadAndCreateBlocks() {
             const fileName = document.getElementById('select-text-options').value;
@@ -1018,6 +1032,7 @@
                 setAuxTextToBackend('');
             });
             document.getElementById('carregar-texto').addEventListener('click', fillTextInput);
+            document.getElementById('ocultar-texto').addEventListener('click', hideText)
             document.getElementById('carregar-blocos').addEventListener('click', loadAndCreateBlocks);
             // document.getElementById('open-modal-letras').addEventListener('click', () => {
             //     document.getElementById('modal').classList.remove('hide');
