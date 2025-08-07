@@ -30,4 +30,4 @@ media/**
 presenter
 *.http
 
-bible/fetched/
+bible/conv.py
