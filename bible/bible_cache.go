@@ -55,7 +55,7 @@ func SaveTextFile(fileName string, content string) {
 }
 
 func LoadTextFile(fileName string) ([]byte, error) {
-	path := "bible/fetched/" + fileName
+	path := "bible/content/" + fileName
 	log.Print(path)
 	file, err := os.Open(path)
 	if err != nil {
