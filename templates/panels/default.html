@@ -60,6 +60,12 @@ table {
             color: white;   
             font-family: sans-serif;         
         }
+        .bold {
+            font-weight: bold;
+        }
+        .italic {
+            font-style: italic;
+        }
         .container {
             display: flex;
             flex-direction: column;
@@ -194,7 +200,13 @@ table {
                 return;
             }
             lastMainText = data.content;
-            liveBlock.innerHTML = data.content.replaceAll('\n', '<br>');
+            let formatted = data.content.replaceAll(/\*[^*]+\*/g, match => {
+                return `<span class='bold'>${match.substring(1, match.length - 1)}</span>`;
+            });
+            formatted = formatted.replaceAll(/\_[^_]+\_/g, match => {
+                return `<span class='italic'>${match.substring(1, match.length - 1)}</span>`;
+            });
+            liveBlock.innerHTML = formatted.replaceAll('\n', '<br>');
             if (data.contentId && data.contentId.startsWith('bible ')) {
                 processBibleData(data.contentId);
                 toggleVideo({content: 'off'}); // Desliga o vídeo se for um capítulo da Bíblia
