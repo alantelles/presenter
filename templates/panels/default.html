@@ -182,6 +182,23 @@ table {
         var lastChronoId = undefined;
         var lastMainText = '';
         var lastAuxText = '';
+        function processarConteudo(content) {
+            // negrito
+            let formatado = content.replaceAll(/\*[^*]+\*/g, match => {
+                return `<span class='bold'>${match.substring(1, match.length - 1)}</span>`;
+            });
+            // italico
+            formatado = formatado.replaceAll(/\_[^_]+\_/g, match => {
+                return `<span class='italic'>${match.substring(1, match.length - 1)}</span>`;
+            });
+            // colorido
+            formatado = formatado.replaceAll(/\$\[[^\]]+\][^\$]+\$/g, match => {
+                const t = match.substring(match.indexOf(']') + 1, match.length - 1);
+                const c = match.substring(match.indexOf('[') + 1, match.indexOf(']'));
+                return `<span style='color: ${c}'>${t}</span>`;
+            });
+            return formatado.replaceAll('\n', '<br>');
+        }
         function processBibleData(contentId) {
             const capitulo = contentId.slice(contentId.indexOf(' ') + 1);
             const bibleChapter = document.querySelector('.bible-chapter');
@@ -200,13 +217,7 @@ table {
                 return;
             }
             lastMainText = data.content;
-            let formatted = data.content.replaceAll(/\*[^*]+\*/g, match => {
-                return `<span class='bold'>${match.substring(1, match.length - 1)}</span>`;
-            });
-            formatted = formatted.replaceAll(/\_[^_]+\_/g, match => {
-                return `<span class='italic'>${match.substring(1, match.length - 1)}</span>`;
-            });
-            liveBlock.innerHTML = formatted.replaceAll('\n', '<br>');
+            liveBlock.innerHTML = processarConteudo(data.content);
             if (data.contentId && data.contentId.startsWith('bible ')) {
                 processBibleData(data.contentId);
                 toggleVideo({content: 'off'}); // Desliga o vídeo se for um capítulo da Bíblia
