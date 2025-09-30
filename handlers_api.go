@@ -21,14 +21,22 @@ func getSongsFolderList(c *gin.Context) {
 }
 
 func setMediaProviderContent(c *gin.Context) {
-	var newContent mediaProviderContent
+	providerId := c.Param("providerId")
+	var newContent ProviderData
 	if err := c.BindJSON(&newContent); err != nil {
 		return
 	}
-	provider1 = newContent
+	err := CopyIncomingProviderToExistent(providerId, newContent)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		return
+	}
 	response := returnBody{
-		Status:  http.StatusCreated,
-		Message: "New content setup to provider1",
+		Status:     http.StatusCreated,
+		Message:    "New content setup",
+		ProviderId: providerId,
+		Type:       newContent.Type,
+		ContentId:  newContent.ContentId,
 	}
 	CORS(c)
 	c.JSON(http.StatusCreated, response)
@@ -36,7 +44,12 @@ func setMediaProviderContent(c *gin.Context) {
 
 func getMediaProviderContent(c *gin.Context) {
 	CORS(c)
-	c.JSON(http.StatusOK, provider1)
+	providerIds := c.QueryArray("providerId")
+	responseData := map[string]ProviderData{}
+	for _, providerId := range providerIds {
+		responseData[providerId] = providers[providerId]
+	}
+	c.JSON(http.StatusOK, &responseData)
 }
 
 func saveMedia(c *gin.Context) {

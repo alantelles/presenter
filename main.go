@@ -7,6 +7,8 @@ import (
 	"log"
 	"net"
 	"os"
+	"presenter/bible"
+	"presenter/flags"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -20,8 +22,22 @@ const (
 	ContentTypeText   = "text/plain; charset=utf-8"
 
 	AppLocationToken = "{{APP_LOCATION}}"
-	AppAuthToken     = "{{BASIC_AUTH_TOKEN}}"
+
+	AppAuthToken = "{{BASIC_AUTH_TOKEN}}"
+
+	TypeCommand = "COMMAND"
+	TypeText    = "TEXT"
+	TypeImage   = "IMAGE"
+	TypeVideo   = "VIDEO"
+	TypeAudio   = "AUDIO"
+	TypeBinary  = "BINARY"
 )
+
+type ProviderData struct {
+	Content   string `json:"content"`
+	Type      string `json:"type,omitempty"`
+	ContentId string `json:"contentId,omitempty"`
+}
 
 type flagsSetup struct {
 	Location string
@@ -45,13 +61,10 @@ type media struct {
 type returnBody struct {
 	Status     int     `json:"status"`
 	Message    string  `json:"message"`
-	Validation *string `json:"validation"`
-}
-
-var flagsUsed flagsSetup
-
-var provider1 = mediaProviderContent{
-	ProviderId: 1, Content: "", IsBinary: false,
+	Validation *string `json:"validation,omitempty"`
+	ProviderId string  `json:"providerId"`
+	Type       string  `json:"type"`
+	ContentId  string  `json:"contentId,omitempty"`
 }
 
 var port = 8080 // TODO: receive this by running argument
@@ -93,7 +106,7 @@ func setBasicAuthCredentials() {
 }
 
 func varSetup() {
-	location = flagsUsed.Location
+	location = flags.GetLocation()
 	if location == "" {
 		location = setLocation()
 	}
@@ -178,7 +191,7 @@ func AuthMiddleware(c *gin.Context) {
 
 func main() {
 
-	processFlags()
+	flags.ProcessFlags()
 	varSetup()
 	createDefaultFolders()
 	gin.SetMode(gin.ReleaseMode)
@@ -187,7 +200,8 @@ func main() {
 		gin.LoggerWithWriter(gin.DefaultWriter, "/api/content"),
 		gin.Recovery(),
 	)
-	router.POST("/api/content/set", AuthMiddleware, setMediaProviderContent)
+	router.Static("/static", "./static")
+	router.POST("/api/content/set/:providerId", AuthMiddleware, setMediaProviderContent)
 	router.GET("/api/content", getMediaProviderContent)
 	router.POST("/api/media", AuthMiddleware, saveMedia)
 
@@ -197,12 +211,18 @@ func main() {
 	router.GET("/api/songs/folder", getAllSongsFromFolder)
 
 	router.GET("/controller", AuthMiddleware, viewController)
+	router.GET("/controller/:page", AuthMiddleware, viewController)
+	router.GET("/controller", viewHome)
+	router.GET("/", viewHome)
 	router.GET("/live", viewPanel)
 
 	router.GET("/api/discover", discover)
 
 	router.GET("/api/lyrics/letras", getSongLyricsFromLetras)
 	router.GET("/api/lyrics/letras/song", getSongLyricFromLetrasByUrl)
+
+	router.GET("/api/bible/books", bible.GetBooksList)
+	router.GET("/api/bible/chapter/:version/:book/:chapter", bible.GetChapter)
 
 	log.Print("PRESENTER - Desenvolvido por Alan Telles")
 	log.Print("Iniciando serviço...")

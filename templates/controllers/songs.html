@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Presenter</title>
+    <title>Presenter - Músicas e texto</title>
     <style>
         /* http://meyerweb.com/eric/tools/css/reset/ 
    v2.0 | 20110126
@@ -143,8 +143,17 @@
         }
     </style>
     <style>
+        i { font-style: italic;}
+        b { font-weight: bold;}
         button {
             cursor: pointer;
+        }
+        code {
+            font-family: monospace;
+            background-color: #a03b3b;
+            padding: 1px;
+            color: #fff;
+            font-size: 15px;
         }
 
         body {
@@ -155,17 +164,22 @@
         }
 
         h1 {
-            font-size: 30px;
+            font-size: 25px;
         }
 
         .container {
             display: flex;
             flex-direction: column;
             width: calc(100vw - 17px);
+            height: 100vh;
         }
-
-        .inner {
-            margin-top: 234px;
+        .inner  {
+            position: fixed;
+            top: 0;
+            left: 50vw;
+            width: 50vw;
+            height: 100%;
+            overflow: auto;
         }
 
         .inner div {
@@ -174,7 +188,6 @@
         }
 
         .title {
-            height: 30px;
             background-color: brown;
             color: white;
             padding: 10px;
@@ -184,6 +197,10 @@
 
         .input-text {
             justify-content: center;
+            margin-left: 5px;
+            color: black;
+            width: calc(100% - 10px);
+            border-top: solid 4px rgb(9, 7, 129);
         }
 
         .input-text p {
@@ -191,14 +208,27 @@
             line-height: 1.2;
         }
 
+        .functions {
+            display: flex;
+            flex-direction: row;
+            justify-content: start;
+        }
+        .functions button {
+            margin-right: 5px;
+        }
+
         .cont-text-to-show {
-            width: calc(100% - 24px);
+            width: calc(100% - 6px);
+            margin-bottom: 10px;
         }
 
         .text-to-show {
             font-size: 16px;
             width: 100%;
             height: 200px;
+            border: solid 2px rgb(93, 91, 182);
+            border-radius: 6px;
+            resize: vertical;
         }
 
         .button {
@@ -215,13 +245,16 @@
         }
 
         .button-big {
-            font-size: 20px;
+            font-size: 15px;
             font-weight: bold;
         }
 
         .button-small {
             font-size: 14px;
             padding: 5px;
+        }
+        .text-trigger-button {
+            background-color: crimson;
         }
 
         .bloco {
@@ -274,17 +307,17 @@
 
         .fixed {
             position: fixed;
-            width: 100%;
+            width: 50vw;
+            height: 100%;
+            background-color: #e8eafa;
+            overflow: auto;
         }
 
         .functions-buttons {
-            padding: 10px;
-            height: 140px;
             top: 0;
             left: 0;
             width: 100%;
             background-color: rgb(232, 234, 250);
-            border-bottom: solid 2px rgb(9, 7, 129);
         }
 
         .select-text {
@@ -355,6 +388,99 @@
         .hide {
             display: none;
         }
+        .functions-buttons-group {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 5px;
+            margin-left: 5px;
+        }
+        .functions-buttons-group button {
+            margin-right: 5px;
+        }
+        .functions-buttons-group p {
+            margin-right: 10px;
+            margin-bottom: 6px;
+            padding-top: 10px;
+            font-weight: bold;
+            font-size: 15px;
+            color: black;
+        }
+        .functions-buttons-group label {
+            font-size: 18px;
+            margin-right: 10px;
+            color: black;
+        }
+        .functions-buttons-group input[type=checkbox] {
+            margin-right: 5px;
+        }
+        .toggle-controller {
+            display: none;
+            z-index: 10000;
+            position: fixed;
+            top: 10px; right: 10px;
+        }
+        .toggle-controller button {
+            border-radius: 35px;
+            border: none;
+            background-color: #409cff;
+            color: white;
+            font-size: 40px;
+            height: 70px; width: 70px;
+            cursor: pointer;
+            box-shadow: 4px 4px 6px 2px rgb(196, 196, 196);
+            margin-bottom: 8px;
+        }
+        .toggle-off {
+            background-color: #9ABAD9 !important;
+        }
+        @media screen and (max-width: 1000px) {
+            .fixed {
+                width: 100%;
+            }
+            .inner {
+                width: 0;
+                left: 0;
+            }
+            .functions-buttons-group button {
+                margin-bottom: 5px;
+            }
+            .text-trigger-button {
+                padding: 20px;
+                font-size: 22px;
+            }
+            .functions-buttons-group .functions-triggers {
+                display: flex;
+                flex-direction: column;
+                align-items: left;
+            }
+            .functions-buttons-group p {
+                margin-right: 0;
+                margin-bottom: 5px;
+            }
+            .functions {
+                flex-direction: column;
+            }
+            .functions button {
+                margin-bottom: 6px;
+                margin-right: 0;
+            }
+            .instrucoes {
+                display: none;
+            }
+            .text-to-show {
+                margin-top: 8px;
+            }
+            .toggle-controller {
+                display: flex;
+                flex-direction: column;
+            }
+            .functions-triggers button, .functions button {
+                font-size: 24px;
+            }
+            #toggle-controller-button-clear {
+                background-color: #a03b3b;
+            }
+        }
     </style>
     <style type="text/css">
         .tg {
@@ -398,10 +524,18 @@
         .tg .autosize {
             width: 40px;
         }
+        .limited-height {
+            max-height: 60vh;
+            overflow-y: auto;
+        }
     </style>
 </head>
 
 <body>
+    <div id="toggle-controller-container" class="toggle-controller">
+        <button id="toggle-controller-button">&#x274F;</button>
+        <button id="toggle-controller-button-clear">&#x2613;</button>
+    </div>
     <input type="hidden" name="basic-auth-token" id="basic-auth-token" value="{{BASIC_AUTH_TOKEN}}">
     <div id="modal" class="hide">
         <div class="content-modal hide" id="buscar-letra">
@@ -432,56 +566,90 @@
                 <select class="select select-reduced" name="folder-options" id="folder-options">                    
                 </select>
                 <button class="button" id="carregar-lista-pasta">Listar músicas</button>
-                <table class="tg">
-                    <thead>
-                        <tr>
-                            <th class="tg-0lax" colspan="2">Músicas</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tabela-lista-musicas">
-                        <tr>
-                            <td colspan="2">Nenhuma música encontrada</td>
-                            <!-- <td class="tg-0lax autosize"><button type="button" class="button button-small">Carregar</button></td>
-                            <td class="tg-0lax">Este é um teste para coisas.txt</td> -->
-                        </tr>
-                    </tbody>
-                </table>
+                <div class="limited-height">
+                    <table class="tg">
+                        <thead>
+                            <tr>
+                                <th class="tg-0lax" colspan="2">Músicas</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabela-lista-musicas">
+                            <tr>
+                                <td colspan="2">Nenhuma música encontrada</td>
+                                <!-- <td class="tg-0lax autosize"><button type="button" class="button button-small">Carregar</button></td>
+                                <td class="tg-0lax">Este é um teste para coisas.txt</td> -->
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
     <div class="container">
-        <div class="fixed">
+        <div id="controller-panel" class="fixed">
             <div class="title">
-                <h1>Presenter</h1>
-            </div>
+                <h1>Presenter - Músicas e texto</h1>
+            </div>            
             <div class="functions-buttons">
-                <button type="button" class="button button-big" id="clear-screen">Limpar tela</button>
-                <button type="button" class="button button-big" id="clear-text-input">Apagar texto</button>
-                <button type="button" class="button button-big" id="open-modal-letras">Buscar no letras.mus</button>
+                <div class="functions-buttons-group">
+                    <p>Trigger texto</p>
+                    <div class="functions-triggers" id="text-triggers">                        
+                    </div>
+                </div>
+                <div class="functions-buttons-group">
+                    <p>Exibição</p>
+                    <div class="functions-triggers">
+                        <button type="button" class="button button-big" id="clear-screen">Limpar tela</button>
+                        <button type="button" class="button button-big" id="clear-text-input">Apagar texto</button>
+                        <div style="display: inline;">
+                            <input type="checkbox" name="toggle-video" id="toggle-video" checked>
+                            <label for="toggle-video">Exibir vídeo</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="functions-buttons-group">
+                    <p>Regressivos</p>
+                    <div class="functions-triggers">
+                        <button type="button" class="button button-big" id="trigger-timer-1930">Até 19:30</button>
+                        <button type="button" class="button button-big" id="trigger-timer-1800">Até 18:00</button>
+                        <button type="button" class="button button-big" id="clear-regressive">Limpar</button>
+                    </div>
+                </div>
+                <!-- <button type="button" class="button button-big" id="open-modal-letras">Buscar no letras.mus</button> -->
                 <!-- <button type="button" class="button button-big" id="paste-to-text-input">Colar texto</button> -->
-                <div class="select-text">
-                    <select class="select " name="select-text" id="select-text-options">
-                    </select>
+                <div class="functions-buttons-group">
+                    <p>Selecionar texto</p>
+                    <div class="functions-triggers">
+                        <select class="select " name="select-text" id="select-text-options"></select>
+                        <div class="functions-triggers">
+                            <button type="button" class="button" id="carregar-blocos">Carregar blocos</button>
+                            <button type="button" class="button" id="carregar-texto">Carregar texto</button>
+                            <button type="button" class="button" id="carregar-lista-musicas">Carregar lista</button>
+                            <button type="button" class="button" id="open-modal-procurar">Procurar músicas</button>
+                        </div>
+                    </div>
                 </div>
-                <div class="select-text">
-                    <button type="button" class="button" id="carregar-texto">Carregar texto</button>
-                    <button type="button" class="button" id="carregar-lista-musicas">Carregar lista</button>
-                    <button type="button" class="button" id="open-modal-procurar">Procurar músicas</button>
+                <div class="input-text">
+                    <p class="instrucoes">Insira um texto neste campo e clique em "Criar blocos" quando estiver pronto.</p>
+                    <p class="instrucoes">Para exibir um conteúdo na apresentação clique no bloco gerado com o texto</p>
+                    <p class="instrucoes">
+                        Você pode formatar utilizando <code>*texto*</code> para <b>negrito</b>, <code>~texto~</code> para <i>itálico</i> e 
+                        <code>$[cor]texto$</code> para colorir o texto. Todas formas válidas de cores CSS são aceitas.
+                    </p>
+                    <div class="cont-text-to-show">
+                        <textarea class="text-to-show" name="text-to-show" id="text-to-show"></textarea>
+                    </div>
+                    <div class="functions">
+                        <button class="button" type="button" id="process-text">Criar blocos</button>
+                        <button class="button" type="button" id="save-text">Salvar texto</button>
+                        <button class="button" type="button" id="set-aux-text">Exibir auxiliar</button>
+                        <button class="button" type="button" id="clean-aux-text">Limpar auxiliar</button>
+                    </div>
                 </div>
+                
             </div>
         </div>
-        <div class="inner">
-            <div class="input-text">
-                <p>Insira um texto neste campo e clique em "Criar blocos" quando estiver pronto.</p>
-                <p>Para exibir um conteúdo na apresentação clique no bloco gerado com o texto</p>
-                <div class="cont-text-to-show">
-                    <textarea class="text-to-show" name="text-to-show" id="text-to-show"></textarea>
-                </div>
-            </div>
-            <div class="functions">
-                <button class="button" type="button" id="process-text">Criar blocos</button>
-                <button class="button" type="button" id="save-text">Salvar texto</button>
-            </div>
+        <div id="blocks-panel" class="inner">            
             <div class="blocos" id="blocos">
             </div>
         </div>
@@ -495,9 +663,14 @@
                 return pNode;
             });
         }
-        function createBlocks() {
-            const textToShow = document.getElementById('text-to-show').value;
-            saveProcessedText(textToShow);
+        function createBlocks(content = null) {
+            let textToShow;
+            if (typeof(content) === 'string') {
+                textToShow = content;
+            } else {
+                textToShow = document.getElementById('text-to-show').value;
+                saveProcessedText(textToShow);
+            }
             const splittedParagraphs = textToShow.split('\n\n')
                 .map(line => line.trim())
                 .filter(e => e.length > 0);
@@ -550,18 +723,44 @@
             });
         }
 
+        function triggerTimer(horas, minutos) {
+            const now = new Date();
+            const horaAlvo = new Date(now.getFullYear(), now.getMonth(), now.getDate(), horas, minutos, 0);
+            const diff = Math.round((horaAlvo.getTime() - now.getTime()) / 1000); // converte para segundos
+            if (diff < 0) {
+                return;
+            }
+            fetch('{{APP_LOCATION}}/api/content/set/command', {
+                method: 'POST',
+                body: JSON.stringify({
+                    contentId: `cronometro-${Date.now()}`,
+                    type: 'COMMAND',
+                    content: `regressivo ${diff}`
+                })
+            });
+        }
+
+        function clearTimer() {
+            fetch('{{APP_LOCATION}}/api/content/set/command', {
+                method: 'POST',
+                body: JSON.stringify({
+                    contentId: `limparCronometro-${Date.now()}`,
+                    type: 'COMMAND',
+                })
+            });
+        }
+
         async function emitContent(content) {
             const auth = document.getElementById('basic-auth-token').value;
-            return await fetch('{{APP_LOCATION}}/api/content/set', {
+            return await fetch('{{APP_LOCATION}}/api/content/set/main', {
                 headers: {
                     'Authorization': `Basic ${auth}`,
                     'Content-Type': 'application/json'
                 },
                 method: 'POST',
                 body: JSON.stringify({
-                    providerId: 1,
                     content,
-                    isBinary: false,
+                    type: 'TEXT',
                 })
             });
         }
@@ -581,6 +780,14 @@
             const author = titleParts.length == 2 ? titleParts[1] : "Artista desconhecido"
             const category = "songs"
             return { title, author, category, content }
+        }
+
+        async function setAuxTextToBackend(content) {
+            const res = await fetch("{{APP_LOCATION}}/api/content/set/aux", {
+                method: 'POST',
+                body: JSON.stringify({content, type: 'TEXT'})
+            });
+            const resJson = await res.json();
         }
 
         async function saveProcessedTextToBackend(content) {
@@ -621,6 +828,18 @@
             const fileName = document.getElementById('select-text-options').value;
             clearTextInput().value = await loadTextFromBackend(fileName);
         }
+        async function loadAndCreateBlocks() {
+            const fileName = document.getElementById('select-text-options').value;
+            const text = await loadTextFromBackend(fileName);
+            createBlocks(text);
+            toggleControllerForce();
+        }
+        async function loadAndCreateBlocksFromTrigger(event) {
+            const fileName = event.target.value;
+            const text = await loadTextFromBackend(fileName);
+            createBlocks(text);
+            toggleControllerForce();
+        }
 
         async function loadTextFromBackend(song) {
             const params = new URLSearchParams({ song }).toString();
@@ -633,6 +852,7 @@
             const res = await fetch('{{APP_LOCATION}}/api/songs');
             const json = await res.json();
             fillSongsOption(json.mediaList);
+            fillSongsInButtonTriggers(json.mediaList);
         }
 
         async function getSongFolders() {
@@ -721,6 +941,19 @@
             });
         }
 
+        function fillSongsInButtonTriggers(mediaList) {
+            const textTriggersContainer = document.getElementById('text-triggers');
+            textTriggersContainer.textContent = '';
+            mediaList.sort().forEach(songName => {
+                const triggerElem = document.createElement('button');
+                triggerElem.classList.add('button', 'button-big', 'text-trigger-button')
+                triggerElem.value = songName;
+                triggerElem.textContent = songName.replace('.txt', '');
+                triggerElem.addEventListener('click', loadAndCreateBlocksFromTrigger);
+                textTriggersContainer.appendChild(triggerElem);
+            });
+        }
+
         function fillSongsFoldersOption(mediaList) {
             const selectSong = document.getElementById('folder-options');
             selectSong.textContent = '';
@@ -731,14 +964,58 @@
                 selectSong.appendChild(optionElem);
             });
         }
-
+        function toggleVideo() {
+            const toggleVideoCheckbox = document.getElementById('toggle-video');
+            fetch('{{APP_LOCATION}}/api/content/set/command', {
+                method: 'POST',
+                body: JSON.stringify({
+                    contentId: `toggleVideo-${Date.now()}`,
+                    type: 'COMMAND',
+                    content: toggleVideoCheckbox.checked ? 'on' : 'off'
+                })
+            });
+        }
+        function toggleController(event) {
+            _toggleController(event);
+        }
+        function toggleControllerForce() {
+            _toggleController(null);
+        }
+        function _toggleController(event) {
+            const controller = document.getElementById('controller-panel');
+            const blocks = document.getElementById('blocks-panel');
+            const toggler = document.getElementById('toggle-controller-button');
+            const togglerContainer = document.getElementById('toggle-controller-container');
+            if (!togglerContainer.checkVisibility()) {
+                return;
+            }
+            const showed = controller.style.display !== 'none';
+            if (showed || !event) { // esconder painel
+                blocks.style.width = '100%';
+                blocks.style.left = '0';
+                controller.style.display = 'none';
+                blocks.style.display = 'block';
+                toggler.classList.add('toggle-off');
+                toggler.innerHTML = '&#x2699;'
+            } else {
+                controller.style.width = '100%';
+                blocks.style.display = 'none';
+                controller.style.display = 'block';
+                toggler.classList.remove('toggle-off');
+                toggler.innerHTML = '&#x274F;'
+            }
+        }
         document.addEventListener('DOMContentLoaded', () => {
             addGoLiveEventListener();
-            document.getElementById('process-text').addEventListener('click', createBlocks);
+            document.getElementById('process-text').addEventListener('click', (event) => {
+                createBlocks(event);
+                toggleControllerForce();
+            });
             document.getElementById('clear-screen').addEventListener('click', () => {
                 removeBlockSelectedClass();
                 emitContent('');
             });
+            document.getElementById('toggle-controller-button').addEventListener('click', toggleController);
             document.getElementById('carregar-lista-musicas').addEventListener('click', getSongList);            
             document.getElementById('clear-text-input').addEventListener('click', clearTextInput);
             document.getElementById('get-lyrics-letras-by-url').addEventListener('click', getLyricsFromLetrasByUrl);
@@ -748,31 +1025,59 @@
                 const content = document.getElementById('text-to-show').value;
                 saveProcessedTextToBackend(content);
             });
+            document.getElementById('toggle-controller-button-clear').addEventListener('click', () => {
+                removeBlockSelectedClass();
+                emitContent('');
+            });
+            document.getElementById('set-aux-text').addEventListener('click', () => {
+                const content = document.getElementById('text-to-show').value;
+                setAuxTextToBackend(content);
+            });
+            document.getElementById('clean-aux-text').addEventListener('click', () => {
+                setAuxTextToBackend('');
+            });
             document.getElementById('carregar-texto').addEventListener('click', fillTextInput);
-            document.getElementById('open-modal-letras').addEventListener('click', () => {
-                document.getElementById('modal').classList.remove('hide');
-                document.getElementById('buscar-letra').classList.remove('hide');
-            });
-            document.getElementById('close-modal-letras').addEventListener('click', () => {
-                document.getElementById('modal').classList.add('hide');
-                document.getElementById('buscar-letra').classList.add('hide');
-            });
-            document.getElementById('open-modal-procurar').addEventListener('click', () => {
-                loadSongListFromFolder();
+            document.getElementById('carregar-blocos').addEventListener('click', loadAndCreateBlocks);
+            // document.getElementById('open-modal-letras').addEventListener('click', () => {
+            //     document.getElementById('modal').classList.remove('hide');
+            //     document.getElementById('buscar-letra').classList.remove('hide');
+            // });
+            // document.getElementById('close-modal-letras').addEventListener('click', () => {
+            //     document.getElementById('modal').classList.add('hide');
+            //     document.getElementById('buscar-letra').classList.add('hide');
+            // });
+            document.getElementById('open-modal-procurar').addEventListener('click', async () => {
+                await loadSongListFromFolder();
+                document.getElementById('folder-options').addEventListener('change', loadSongListFromFolder);
                 document.getElementById('modal').classList.remove('hide');
                 document.getElementById('buscar-musica').classList.remove('hide');
             });
             document.getElementById('close-modal-procurar').addEventListener('click', () => {
+                document.getElementById('folder-options').removeEventListener('change', loadSongListFromFolder);
                 document.getElementById('modal').classList.add('hide');
                 document.getElementById('buscar-musica').classList.add('hide');
             });
             document.getElementById('carregar-lista-pasta').addEventListener('click', loadSongListFromFolder);
 
+            document.getElementById('trigger-timer-1930').addEventListener('click', triggerTimer.bind(null, 19, 30));
+            document.getElementById('trigger-timer-1800').addEventListener('click', triggerTimer.bind(null, 18, 0));
+            document.getElementById('clear-regressive').addEventListener('click', clearTimer);
+
+            document.getElementById('toggle-video').addEventListener('change', toggleVideo);
+
             openProcessedText();
             createBlocks();
             getSongList();
             getSongFolders();
-        })
+            setInnerMarginTop();
+        });
+        function setInnerMarginTop() {
+            const fixed = document.querySelector('.fixed');
+            const inner = document.querySelector('.inner');
+            // const fixedHeight = fixed.offsetHeight;
+            // console.log(`Fixed height: ${fixedHeight}`);
+            // inner.style.marginTop = `${fixedHeight}px`;
+        }
 
     </script>
 </body>

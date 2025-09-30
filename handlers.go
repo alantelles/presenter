@@ -30,6 +30,15 @@ func viewPanel(c *gin.Context) {
 }
 
 func viewController(c *gin.Context) {
-	read, _ := getHtmlPage("templates/controllers/songs.html")
+	page := c.Param("page")
+	if page == "" {
+		page = "songs"
+	}
+	read, _ := getHtmlPage("templates/controllers/" + page + ".html")
+	c.Data(http.StatusOK, ContentTypeHTML, read)
+}
+
+func viewHome(c *gin.Context) {
+	read, _ := getHtmlPage("templates/index.html")
 	c.Data(http.StatusOK, ContentTypeHTML, read)
 }
