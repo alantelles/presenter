@@ -39,18 +39,6 @@ type ProviderData struct {
 	ContentId string `json:"contentId,omitempty"`
 }
 
-type flagsSetup struct {
-	Location string
-	Username string
-	Password string
-}
-
-type mediaProviderContent struct {
-	ProviderId int    `json:"providerId"`
-	Content    string `json:"content"`
-	IsBinary   bool   `json:"isBinary"`
-}
-
 type media struct {
 	Category string `json:"category"`
 	Content  string `json:"content"`
@@ -101,8 +89,8 @@ func setLocation() string {
 }
 
 func setBasicAuthCredentials() {
-	basicAuthUser = flagsUsed.Username
-	basicAuthPass = flagsUsed.Password
+	basicAuthUser = flags.GetUsername()
+	basicAuthPass = flags.GetPassword()
 }
 
 func varSetup() {
@@ -212,7 +200,6 @@ func main() {
 
 	router.GET("/controller", AuthMiddleware, viewController)
 	router.GET("/controller/:page", AuthMiddleware, viewController)
-	router.GET("/controller", viewHome)
 	router.GET("/", viewHome)
 	router.GET("/live", viewPanel)
 
