@@ -836,17 +836,36 @@
         }
 
         async function loadTextFromBackend(song) {
+            const cached = window.sessionStorage.getItem(`text:${song}`);
+            if (cached) {
+                return cached;
+            }
             const params = new URLSearchParams({ song }).toString();
             const res = await fetch(`{{APP_LOCATION}}/api/songs/content?${params}`)
             const content = res.text();
+            cacheLoadedText(song, content);
             return content
         }
 
-        async function getSongList() {
+        async function cacheLoadedText(song, content$) {
+            const content = await content$
+            window.sessionStorage.setItem(`text:${song}`, content);
+        }
+
+        async function getSongList() {            
             const res = await fetch('{{APP_LOCATION}}/api/songs');
             const json = await res.json();
             fillSongsOption(json.mediaList);
             fillSongsInButtonTriggers(json.mediaList);
+            clearAllTextCache();
+        }
+
+        function clearAllTextCache() {
+            Object.keys(window.sessionStorage).forEach((key) => {
+                if (key.startsWith('text:')) {
+                    window.sessionStorage.removeItem(key)
+                }
+            })
         }
 
         async function getSongFolders() {
