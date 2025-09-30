@@ -143,8 +143,17 @@
         }
     </style>
     <style>
+        i { font-style: italic;}
+        b { font-weight: bold;}
         button {
             cursor: pointer;
+        }
+        code {
+            font-family: monospace;
+            background-color: #a03b3b;
+            padding: 1px;
+            color: #fff;
+            font-size: 15px;
         }
 
         body {
@@ -622,6 +631,10 @@
                 <div class="input-text">
                     <p class="instrucoes">Insira um texto neste campo e clique em "Criar blocos" quando estiver pronto.</p>
                     <p class="instrucoes">Para exibir um conteúdo na apresentação clique no bloco gerado com o texto</p>
+                    <p class="instrucoes">
+                        Você pode formatar utilizando <code>*texto*</code> para <b>negrito</b>, <code>~texto~</code> para <i>itálico</i> e 
+                        <code>$[cor]texto$</code> para colorir o texto. Todas formas válidas de cores CSS são aceitas.
+                    </p>
                     <div class="cont-text-to-show">
                         <textarea class="text-to-show" name="text-to-show" id="text-to-show"></textarea>
                     </div>
