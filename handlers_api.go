@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -18,6 +19,19 @@ func getSongsFolderList(c *gin.Context) {
 		MediaList: folders,
 	}
 	c.JSON(http.StatusOK, response)
+}
+
+func uploadImage(c *gin.Context) {
+	CORS(c)
+	form, _ := c.MultipartForm()
+	files := form.File["files"]
+	for _, file := range files {
+		log.Println(file.Filename)
+		savedName := "./media/images/" + file.Filename
+		c.SaveUploadedFile(file, savedName)
+		createThumbnail(savedName)
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "OK"})
 }
 
 func setMediaProviderContent(c *gin.Context) {

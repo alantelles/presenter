@@ -157,6 +157,8 @@ func main() {
 	router.GET("/api/content", getMediaProviderContent)
 	router.POST("/api/media", saveMedia)
 
+	router.POST("/api/images", uploadImage)
+
 	router.GET("/api/songs", getAllSongs)
 	router.GET("/api/songs/content", getSongContent)
 	router.GET("/api/songs/folders", getSongsFolderList)
