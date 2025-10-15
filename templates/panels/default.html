@@ -159,10 +159,11 @@ table {
         }
         .meta-text {
             position: absolute;
+            text-align: left;
             bottom: 20px; left: 20px;
             background-color: rgb(62, 9, 112);
             color: white;
-            font-size: 23px;
+            font-size: 28px;
             padding: 5px;
             letter-spacing: normal;
             display: none;
@@ -235,9 +236,9 @@ table {
             }
             const metaContent = categorized.meta.join('\n');
             const liveContent = categorized.live.join('\n');
-            lastMainText = data.content;            
+            lastMainText = data.content;
             liveBlock.innerHTML = processarConteudo(liveContent);
-            metaBlock.innerHTML = metaContent;
+            metaBlock.innerHTML = processarConteudo(metaContent);
             if (data.contentId && data.contentId.startsWith('bible ')) {
                 processBibleData(data.contentId);
                 toggleVideo({content: 'off'}); // Desliga o vídeo se for um capítulo da Bíblia

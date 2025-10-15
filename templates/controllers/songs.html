@@ -703,11 +703,24 @@
             return block;
         }
         async function sendBlockToLive() {
+            const nextId = `bl${parseInt(this.id.replace('bl', '')) + 1}`;
+            let nextBlock = '';
+            try {
+                nextBlock = document.getElementById(nextId).textContent
+                    .split('\n')
+                    .map(e => e.trim())
+                    .slice(0, 3)
+                    .map(e => `meta:${e}`)
+                    .join('\n');
+
+            } catch (e) {
+                console.log(`Não foi possível extrair próximo bloco: ${e}`);
+            }
             const content = this.textContent
                 .split('\n')
                 .map(e => e.trim())
                 .filter(e => e.length > 1)
-                .join('\n');
+                .join('\n') + '\n' + nextBlock;
             const clicked = document.getElementById(this.id);
             clicked.classList.add('bloco-waiting');
             await emitContent(content);
