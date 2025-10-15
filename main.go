@@ -139,6 +139,8 @@ func createFolder(path string) {
 
 func createDefaultFolders() {
 	createFolder("media/songs")
+	createFolder("media/images")
+	createFolder("media/images/thumbs")
 }
 
 func main() {
