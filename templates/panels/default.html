@@ -157,6 +157,16 @@ table {
             object-fit: cover;
             opacity: 0.9;
         }
+        .meta-text {
+            position: absolute;
+            bottom: 20px; left: 20px;
+            background-color: rgb(62, 9, 112);
+            color: white;
+            font-size: 23px;
+            padding: 5px;
+            letter-spacing: normal;
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -173,6 +183,7 @@ table {
     </div>
     <div class="container">
         <div class="bible-chapter"></div>
+        <div class="presentation meta-text" id="metablock"></div>
         <div class="presentation cronometro" id='cronometro'></div>
         <div class="presentation auxblock" id='auxblock'></div>
         <div class="presentation stroke" id='liveblock'></div>
@@ -205,7 +216,8 @@ table {
             bibleChapter.textContent = capitulo;
         }
         function processMainProviderData(data) {
-            const liveBlock = document.getElementById('liveblock');            
+            const liveBlock = document.getElementById('liveblock'); 
+            const metaBlock = document.getElementById('metablock');
             if (isShowClockMode()) {
                 if (data.content === '') {
                     liveBlock.style.backgroundColor = 'transparent';
@@ -216,8 +228,16 @@ table {
             if (lastMainText === data.content) {
                 return;
             }
-            lastMainText = data.content;
-            liveBlock.innerHTML = processarConteudo(data.content);
+            const contentLines = data.content.split('\n');
+            const categorized = {
+                meta: contentLines.filter(e => e.startsWith('meta:')).map(e => e.replace('meta:', '')),
+                live: contentLines.filter(e => !e.startsWith('meta:'))
+            }
+            const metaContent = categorized.meta.join('\n');
+            const liveContent = categorized.live.join('\n');
+            lastMainText = data.content;            
+            liveBlock.innerHTML = processarConteudo(liveContent);
+            metaBlock.innerHTML = metaContent;
             if (data.contentId && data.contentId.startsWith('bible ')) {
                 processBibleData(data.contentId);
                 toggleVideo({content: 'off'}); // Desliga o vídeo se for um capítulo da Bíblia
@@ -234,12 +254,6 @@ table {
             }
             console.log('Processing aux provider data: ', data);
             const auxBlock = document.getElementById('auxblock');
-            if (data.content === '') {
-                auxBlock.style.display = 'none';
-                return;
-            } else {
-                auxBlock.style.display = 'block';
-            }
             if (lastAuxText === data.content) {
                 return;
             }
@@ -420,6 +434,7 @@ table {
                 const liveBlock = document.getElementById('liveblock');
                 liveBlock.classList.remove('stroke');
                 liveBlock.style.backgroundColor = 'black';
+                document.getElementById('metablock').style.display = 'block';
                 document.getElementById('auxblock').style.display = 'block';
                 document.getElementById('bgvideo').remove();
                 setInterval(showTime, 30 * 1000);
