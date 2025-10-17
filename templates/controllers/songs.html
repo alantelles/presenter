@@ -673,8 +673,16 @@
             const splittedParagraphs = textToShow.split('\n\n')
                 .map(line => line.trim())
                 .filter(e => e.length > 0);
-            var index = 0;
-            const blocks = splittedParagraphs.map(createBlock, index);
+            let index = 0;
+            const blocks = []; // splittedParagraphs.map(createBlock, index);
+            for (let i = 0; i < splittedParagraphs.length; i++) {
+                const blockResult = createBlock(splittedParagraphs[i], -1);
+                if (!blockResult.isComment) {
+                    blockResult.block.id = `bl${index}`;
+                    index++;
+                }
+                blocks.push(blockResult.block);
+            }
             const elemBlocos = document.getElementById('blocos');
             elemBlocos.textContent = '';
             blocks.forEach(block => {
@@ -691,16 +699,15 @@
                 block.classList.add('bloco-comment');
             } else {
                 block.classList.add('bloco-verse');
-            }
-            block.id = `bl${index}`;
-            index++;
+                
+            }  
             const container = document.createElement('div');
             const ps = createElemPs(paragraph);
             ps.forEach(p => {
                 container.appendChild(p);
-            });
+            })
             block.appendChild(container);
-            return block;
+            return {block, isComment};
         }
         async function sendBlockToLive() {
             const nextId = `bl${parseInt(this.id.replace('bl', '')) + 1}`;
