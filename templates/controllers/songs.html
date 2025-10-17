@@ -699,7 +699,6 @@
                 block.classList.add('bloco-comment');
             } else {
                 block.classList.add('bloco-verse');
-                
             }  
             const container = document.createElement('div');
             const ps = createElemPs(paragraph);
@@ -716,6 +715,7 @@
                 nextBlock = document.getElementById(nextId).textContent
                     .split('\n')
                     .map(e => e.trim())
+                    .filter(e => !e.startsWith('meta:'))
                     .slice(0, 3)
                     .map(e => `meta:${e}`)
                     .join('\n');
