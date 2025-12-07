@@ -708,8 +708,31 @@
             block.appendChild(container);
             return {block, isComment};
         }
-        async function sendBlockToLive() {
-            const nextId = `bl${parseInt(this.id.replace('bl', '')) + 1}`;
+        function triggerByKey(keyCode) {
+            if (keyCode === 'ArrowRight') {
+                const targetId = window.sessionStorage.getItem('nextBlock');
+                if (!targetId) {
+                    return;
+                }
+                const block = document.getElementById(targetId);
+                sendBlockToLive(block);
+                return;
+            }
+            if (keyCode === 'ArrowLeft') {
+                const targetId = window.sessionStorage.getItem('prevBlock');
+                if (!targetId) {
+                    return;
+                }
+                const block = document.getElementById(targetId);
+                sendBlockToLive(block);
+            }
+        }
+        async function sendBlockToLive2() {
+            sendBlockToLive(this);
+        }
+        async function sendBlockToLive(elem) {
+            const nextId = `bl${parseInt(elem.id.replace('bl', '')) + 1}`;
+            const prevId = `bl${parseInt(elem.id.replace('bl', '')) - 1}`;
             let nextBlock = '';
             try {
                 nextBlock = document.getElementById(nextId).textContent
@@ -719,16 +742,24 @@
                     .slice(0, 3)
                     .map(e => `meta:${e}`)
                     .join('\n');
-
+                window.sessionStorage.setItem('nextBlock', nextId);
             } catch (e) {
                 console.log(`Não foi possível extrair próximo bloco: ${e}`);
+                window.sessionStorage.removeItem('nextBlock');
             }
-            const content = this.textContent
+            try {
+                document.getElementById(prevId).textContent;
+                window.sessionStorage.setItem('prevBlock', prevId);
+            } catch (e) {
+                console.log(`Não foi possível extrair bloco anterior: ${e}`);
+                window.sessionStorage.removeItem('prevBlock');
+            }
+            const content = elem.textContent
                 .split('\n')
                 .map(e => e.trim())
                 .filter(e => e.length > 1)
                 .join('\n') + '\n' + nextBlock;
-            const clicked = document.getElementById(this.id);
+            const clicked = document.getElementById(elem.id);
             clicked.classList.add('bloco-waiting');
             await emitContent(content);
             removeBlockSelectedClass();
@@ -782,7 +813,7 @@
         function addGoLiveEventListener() {
             const blocks = document.querySelectorAll('.bloco-verse');
             blocks.forEach(element => {
-                element.addEventListener('click', sendBlockToLive);
+                element.addEventListener('click', sendBlockToLive2);
             });
         }
 
@@ -1078,7 +1109,10 @@
             document.getElementById('clear-regressive').addEventListener('click', clearTimer);
 
             document.getElementById('toggle-video').addEventListener('change', toggleVideo);
-
+            document.addEventListener('keydown', function(event) {
+                console.log('Pressed: ' + event.code);
+                triggerByKey(event.code);
+            })
             openProcessedText();
             createBlocks();
             getSongList();
