@@ -760,6 +760,9 @@
                 .filter(e => e.length > 1)
                 .join('\n') + '\n' + nextBlock;
             const clicked = document.getElementById(elem.id);
+            const top = clicked.getBoundingClientRect().top - 50;
+            console.log(top);
+            document.getElementById('blocks-panel').scrollTop = top;
             clicked.classList.add('bloco-waiting');
             await emitContent(content);
             removeBlockSelectedClass();
@@ -1110,7 +1113,6 @@
 
             document.getElementById('toggle-video').addEventListener('change', toggleVideo);
             document.addEventListener('keydown', function(event) {
-                console.log('Pressed: ' + event.code);
                 triggerByKey(event.code);
             })
             openProcessedText();
