@@ -760,9 +760,9 @@
                 .filter(e => e.length > 1)
                 .join('\n') + '\n' + nextBlock;
             const clicked = document.getElementById(elem.id);
-            const top = clicked.getBoundingClientRect().top - 50;
-            console.log(top);
-            document.getElementById('blocks-panel').scrollTop = top;
+            // TODO: melhorar esta feature
+            // const top = clicked.getBoundingClientRect().top - 50;
+            // document.getElementById('blocks-panel').scrollTop = top;
             clicked.classList.add('bloco-waiting');
             await emitContent(content);
             removeBlockSelectedClass();
