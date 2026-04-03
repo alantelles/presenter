@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"encoding/base64"
 	"fmt"
 	"log"
 	"net"
@@ -21,6 +22,8 @@ const (
 	ContentTypeText   = "text/plain; charset=utf-8"
 
 	AppLocationToken = "{{APP_LOCATION}}"
+
+	AppAuthToken = "{{BASIC_AUTH_TOKEN}}"
 
 	TypeCommand = "COMMAND"
 	TypeText    = "TEXT"
@@ -55,6 +58,8 @@ type returnBody struct {
 var port = 8080 // TODO: receive this by running argument
 var location string
 var usePort = true
+var basicAuthUser string
+var basicAuthPass string
 
 func CORS(c *gin.Context) {
 	c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
@@ -83,11 +88,17 @@ func setLocation() string {
 	return scheme + address + getPortSuffix()
 }
 
+func setBasicAuthCredentials() {
+	basicAuthUser = flags.GetUsername()
+	basicAuthPass = flags.GetPassword()
+}
+
 func varSetup() {
 	location = flags.GetLocation()
 	if location == "" {
 		location = setLocation()
 	}
+	setBasicAuthCredentials()
 }
 
 func getLocalIp() string {
@@ -108,6 +119,15 @@ func insertAddressOnContent(content []byte) []byte {
 		content,
 		[]byte(AppLocationToken),
 		[]byte(location),
+		-1,
+	)
+}
+
+func insertAuthTokenOnContent(content []byte) []byte {
+	return bytes.Replace(
+		content,
+		[]byte(AppAuthToken),
+		[]byte(getAuthAsB64()),
 		-1,
 	)
 }
@@ -141,6 +161,22 @@ func createDefaultFolders() {
 	createFolder("media/songs")
 }
 
+func getAuthAsB64() string {
+	return base64.StdEncoding.EncodeToString([]byte(basicAuthUser + ":" + basicAuthPass))
+}
+
+func AuthMiddleware(c *gin.Context) {
+	CORS(c)
+	user, pass, ok := c.Request.BasicAuth()
+	if !(user == basicAuthUser && pass == basicAuthPass && ok) {
+		c.Writer.Header().Set("WWW-Authenticate", "Basic realm=Restricted")
+		c.JSON(401, gin.H{"status": 401, "message": "Unauthorized"})
+		c.Abort()
+		return
+	}
+	c.Next()
+}
+
 func main() {
 
 	flags.ProcessFlags()
@@ -153,17 +189,17 @@ func main() {
 		gin.Recovery(),
 	)
 	router.Static("/static", "./static")
-	router.POST("/api/content/set/:providerId", setMediaProviderContent)
+	router.POST("/api/content/set/:providerId", AuthMiddleware, setMediaProviderContent)
 	router.GET("/api/content", getMediaProviderContent)
-	router.POST("/api/media", saveMedia)
+	router.POST("/api/media", AuthMiddleware, saveMedia)
 
 	router.GET("/api/songs", getAllSongs)
 	router.GET("/api/songs/content", getSongContent)
 	router.GET("/api/songs/folders", getSongsFolderList)
 	router.GET("/api/songs/folder", getAllSongsFromFolder)
 
-	router.GET("/controller/:page", viewController)
-	router.GET("/controller", viewHome)
+	router.GET("/controller", AuthMiddleware, viewController)
+	router.GET("/controller/:page", AuthMiddleware, viewController)
 	router.GET("/", viewHome)
 	router.GET("/live", viewPanel)
 

@@ -7,16 +7,24 @@ import (
 type FlagsSetup struct {
 	Location           string
 	TokenBibliaDigital string
+	Username           string
+	Password           string
 }
 
 var FlagsUsed FlagsSetup
 
 func ProcessFlags() {
 	locationPtr := GetLocationFlag()
-	tokenBibliaDigitalTokenPtr := GetTokenBibliaDigitalTokenFlag()
+	// TODO: remover
+	// tokenBibliaDigitalTokenPtr := GetTokenBibliaDigitalTokenFlag()
+	usernamePtr := GetUsernameFlag()
+	passwordPtr := GetPasswordFlag()
 	flag.Parse()
+	FlagsUsed.Username = *usernamePtr
+	FlagsUsed.Password = *passwordPtr
 	FlagsUsed.Location = *locationPtr
-	FlagsUsed.TokenBibliaDigital = *tokenBibliaDigitalTokenPtr
+	// TODO: remover
+	// FlagsUsed.TokenBibliaDigital = *tokenBibliaDigitalTokenPtr
 }
 
 func GetLocationFlag() *string {
@@ -25,11 +33,22 @@ func GetLocationFlag() *string {
 	return flag.String("endereco", "", description)
 }
 
-func GetTokenBibliaDigitalTokenFlag() *string {
-	description := "Token para acessar a API d'A Bíblia Digital (abibliadigital.com.br), " +
-		"o provedor de textos bíblicos utilizado pelo aplicativo. " +
-		"Se não for informado, o aplicativo não conseguirá acessar os textos bíblicos"
-	return flag.String("tokenBibliaDigital", "", description)
+// TODO: remover
+// func GetTokenBibliaDigitalTokenFlag() *string {
+// 	description := "Token para acessar a API d'A Bíblia Digital (abibliadigital.com.br), " +
+// 		"o provedor de textos bíblicos utilizado pelo aplicativo. " +
+// 		"Se não for informado, o aplicativo não conseguirá acessar os textos bíblicos"
+// 	return flag.String("tokenBibliaDigital", "", description)
+// }
+
+func GetUsernameFlag() *string {
+	description := "Usuário para autenticação básica. Deve ser informado junto com a senha"
+	return flag.String("usuario", "admin", description)
+}
+
+func GetPasswordFlag() *string {
+	description := "Senha para autenticação básica. Deve ser informada junto com o usuário"
+	return flag.String("senha", "admin", description)
 }
 
 func GetLocation() string {
@@ -38,4 +57,12 @@ func GetLocation() string {
 
 func GetTokenBibliaDigital() string {
 	return FlagsUsed.TokenBibliaDigital
+}
+
+func GetUsername() string {
+	return FlagsUsed.Username
+}
+
+func GetPassword() string {
+	return FlagsUsed.Password
 }
