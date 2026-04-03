@@ -621,9 +621,12 @@
                     <p>Selecionar texto</p>
                     <div class="functions-triggers">
                         <select class="select " name="select-text" id="select-text-options"></select>
-                        <div class="functions-triggers">
+                        <div class="functions-triggers" style="margin-bottom: 7px;">
                             <button type="button" class="button" id="carregar-blocos">Carregar blocos</button>
                             <button type="button" class="button" id="carregar-texto">Carregar texto</button>
+                            <button type="button" class="button" id="remover-texto">Remover da lista</button>
+                        </div>
+                        <div class="functions-triggers">
                             <button type="button" class="button" id="carregar-lista-musicas">Carregar lista</button>
                             <button type="button" class="button" id="open-modal-procurar">Procurar músicas</button>
                         </div>
@@ -655,6 +658,8 @@
         </div>
     </div>
     <script>
+        const REMOVE_FROM_LIST_DESTINATION = 'musicas/_removidas';
+        const CATEGORY_SONGS = 'songs';
         function createElemPs(line) {
             return line.split('\n').map(line => {
                 const pNode = document.createElement("p");
@@ -1044,6 +1049,25 @@
                 toggler.innerHTML = '&#x274F;'
             }
         }
+        async function removeFromList() {
+            const auth = document.getElementById('basic-auth-token').value;
+            const mediaId = document.getElementById('select-text-options').value;
+            const body = {
+                mediaId,
+                category: CATEGORY_SONGS,
+                destination: REMOVE_FROM_LIST_DESTINATION
+            };
+            await fetch('{{APP_LOCATION}}/api/media/move', {
+                    headers: {
+                        'Authorization': `Basic ${auth}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(body),
+                    method: 'PUT',
+                });
+            getSongList();
+            getSongFolders();
+        }
         document.addEventListener('DOMContentLoaded', () => {
             addGoLiveEventListener();
             document.getElementById('process-text').addEventListener('click', (event) => {
@@ -1077,6 +1101,7 @@
             });
             document.getElementById('carregar-texto').addEventListener('click', fillTextInput);
             document.getElementById('carregar-blocos').addEventListener('click', loadAndCreateBlocks);
+            document.getElementById('remover-texto').addEventListener('click', removeFromList);
             // document.getElementById('open-modal-letras').addEventListener('click', () => {
             //     document.getElementById('modal').classList.remove('hide');
             //     document.getElementById('buscar-letra').classList.remove('hide');
