@@ -166,7 +166,6 @@
         h1 {
             font-size: 25px;
         }
-
         .container {
             display: flex;
             flex-direction: column;
@@ -482,6 +481,39 @@
             }
         }
     </style>
+    <style>
+        #alert-modal {
+            display: none;
+            opacity: 0;
+            transition: opacity 0.4s;
+            position: absolute;
+            top: 20px; right: 30px;
+            width: 350px;
+            border-radius: 20px;
+            border: solid 2px #70a5dd;
+            background-color: #cae4ff;
+            color: #004896;
+            z-index: 9999;
+            padding: 15px;
+        }
+        #alert-modal h2 {
+            font-size: 25px;
+            font-weight: bold;
+        }
+        #alert-modal .alert-text-container {
+            width: 100%;
+            margin-top: 5px;
+        }
+        #alert-modal #alert-text {
+            font-size: 18px;
+        }
+        @media screen and (max-width: 1000px) {
+            #alert-modal {
+                width: 80vw;
+                left: 5vw;
+            }
+        }
+    </style>
     <style type="text/css">
         .tg {
             border-collapse: collapse;
@@ -532,6 +564,12 @@
 </head>
 
 <body>
+    <div id="alert-modal">
+        <h2>Aviso:</h2>
+        <div class="alert-text-container">
+            <p id="alert-text"></p>
+        </div>
+    </div>
     <div id="toggle-controller-container" class="toggle-controller">
         <button id="toggle-controller-button">&#x274F;</button>
         <button id="toggle-controller-button-clear">&#x2613;</button>
@@ -892,6 +930,7 @@
             fillSongsOption(json.mediaList);
             fillSongsInButtonTriggers(json.mediaList);
             clearAllTextCache();
+            displayAlert('Lista atualizada com sucesso');
         }
 
         function clearAllTextCache() {
@@ -1070,6 +1109,20 @@
                 });
             getSongList();
             getSongFolders();
+        }
+        function displayAlert(conteudo) {
+            console.log('deveria alertar')
+            const alertBox = document.getElementById('alert-modal');
+            const alertContent = document.getElementById('alert-text');
+            alertContent.textContent = conteudo;
+            alertBox.style.display = 'block';
+            alertBox.style.opacity = 100;
+            setTimeout(t => {
+                console.log('passei')
+                alertContent.textContent = '';
+                alertBox.style.opacity = 0;
+                alertBox.style.display = 'none';
+            }, 4000);
         }
         document.addEventListener('DOMContentLoaded', () => {
             addGoLiveEventListener();
