@@ -864,7 +864,7 @@
             })
             const resJson = await res.json();
             getSongList();
-            alert('Texto salvo com sucesso!');
+            displayAlert('Texto salvo com sucesso!');
         }
 
         function saveProcessedText(content) {
@@ -930,6 +930,10 @@
             fillSongsOption(json.mediaList);
             fillSongsInButtonTriggers(json.mediaList);
             clearAllTextCache();
+        }
+
+        async function triggerGetSongList() {
+            await getSongList();
             displayAlert('Lista atualizada com sucesso');
         }
 
@@ -963,7 +967,7 @@
             const res = await fetch(`{{APP_LOCATION}}/api/lyrics/letras?${params}`);
             const lyrics = await res.text();
             if (lyrics.length == 0) {
-                alert('Letra não encontrada');
+                displayAlert('Letra não encontrada');
                 return;
             }
             document.getElementById('text-to-show').value = lyrics
@@ -1110,15 +1114,14 @@
             getSongList();
             getSongFolders();
         }
+        // TODO: criar um elemento para cada alerta em vez de todos reaproveitarem
         function displayAlert(conteudo) {
-            console.log('deveria alertar')
             const alertBox = document.getElementById('alert-modal');
             const alertContent = document.getElementById('alert-text');
             alertContent.textContent = conteudo;
             alertBox.style.display = 'block';
             alertBox.style.opacity = 100;
             setTimeout(t => {
-                console.log('passei')
                 alertContent.textContent = '';
                 alertBox.style.opacity = 0;
                 alertBox.style.display = 'none';
@@ -1135,7 +1138,7 @@
                 emitContent('');
             });
             document.getElementById('toggle-controller-button').addEventListener('click', toggleController);
-            document.getElementById('carregar-lista-musicas').addEventListener('click', getSongList);            
+            document.getElementById('carregar-lista-musicas').addEventListener('click', triggerGetSongList);            
             document.getElementById('clear-text-input').addEventListener('click', clearTextInput);
             document.getElementById('get-lyrics-letras-by-url').addEventListener('click', getLyricsFromLetrasByUrl);
             document.getElementById('get-lyrics-letras-by-artista-musica').addEventListener('click', getLyricsFromLetrasByAndArtist);
