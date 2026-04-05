@@ -701,6 +701,18 @@
     <script>
         const REMOVE_FROM_LIST_DESTINATION = 'musicas/_removidas';
         const CATEGORY_SONGS = 'songs';
+        function authorized(path, bodyObj, method = 'POST') {
+            const auth = document.getElementById('basic-auth-token').value;
+            const body = JSON.stringify(bodyObj);
+            return fetch('{{APP_LOCATION}}' + path, {
+                headers: {
+                    Authorization: `Basic ${auth}`,
+                    'Content-Type': 'application/json'
+                },
+                body,
+                method
+            });
+        }
         function createElemPs(line) {
             return line.split('\n').map(line => {
                 const pNode = document.createElement("p");
@@ -816,19 +828,9 @@
             });
         }
 
-        async function emitContent(content) {
+        function emitContent(content) {
             const auth = document.getElementById('basic-auth-token').value;
-            return await fetch('{{APP_LOCATION}}/api/content/set/main', {
-                headers: {
-                    'Authorization': `Basic ${auth}`,
-                    'Content-Type': 'application/json'
-                },
-                method: 'POST',
-                body: JSON.stringify({
-                    content,
-                    type: 'TEXT',
-                })
-            });
+            authorized('/api/content/set/main', {content, type: 'TEXT'});
         }
 
         function addGoLiveEventListener() {
@@ -848,21 +850,13 @@
             return { title, author, category, content }
         }
 
-        async function setAuxTextToBackend(content) {
-            const res = await fetch("{{APP_LOCATION}}/api/content/set/aux", {
-                method: 'POST',
-                body: JSON.stringify({content, type: 'TEXT'})
-            });
-            const resJson = await res.json();
+        function setAuxTextToBackend(content) {
+            authorized('/api/content/set/aux', {content, type: 'TEXT'});
         }
 
         async function saveProcessedTextToBackend(content) {
-            const payload = getSongToSavePayload(content)
-            const res = await fetch("{{APP_LOCATION}}/api/media", {
-                method: 'POST',
-                body: JSON.stringify(payload)
-            })
-            const resJson = await res.json();
+            const payload = getSongToSavePayload(content);
+            await authorized('/api/media', payload);
             getSongList();
             displayAlert('Texto salvo com sucesso!');
         }
@@ -1103,16 +1097,10 @@
                 category: CATEGORY_SONGS,
                 destination: REMOVE_FROM_LIST_DESTINATION
             };
-            await fetch('{{APP_LOCATION}}/api/media/move', {
-                    headers: {
-                        'Authorization': `Basic ${auth}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(body),
-                    method: 'PUT',
-                });
+            await authorized('/api/media/move', body, 'PUT');
             getSongList();
             getSongFolders();
+            displayAlert('Texto removido da lista com sucesso');
         }
         // TODO: criar um elemento para cada alerta em vez de todos reaproveitarem
         function displayAlert(conteudo) {
