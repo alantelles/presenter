@@ -57,21 +57,31 @@ jobs:
       # 5. Compacta o binário em um arquivo .zip ou .tar.gz (boa prática para distribuição)
       - name: Package binary and assets
         run: |
-          mkdir dist-windows
-          mv presenter.exe dist-windows
-          cp -r bible/content/ dist-windows/
-          cp -r static/ dist-windows/
-          cp -r templates/ dist-windows/
-          cp organiza.sh dist-windows/
-          cd dist-windows && zip -r ../presenter-${{ steps.tag_version.outputs.new_tag }}-windows-amd64.zip . && cd ..
 
-          mkdir dist-linux
-          mv presenter dist-linux
-          cp -r bible/content/ dist-linux/
-          cp -r static/ dist-linux/
-          cp -r templates/ dist-linux/
-          cp organiza.sh dist-linux/
-          tar -czvf presenter-${{ steps.tag_version.outputs.new_tag }}-linux-amd64.tar.gz -C dist-linux .
+          # Se for PR, a variável tag_version estará vazia, então usamos "test" para o build não quebrar
+          TAG_NEW="${{ steps.tag_version.outputs.new_tag }}"
+          if [ -z "$TAG_NEW" ]; then TAG_NEW="test"; fi
+
+          FOLDER_NAME="presenter-$TAG_NEW"
+
+          # Garante a criação de todas as subpastas necessárias
+          mkdir -p "dist-windows/$FOLDER_NAME/bible" "dist-linux/$FOLDER_NAME/bible"
+          mkdir -p "dist-windows/$FOLDER_NAME/static" "dist-linux/$FOLDER_NAME/static"
+          mkdir -p "dist-windows/$FOLDER_NAME/templates" "dist-linux/$FOLDER_NAME/templates"
+
+          mv presenter.exe "dist-windows/$FOLDER_NAME"
+          cp -r bible/content/* "dist-windows/$FOLDER_NAME/bible/"
+          cp -r static/* "dist-windows/$FOLDER_NAME/"
+          cp -r templates/ "dist-windows/$FOLDER_NAME/"
+          cp organiza.bat "dist-windows/$FOLDER_NAME/"
+          cd dist-windows && zip -r ../presenter-${{ steps.tag_version.outputs.new_tag }}-windows-amd64.zip "$FOLDER_NAME" && cd ..
+
+          mv presenter "dist-linux/$FOLDER_NAME"
+          cp -r bible/content/* "dist-linux/$FOLDER_NAME/bible/"
+          cp -r static/* "dist-linux/$FOLDER_NAME/"
+          cp -r templates/ "dist-linux/$FOLDER_NAME/"
+          cp organiza.sh "dist-linux/$FOLDER_NAME/"
+          tar -czvf presenter-${{ steps.tag_version.outputs.new_tag }}-linux-amd64.tar.gz -C dist-linux "$FOLDER_NAME"
 
       # 6. Cria o Release no GitHub e anexa o arquivo compactado
       - name: Create GitHub Release

@@ -44,8 +44,4 @@ if [ -d "musicas/_removidas" ]; then
     done
 fi
 
-git add --all
-git commit -m organizando
-git push origin culto-de-hoje
-
 cd $ORIGEM
