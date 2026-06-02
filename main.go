@@ -36,14 +36,20 @@ const (
 type ProviderData struct {
 	Content   string `json:"content"`
 	Type      string `json:"type,omitempty"`
-	ContentId string `json:"contentId,omitempty"`
+	ContentID string `json:"contentId,omitempty"`
 }
 
-type media struct {
+type Media struct {
 	Category string `json:"category"`
 	Content  string `json:"content"`
 	Title    string `json:"title"`
 	Author   string `json:"author"`
+}
+
+type MoveMediaCommand struct {
+	MediaID     string `json:"mediaId" binding:"required"`
+	Destination string `json:"destination" binding:"required"`
+	Category    string `json:"category" binding:"required"`
 }
 
 type returnBody struct {
@@ -192,6 +198,7 @@ func main() {
 	router.POST("/api/content/set/:providerId", AuthMiddleware, setMediaProviderContent)
 	router.GET("/api/content", getMediaProviderContent)
 	router.POST("/api/media", AuthMiddleware, saveMedia)
+	router.PUT("/api/media/move", AuthMiddleware, moveMedia)
 
 	router.GET("/api/songs", getAllSongs)
 	router.GET("/api/songs/content", getSongContent)
