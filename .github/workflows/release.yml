@@ -1,0 +1,89 @@
+name: Compile and Release Go Project
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Baixa o código do seu repositório alantelles/presenter
+      - name: Checkout source code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      # 2. PASSO NOVO: Calcula a próxima versão semântica e cria a TAG no Git
+      - name: Bump version and push tag
+        id: tag_version
+        uses: mathieudutour/github-tag-action@v6.2
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          default_bump: patch # Se você não especificar nada no commit, ele sobe um patch (X.Y.+1)
+
+      # 2. Instala e configura o Go 1.23.4 com cache ativado
+      - name: Setup Go environment
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.4'
+          cache: true # Ativa o cache automático do go.mod / go.sum
+
+      # 3. Baixa as dependências do projeto (se houver)
+      - name: Install dependencies
+        run: go mod download
+
+      # 4. Compila o projeto gerando o binário "presenter"
+      # O flag -ldflags="-s -w" reduz o tamanho do binário final tirando infos de debug
+      - name: Build binary
+        run: |
+          env GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o presenter main.go
+
+      # 5.b COMPILAÇÃO PARA WINDOWS (Novo Passo)
+      # Repare no GOOS=windows e no ".exe" no final do nome do output
+      - name: Build Windows binary
+        run: |
+          env GOOS=windows GOARCH=amd64 go build -ldflags="-s -w" -o presenter.exe main.go
+
+      # 5. Compacta o binário em um arquivo .zip ou .tar.gz (boa prática para distribuição)
+      - name: Package binary and assets windows
+        run: |
+          mkdir dist-windows
+          mv presenter.exe dist-windows
+          cp -r media/ dist-windows/
+          cp -r bible/content/ dist-windows/
+          cp -r static/ dist-windows/
+          cp -r templates/ dist-windows/
+          cp organiza.sh dist-windows/
+          zip presenter-windows-amd64.zip -C dist-windows .
+
+          mkdir dist-linux
+          mv presenter dist-linux
+          cp -r media/ dist-linux/
+          cp -r bible/content/ dist-linux/
+          cp -r static/ dist-linux/
+          cp -r templates/ dist-linux/
+          cp organiza.sh dist-linux/
+          tar -czvf presenter-linux-amd64.tar.gz -C dist-linux .
+
+      # 6. Cria o Release no GitHub e anexa o arquivo compactado
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.tag_version.outputs.new_tag }}
+          name: Release ${{ steps.tag_version.outputs.new_tag }}
+          # A Action de tag gera automaticamente um changelog baseado nos commits!
+          body: |
+            ${{ steps.tag_version.outputs.changelog }}
+          draft: false
+          prerelease: false
+          files: |
+            presenter-${{ steps.tag_version.outputs.new_tag }}-linux-amd64.tar.gz
+            presenter-${{ steps.tag_version.outputs.new_tag }}-windows-amd64.zip
