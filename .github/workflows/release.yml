@@ -63,7 +63,7 @@ jobs:
           cp -r static/ dist-windows/
           cp -r templates/ dist-windows/
           cp organiza.sh dist-windows/
-          zip presenter-windows-amd64.zip -C dist-windows .
+          cd dist-windows && zip -r ../presenter-${{ steps.tag_version.outputs.new_tag }}-windows-amd64.zip . && cd ..
 
           mkdir dist-linux
           mv presenter dist-linux
@@ -71,7 +71,7 @@ jobs:
           cp -r static/ dist-linux/
           cp -r templates/ dist-linux/
           cp organiza.sh dist-linux/
-          tar -czvf presenter-linux-amd64.tar.gz -C dist-linux .
+          tar -czvf presenter-${{ steps.tag_version.outputs.new_tag }}-linux-amd64.tar.gz -C dist-linux .
 
       # 6. Cria o Release no GitHub e anexa o arquivo compactado
       - name: Create GitHub Release
