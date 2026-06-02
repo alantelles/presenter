@@ -9,7 +9,7 @@ on:
       - main
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
-  
+
 permissions:
   contents: write
 
@@ -55,11 +55,10 @@ jobs:
           env GOOS=windows GOARCH=amd64 go build -ldflags="-s -w" -o presenter.exe .
 
       # 5. Compacta o binário em um arquivo .zip ou .tar.gz (boa prática para distribuição)
-      - name: Package binary and assets windows
+      - name: Package binary and assets
         run: |
           mkdir dist-windows
           mv presenter.exe dist-windows
-          cp -r media/ dist-windows/
           cp -r bible/content/ dist-windows/
           cp -r static/ dist-windows/
           cp -r templates/ dist-windows/
@@ -68,7 +67,6 @@ jobs:
 
           mkdir dist-linux
           mv presenter dist-linux
-          cp -r media/ dist-linux/
           cp -r bible/content/ dist-linux/
           cp -r static/ dist-linux/
           cp -r templates/ dist-linux/
