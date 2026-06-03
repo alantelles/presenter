@@ -71,15 +71,15 @@ jobs:
 
           mv presenter.exe "dist-windows/$FOLDER_NAME"
           cp -r bible/content/ "dist-windows/$FOLDER_NAME/bible/content/"
-          cp -r static/ "dist-windows/$FOLDER_NAME/static/"
-          cp -r templates/ "dist-windows/$FOLDER_NAME/templates/"
+          cp -r static/ "dist-windows/$FOLDER_NAME/"
+          cp -r templates/ "dist-windows/$FOLDER_NAME/"
           cp organiza.bat "dist-windows/$FOLDER_NAME/"
           cd dist-windows && zip -r ../presenter-${{ steps.tag_version.outputs.new_tag }}-windows-amd64.zip "$FOLDER_NAME" && cd ..
 
           mv presenter "dist-linux/$FOLDER_NAME"
           cp -r bible/content/ "dist-linux/$FOLDER_NAME/bible/content/"
-          cp -r static/ "dist-linux/$FOLDER_NAME/static/"
-          cp -r templates/ "dist-linux/$FOLDER_NAME/templates/"
+          cp -r static/ "dist-linux/$FOLDER_NAME/"
+          cp -r templates/ "dist-linux/$FOLDER_NAME/"
           cp organiza.sh "dist-linux/$FOLDER_NAME/"
           tar -czvf presenter-${{ steps.tag_version.outputs.new_tag }}-linux-amd64.tar.gz -C dist-linux "$FOLDER_NAME"
 
