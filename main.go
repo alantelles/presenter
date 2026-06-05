@@ -202,7 +202,7 @@ func main() {
 	router.POST("/api/media", AuthMiddleware, saveMedia)
 	router.PUT("/api/media/move", AuthMiddleware, moveMedia)
 
-	router.POST("/api/images", uploadImage)
+	router.POST("/api/images", AuthMiddleware, uploadImage)
 
 	router.GET("/api/songs", getAllSongs)
 	router.GET("/api/songs/content", getSongContent)

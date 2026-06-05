@@ -23,7 +23,6 @@ func getSongsFolderList(c *gin.Context) {
 }
 
 func uploadImage(c *gin.Context) {
-	CORS(c)
 	form, _ := c.MultipartForm()
 	files := form.File["files"]
 	for _, file := range files {
