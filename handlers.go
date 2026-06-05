@@ -27,7 +27,8 @@ func getHtmlPage(path string) ([]byte, error) {
 		}
 	}()
 	retrieved, err := io.ReadAll(file)
-	return insertAddressOnContent(retrieved), err
+	retrieved = insertAddressOnContent(retrieved)
+	return insertAuthTokenOnContent(retrieved), err
 }
 
 func viewPanel(c *gin.Context) {

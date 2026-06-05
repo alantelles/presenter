@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/gin-gonic/gin"
 )
@@ -50,7 +51,7 @@ func setMediaProviderContent(c *gin.Context) {
 		Message:    "New content setup",
 		ProviderId: providerId,
 		Type:       newContent.Type,
-		ContentId:  newContent.ContentId,
+		ContentId:  newContent.ContentID,
 	}
 	CORS(c)
 	c.JSON(http.StatusCreated, response)
@@ -67,7 +68,7 @@ func getMediaProviderContent(c *gin.Context) {
 }
 
 func saveMedia(c *gin.Context) {
-	var command media
+	var command Media
 	if err := c.BindJSON(&command); err != nil {
 		return
 	}
@@ -81,6 +82,28 @@ func saveMedia(c *gin.Context) {
 	}
 	CORS(c)
 	c.JSON(http.StatusOK, response)
+}
+
+func moveMedia(c *gin.Context) {
+	CORS(c)
+	var command MoveMediaCommand
+	if err := c.BindJSON(&command); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	categoryP, _ := findCategoryByName(command.Category)
+	category := *categoryP
+	src := MediaPath + category.Path + "/" + command.MediaID
+	dest := MediaPath + category.Path + "/" + command.Destination
+	createFolder(dest)
+	dest = dest + "/" + command.MediaID
+	err := os.Rename(src, dest)
+	if err != nil {
+		log.Print(err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"success": true})
 }
 
 func getAllSongs(c *gin.Context) {

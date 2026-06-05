@@ -1,0 +1,96 @@
+name: Compile and Release Go Project
+
+on:
+  push:
+    branches:
+      - main
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      
+      - name: Checkout source code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Bump version and push tag
+        id: tag_version
+        uses: mathieudutour/github-tag-action@v6.2
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          default_bump: patch 
+
+      
+      - name: Setup Go environment
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.4'
+          cache: true 
+
+      
+      - name: Install dependencies
+        run: go mod download
+
+      
+      
+      - name: Build binary
+        run: |
+          env GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o presenter .
+
+      
+      
+      - name: Build Windows binary
+        run: |
+          env GOOS=windows GOARCH=amd64 go build -ldflags="-s -w" -o presenter.exe .
+
+      
+      - name: Package binary and assets
+        run: |
+
+          
+          TAG_NEW="${{ steps.tag_version.outputs.new_tag }}"
+          if [ -z "$TAG_NEW" ]; then TAG_NEW="test"; fi
+
+          FOLDER_NAME="presenter-$TAG_NEW"
+
+          
+          mkdir -p "dist-windows/$FOLDER_NAME/bible" "dist-linux/$FOLDER_NAME/bible"
+          mkdir -p "dist-windows/$FOLDER_NAME/static" "dist-linux/$FOLDER_NAME/static"
+          mkdir -p "dist-windows/$FOLDER_NAME/templates" "dist-linux/$FOLDER_NAME/templates"
+
+          mv presenter.exe "dist-windows/$FOLDER_NAME"
+          cp -r bible/content/ "dist-windows/$FOLDER_NAME/bible/content/"
+          cp -r static/ "dist-windows/$FOLDER_NAME/"
+          cp -r templates/ "dist-windows/$FOLDER_NAME/"
+          cp organiza.bat "dist-windows/$FOLDER_NAME/"
+          cd dist-windows && zip -r ../presenter-${{ steps.tag_version.outputs.new_tag }}-windows-amd64.zip "$FOLDER_NAME" && cd ..
+
+          mv presenter "dist-linux/$FOLDER_NAME"
+          cp -r bible/content/ "dist-linux/$FOLDER_NAME/bible/content/"
+          cp -r static/ "dist-linux/$FOLDER_NAME/"
+          cp -r templates/ "dist-linux/$FOLDER_NAME/"
+          cp organiza.sh "dist-linux/$FOLDER_NAME/"
+          tar -czvf presenter-${{ steps.tag_version.outputs.new_tag }}-linux-amd64.tar.gz -C dist-linux "$FOLDER_NAME"
+
+      
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.tag_version.outputs.new_tag }}
+          name: Release ${{ steps.tag_version.outputs.new_tag }}
+          
+          body: |
+            ${{ steps.tag_version.outputs.changelog }}
+          draft: false
+          prerelease: false
+          files: |
+            presenter-${{ steps.tag_version.outputs.new_tag }}-linux-amd64.tar.gz
+            presenter-${{ steps.tag_version.outputs.new_tag }}-windows-amd64.zip

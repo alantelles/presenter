@@ -166,7 +166,6 @@
         h1 {
             font-size: 25px;
         }
-
         .container {
             display: flex;
             flex-direction: column;
@@ -482,6 +481,39 @@
             }
         }
     </style>
+    <style>
+        #alert-modal {
+            display: none;
+            opacity: 0;
+            transition: opacity 0.4s;
+            position: absolute;
+            top: 20px; right: 30px;
+            width: 350px;
+            border-radius: 20px;
+            border: solid 2px #70a5dd;
+            background-color: #cae4ff;
+            color: #004896;
+            z-index: 9999;
+            padding: 15px;
+        }
+        #alert-modal h2 {
+            font-size: 25px;
+            font-weight: bold;
+        }
+        #alert-modal .alert-text-container {
+            width: 100%;
+            margin-top: 5px;
+        }
+        #alert-modal #alert-text {
+            font-size: 18px;
+        }
+        @media screen and (max-width: 1000px) {
+            #alert-modal {
+                width: 80vw;
+                left: 5vw;
+            }
+        }
+    </style>
     <style type="text/css">
         .tg {
             border-collapse: collapse;
@@ -532,10 +564,17 @@
 </head>
 
 <body>
+    <div id="alert-modal">
+        <h2>Aviso:</h2>
+        <div class="alert-text-container">
+            <p id="alert-text"></p>
+        </div>
+    </div>
     <div id="toggle-controller-container" class="toggle-controller">
         <button id="toggle-controller-button">&#x274F;</button>
         <button id="toggle-controller-button-clear">&#x2613;</button>
     </div>
+    <input type="hidden" name="basic-auth-token" id="basic-auth-token" value="{{BASIC_AUTH_TOKEN}}">
     <div id="modal" class="hide">
         <div class="content-modal hide" id="buscar-letra">
             <div class="close-button">
@@ -616,16 +655,22 @@
                 </div>
                 <!-- <button type="button" class="button button-big" id="open-modal-letras">Buscar no letras.mus</button> -->
                 <!-- <button type="button" class="button button-big" id="paste-to-text-input">Colar texto</button> -->
+                 <div class="functions-buttons-group">
+                    <p>Funções</p>
+                    <div class="functions-triggers">
+                        <button type="button" class="button" id="carregar-lista-musicas">Atualizar lista</button>
+                        <button type="button" class="button" id="open-modal-procurar">Procurar músicas</button>
+                    </div>
+                 </div>
                 <div class="functions-buttons-group">
                     <p>Selecionar texto</p>
                     <div class="functions-triggers">
                         <select class="select " name="select-text" id="select-text-options"></select>
-                        <div class="functions-triggers">
+                        <div class="functions-triggers" style="margin-bottom: 7px;">
                             <button type="button" class="button" id="carregar-blocos">Carregar blocos</button>
                             <button type="button" class="button" id="carregar-texto">Carregar texto</button>
-                            <button type="button" class="button" id="carregar-lista-musicas">Carregar lista</button>
-                            <button type="button" class="button" id="open-modal-procurar">Procurar músicas</button>
-                        </div>
+                            <button type="button" class="button" style="background-color: crimson;" id="remover-texto">Remover da lista</button>
+                        </div>                        
                     </div>
                 </div>
                 <div class="input-text">
@@ -654,6 +699,20 @@
         </div>
     </div>
     <script>
+        const REMOVE_FROM_LIST_DESTINATION = 'musicas/_removidas';
+        const CATEGORY_SONGS = 'songs';
+        function authorized(path, bodyObj, method = 'POST') {
+            const auth = document.getElementById('basic-auth-token').value;
+            const body = JSON.stringify(bodyObj);
+            return fetch('{{APP_LOCATION}}' + path, {
+                headers: {
+                    Authorization: `Basic ${auth}`,
+                    'Content-Type': 'application/json'
+                },
+                body,
+                method
+            });
+        }
         function createElemPs(line) {
             return line.split('\n').map(line => {
                 const pNode = document.createElement("p");
@@ -673,8 +732,16 @@
             const splittedParagraphs = textToShow.split('\n\n')
                 .map(line => line.trim())
                 .filter(e => e.length > 0);
-            var index = 0;
-            const blocks = splittedParagraphs.map(createBlock, index);
+            let index = 0;
+            const blocks = []; // splittedParagraphs.map(createBlock, index);
+            for (let i = 0; i < splittedParagraphs.length; i++) {
+                const blockResult = createBlock(splittedParagraphs[i], -1);
+                if (!blockResult.isComment) {
+                    blockResult.block.id = `bl${index}`;
+                    index++;
+                }
+                blocks.push(blockResult.block);
+            }
             const elemBlocos = document.getElementById('blocos');
             elemBlocos.textContent = '';
             blocks.forEach(block => {
@@ -691,23 +758,35 @@
                 block.classList.add('bloco-comment');
             } else {
                 block.classList.add('bloco-verse');
-            }
-            block.id = `bl${index}`;
-            index++;
+            }  
             const container = document.createElement('div');
             const ps = createElemPs(paragraph);
             ps.forEach(p => {
                 container.appendChild(p);
-            });
+            })
             block.appendChild(container);
-            return block;
+            return {block, isComment};
         }
         async function sendBlockToLive() {
+            const nextId = `bl${parseInt(this.id.replace('bl', '')) + 1}`;
+            let nextBlock = '';
+            try {
+                nextBlock = document.getElementById(nextId).textContent
+                    .split('\n')
+                    .map(e => e.trim())
+                    .filter(e => !e.startsWith('meta:'))
+                    .slice(0, 3)
+                    .map(e => `meta:${e}`)
+                    .join('\n');
+
+            } catch (e) {
+                console.log(`Não foi possível extrair próximo bloco: ${e}`);
+            }
             const content = this.textContent
                 .split('\n')
                 .map(e => e.trim())
                 .filter(e => e.length > 1)
-                .join('\n');
+                .join('\n') + '\n' + nextBlock;
             const clicked = document.getElementById(this.id);
             clicked.classList.add('bloco-waiting');
             await emitContent(content);
@@ -749,14 +828,9 @@
             });
         }
 
-        async function emitContent(content) {
-            return await fetch('{{APP_LOCATION}}/api/content/set/main', {
-                method: 'POST',
-                body: JSON.stringify({
-                    content,
-                    type: 'TEXT',
-                })
-            });
+        function emitContent(content) {
+            const auth = document.getElementById('basic-auth-token').value;
+            authorized('/api/content/set/main', {content, type: 'TEXT'});
         }
 
         function addGoLiveEventListener() {
@@ -776,23 +850,15 @@
             return { title, author, category, content }
         }
 
-        async function setAuxTextToBackend(content) {
-            const res = await fetch("{{APP_LOCATION}}/api/content/set/aux", {
-                method: 'POST',
-                body: JSON.stringify({content, type: 'TEXT'})
-            });
-            const resJson = await res.json();
+        function setAuxTextToBackend(content) {
+            authorized('/api/content/set/aux', {content, type: 'TEXT'});
         }
 
         async function saveProcessedTextToBackend(content) {
-            const payload = getSongToSavePayload(content)
-            const res = await fetch("{{APP_LOCATION}}/api/media", {
-                method: 'POST',
-                body: JSON.stringify(payload)
-            })
-            const resJson = await res.json();
+            const payload = getSongToSavePayload(content);
+            await authorized('/api/media', payload);
             getSongList();
-            alert('Texto salvo com sucesso!');
+            displayAlert('Texto salvo com sucesso!');
         }
 
         function saveProcessedText(content) {
@@ -836,17 +902,41 @@
         }
 
         async function loadTextFromBackend(song) {
+            const cached = window.sessionStorage.getItem(`text:${song}`);
+            if (cached) {
+                return cached;
+            }
             const params = new URLSearchParams({ song }).toString();
             const res = await fetch(`{{APP_LOCATION}}/api/songs/content?${params}`)
             const content = res.text();
+            cacheLoadedText(song, content);
             return content
         }
 
-        async function getSongList() {
+        async function cacheLoadedText(song, content$) {
+            const content = await content$
+            window.sessionStorage.setItem(`text:${song}`, content);
+        }
+
+        async function getSongList() {            
             const res = await fetch('{{APP_LOCATION}}/api/songs');
             const json = await res.json();
             fillSongsOption(json.mediaList);
             fillSongsInButtonTriggers(json.mediaList);
+            clearAllTextCache();
+        }
+
+        async function triggerGetSongList() {
+            await getSongList();
+            displayAlert('Lista atualizada com sucesso');
+        }
+
+        function clearAllTextCache() {
+            Object.keys(window.sessionStorage).forEach((key) => {
+                if (key.startsWith('text:')) {
+                    window.sessionStorage.removeItem(key)
+                }
+            })
         }
 
         async function getSongFolders() {
@@ -871,7 +961,7 @@
             const res = await fetch(`{{APP_LOCATION}}/api/lyrics/letras?${params}`);
             const lyrics = await res.text();
             if (lyrics.length == 0) {
-                alert('Letra não encontrada');
+                displayAlert('Letra não encontrada');
                 return;
             }
             document.getElementById('text-to-show').value = lyrics
@@ -999,6 +1089,32 @@
                 toggler.innerHTML = '&#x274F;'
             }
         }
+        async function removeFromList() {
+            const auth = document.getElementById('basic-auth-token').value;
+            const mediaId = document.getElementById('select-text-options').value;
+            const body = {
+                mediaId,
+                category: CATEGORY_SONGS,
+                destination: REMOVE_FROM_LIST_DESTINATION
+            };
+            await authorized('/api/media/move', body, 'PUT');
+            getSongList();
+            getSongFolders();
+            displayAlert('Texto removido da lista com sucesso');
+        }
+        // TODO: criar um elemento para cada alerta em vez de todos reaproveitarem
+        function displayAlert(conteudo) {
+            const alertBox = document.getElementById('alert-modal');
+            const alertContent = document.getElementById('alert-text');
+            alertContent.textContent = conteudo;
+            alertBox.style.display = 'block';
+            alertBox.style.opacity = 100;
+            setTimeout(t => {
+                alertContent.textContent = '';
+                alertBox.style.opacity = 0;
+                alertBox.style.display = 'none';
+            }, 4000);
+        }
         document.addEventListener('DOMContentLoaded', () => {
             addGoLiveEventListener();
             document.getElementById('process-text').addEventListener('click', (event) => {
@@ -1010,7 +1126,7 @@
                 emitContent('');
             });
             document.getElementById('toggle-controller-button').addEventListener('click', toggleController);
-            document.getElementById('carregar-lista-musicas').addEventListener('click', getSongList);            
+            document.getElementById('carregar-lista-musicas').addEventListener('click', triggerGetSongList);            
             document.getElementById('clear-text-input').addEventListener('click', clearTextInput);
             document.getElementById('get-lyrics-letras-by-url').addEventListener('click', getLyricsFromLetrasByUrl);
             document.getElementById('get-lyrics-letras-by-artista-musica').addEventListener('click', getLyricsFromLetrasByAndArtist);
@@ -1032,6 +1148,7 @@
             });
             document.getElementById('carregar-texto').addEventListener('click', fillTextInput);
             document.getElementById('carregar-blocos').addEventListener('click', loadAndCreateBlocks);
+            document.getElementById('remover-texto').addEventListener('click', removeFromList);
             // document.getElementById('open-modal-letras').addEventListener('click', () => {
             //     document.getElementById('modal').classList.remove('hide');
             //     document.getElementById('buscar-letra').classList.remove('hide');
