@@ -724,9 +724,9 @@
         function createBlocks(content = null) {
             let textToShow;
             if (typeof(content) === 'string') {
-                textToShow = content;
+                textToShow = content.trim();
             } else {
-                textToShow = document.getElementById('text-to-show').value;
+                textToShow = document.getElementById('text-to-show').value.trim();
                 saveProcessedText(textToShow);
             }
             const splittedParagraphs = textToShow.split('\n\n')
@@ -1132,7 +1132,7 @@
             document.getElementById('get-lyrics-letras-by-artista-musica').addEventListener('click', getLyricsFromLetrasByAndArtist);
             // document.getElementById('paste-to-text-input').addEventListener('click', pasteToTextInput);
             document.getElementById('save-text').addEventListener('click', () => {
-                const content = document.getElementById('text-to-show').value;
+                const content = document.getElementById('text-to-show').value.trim();
                 saveProcessedTextToBackend(content);
             });
             document.getElementById('toggle-controller-button-clear').addEventListener('click', () => {
