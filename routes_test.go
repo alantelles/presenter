@@ -41,6 +41,26 @@ func TestRegisterMediaRoutes(t *testing.T) {
 	}
 }
 
+func TestRegisterProviderRoutes(t *testing.T) {
+	withTempWorkDir(t)
+	gin.SetMode(gin.TestMode)
+	router := gin.New()
+	registerProviderRoutes(router, NewApp(Config{}))
+
+	want := []struct{ method, path string }{
+		{"GET", "/api/providers"},
+		{"POST", "/api/providers"},
+		{"DELETE", "/api/providers/:id"},
+		{"DELETE", "/api/providers"},
+	}
+	for _, r := range want {
+		assertRouteRegistered(t, router, r.method, r.path)
+	}
+	if got := len(router.Routes()); got != len(want) {
+		t.Errorf("got %d routes registered, want %d", got, len(want))
+	}
+}
+
 func TestRegisterViewRoutes(t *testing.T) {
 	withTempWorkDir(t)
 	gin.SetMode(gin.TestMode)

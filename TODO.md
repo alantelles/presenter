@@ -65,10 +65,15 @@ o restante é para revisitar quando houver tempo.
       `storage`, não `media` — colide com a pasta `media/` de dados em
       runtime do app (ver `.gitignore`) se usar esse nome.
 
+- [x] **Providers dinâmicos** — `providers.Store` ganhou `Data.Label`, 4
+      providers protegidos (main/preview/aux/command), persistência em
+      `providers.json` e os métodos `List`/`Create`/`Delete`/`DeleteAll`
+      (`providers/providers.go`). Endpoints HTTP em `handlers_providers.go`
+      (`GET/POST/DELETE /api/providers`, `DELETE /api/providers/:id`),
+      registrados via `registerProviderRoutes` (`routes.go`, chamado em
+      `main.go`). Ver plano/spec em
+      `.superpowers/sdd/2026-09-12-providers-dinamicos/`.
+
 ## Pendente
 
-- [ ] **Providers dinâmicos** (já registrado no `CLAUDE.md`) — hoje o
-      `providers.Store` tem um conjunto fixo/hardcoded de canais; a ideia é
-      permitir múltiplos providers configuráveis para alimentar outras telas
-      além dos canais atuais. Fora do escopo desta rodada por ser uma
-      feature nova, não uma refatoração.
+(nenhum item pendente no momento)

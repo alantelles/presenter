@@ -22,6 +22,15 @@ func registerMediaRoutes(router *gin.Engine, app *App) {
 	router.GET("/api/songs/folder", getAllSongsFromFolder)
 }
 
+// registerProviderRoutes wires up provider management: creating, listing
+// and deleting the channels controllers publish content to.
+func registerProviderRoutes(router *gin.Engine, app *App) {
+	router.GET("/api/providers", app.listProviders)
+	router.POST("/api/providers", app.AuthMiddleware, app.createProvider)
+	router.DELETE("/api/providers/:id", app.AuthMiddleware, app.deleteProvider)
+	router.DELETE("/api/providers", app.AuthMiddleware, app.deleteAllProviders)
+}
+
 // registerViewRoutes wires up the HTML pages: controller UIs, the home page
 // and the live presentation panel.
 func registerViewRoutes(router *gin.Engine, app *App) {

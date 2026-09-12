@@ -11,8 +11,8 @@ que outras telas/dispositivos abrem no navegador.
 
 Apesar do uso atual ser voltado a música/bíblia, a arquitetura é pensada para ser genérica: qualquer
 pessoa pode criar um controller próprio (ver "Descoberta dinâmica de templates" abaixo) sem alterar
-código Go. O ponto ainda não implementado é tornar os `providers` (canais de conteúdo) também
-dinâmicos/configuráveis, para suportar múltiplas telas/casos de uso além dos fixos atuais.
+código Go. Os `providers` (canais de conteúdo) também são configuráveis em runtime — ver "Providers"
+abaixo.
 
 ## Comandos
 
@@ -52,13 +52,21 @@ estado global mutável foi encapsulado:
 - **`routes.go`**: registro de rotas agrupado por domínio (`registerMediaRoutes`,
   `registerViewRoutes`, `registerMiscRoutes`, `registerLyricsRoutes`, `registerBibleRoutes`),
   cada uma recebendo `*gin.Engine` (e `*App` quando precisa de estado).
-- **Providers (`providers.go` + submódulo `presenter/providers`)**: canais fixos de conteúdo
-  (`main`, `preview`, `aux`, `command`, `operator`, `sound-engineer`, `alerts`) vivem num
-  `providers.Store` (`Get`/`Set`), hoje hardcoded — não configurável em runtime. Um "controller"
-  envia conteúdo via `POST /api/content/set/:providerId`, e o painel (ou outros consumidores) lê
-  via `GET /api/content?providerId=...`. Não há push/websocket — o cliente precisa fazer polling.
-  **Pendente**: permitir múltiplos providers dinâmicos/configuráveis, para alimentar telas e casos
-  de uso além dos fixos atuais.
+- **Providers (`providers.go`, `handlers_providers.go` + submódulo `presenter/providers`)**: canais de
+  conteúdo vivem num `providers.Store`, persistido em `providers.json` (raiz do processo, no
+  `.gitignore` — arquivo de runtime, não faz parte do repo). Quatro providers são protegidos e sempre
+  existem (`main`, `preview`, `aux`, `command`); além deles, providers customizados podem ser criados e
+  removidos em runtime via HTTP. O `Store` expõe `Get`/`Set` (conteúdo de um provider existente),
+  `List()` (id + label de todos), `Create(id, label string) error` (cria ou atualiza o label de um
+  provider, preservando conteúdo existente) e `Delete(id string) error` / `DeleteAll() error`
+  (`Delete` de um protegido retorna `providers.ErrProtected`; de um inexistente,
+  `providers.ErrNotFound` — ambos com `errors.Is`; `DeleteAll` remove só os customizados). Endpoints
+  HTTP (`handlers_providers.go`, registrados via `registerProviderRoutes` em `routes.go`):
+  `GET /api/providers` (lista, sem auth), `POST /api/providers` (cria/atualiza label, requer
+  `AuthMiddleware`), `DELETE /api/providers/:id` (remove um; 400 se protegido, 404 se inexistente,
+  requer auth) e `DELETE /api/providers` (remove todos os customizados, requer auth). Um "controller"
+  envia conteúdo via `POST /api/content/set/:providerId`, e o painel (ou outros consumidores) lê via
+  `GET /api/content?providerId=...`. Não há push/websocket — o cliente precisa fazer polling.
 - **Descoberta dinâmica de templates / controllers (`handlers.go`)**: `viewController` recebe `:page`
   via rota (`/controller/:page`) e simplesmente serve `templates/controllers/<page>.html` do disco —
   não há lista de páginas hardcoded no Go. Ou seja, criar um novo controller (ex.: para um novo tipo
