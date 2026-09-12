@@ -76,6 +76,14 @@ func (s *Store) save() error {
 // the protected set (main/preview/aux/command) and persists it.
 func NewStore() *Store {
 	if channels, ok := loadChannels(); ok {
+		if channels == nil {
+			channels = make(map[string]Data)
+		}
+		for id, label := range protectedIDs {
+			if _, exists := channels[id]; !exists {
+				channels[id] = Data{Label: label}
+			}
+		}
 		return &Store{channels: channels}
 	}
 	s := &Store{channels: defaultChannels()}
@@ -101,7 +109,7 @@ func (s *Store) Set(providerId string, content Data) error {
 	defer s.mu.Unlock()
 	existing, ok := s.channels[providerId]
 	if !ok {
-		return fmt.Errorf("provider with id %s not found", providerId)
+		return fmt.Errorf("%s: %w", providerId, ErrNotFound)
 	}
 	content.Label = existing.Label
 	s.channels[providerId] = content
@@ -133,7 +141,7 @@ func (s *Store) List() []ProviderInfo {
 // provider is created with empty content.
 func (s *Store) Create(id, label string) error {
 	if id == "" {
-		return fmt.Errorf("provider id must not be empty")
+		return ErrInvalidID
 	}
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -146,9 +154,11 @@ func (s *Store) Create(id, label string) error {
 var (
 	// ErrProtected is returned by Delete when id is one of the providers
 	// that can never be removed.
-	ErrProtected = errors.New("provider is protected and cannot be deleted")
+	ErrProtected = errors.New("provider é fixo e não pode ser apagado")
 	// ErrNotFound is returned by Delete when id doesn't exist.
 	ErrNotFound = errors.New("provider not found")
+	// ErrInvalidID is returned by Create when id is empty.
+	ErrInvalidID = errors.New("provider id must not be empty")
 )
 
 // Delete removes a provider and persists the change. It returns
@@ -156,7 +166,7 @@ var (
 // id doesn't exist.
 func (s *Store) Delete(id string) error {
 	if _, protected := protectedIDs[id]; protected {
-		return fmt.Errorf("%s: %w", id, ErrProtected)
+		return fmt.Errorf("%w: %s", ErrProtected, id)
 	}
 	s.mu.Lock()
 	defer s.mu.Unlock()

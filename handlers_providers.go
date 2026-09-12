@@ -26,7 +26,11 @@ func (a *App) createProvider(c *gin.Context) {
 		return
 	}
 	if err := a.Providers.Create(req.ID, req.Label); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		if errors.Is(err, providers.ErrInvalidID) {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		}
 		return
 	}
 	c.JSON(http.StatusCreated, gin.H{"id": req.ID, "label": req.Label})
@@ -42,8 +46,10 @@ func (a *App) deleteProvider(c *gin.Context) {
 		c.Status(http.StatusOK)
 	case errors.Is(err, providers.ErrNotFound):
 		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
-	default:
+	case errors.Is(err, providers.ErrProtected):
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	default:
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 	}
 }
 

@@ -58,6 +58,53 @@ func TestNewStoreDefaultsToFourProtectedProviders(t *testing.T) {
 	}
 }
 
+func TestNewStoreRepairsEmptyFile(t *testing.T) {
+	withTempDir(t)
+	if err := os.WriteFile(storeFile, []byte("{}"), 0644); err != nil {
+		t.Fatalf("failed to write %s: %v", storeFile, err)
+	}
+
+	store := NewStore()
+
+	want := map[string]string{
+		"main":    "Conteúdo principal",
+		"preview": "Prévia conteúdo",
+		"aux":     "Visão auxiliar",
+		"command": "Linha de comandos",
+	}
+	for id, label := range want {
+		if got := store.Get(id); got.Label != label {
+			t.Errorf("Get(%q).Label = %q, want %q", id, got.Label, label)
+		}
+	}
+}
+
+func TestNewStoreRepairsNullFileWithoutPanicking(t *testing.T) {
+	withTempDir(t)
+	if err := os.WriteFile(storeFile, []byte("null"), 0644); err != nil {
+		t.Fatalf("failed to write %s: %v", storeFile, err)
+	}
+
+	store := NewStore()
+
+	want := map[string]string{
+		"main":    "Conteúdo principal",
+		"preview": "Prévia conteúdo",
+		"aux":     "Visão auxiliar",
+		"command": "Linha de comandos",
+	}
+	for id, label := range want {
+		if got := store.Get(id); got.Label != label {
+			t.Errorf("Get(%q).Label = %q, want %q", id, got.Label, label)
+		}
+	}
+
+	// Confirm the store is actually usable (no nil-map panic on write).
+	if err := store.Create("telao-2", "Telão"); err != nil {
+		t.Fatalf("unexpected error creating on repaired store: %v", err)
+	}
+}
+
 func TestStoreGetUnknownChannelReturnsZeroValue(t *testing.T) {
 	withTempDir(t)
 	store := NewStore()
@@ -143,8 +190,9 @@ func TestStoreCreateOverwritesLabelPreservingContent(t *testing.T) {
 func TestStoreCreateRejectsEmptyID(t *testing.T) {
 	withTempDir(t)
 	store := NewStore()
-	if err := store.Create("", "label"); err == nil {
-		t.Fatal("expected an error for an empty id")
+	err := store.Create("", "label")
+	if !errors.Is(err, ErrInvalidID) {
+		t.Fatalf("Create(\"\", ...) error = %v, want ErrInvalidID", err)
 	}
 }
 

@@ -1,9 +1,11 @@
 package main
 
 import (
+	"errors"
 	"log"
 	"net/http"
 	"os"
+	"presenter/providers"
 	"presenter/storage"
 
 	"github.com/gin-gonic/gin"
@@ -42,7 +44,11 @@ func (a *App) setMediaProviderContent(c *gin.Context) {
 	}
 	err := a.CopyIncomingProviderToExistent(providerId, newContent)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		if errors.Is(err, providers.ErrNotFound) {
+			c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		}
 		return
 	}
 	response := returnBody{
