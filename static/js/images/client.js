@@ -20,6 +20,9 @@ export async function uploadImage(file) {
 
 export async function fetchImageList() {
     const res = await fetch('/api/images');
+    if (!res.ok) {
+        throw new Error(`failed to list images (status ${res.status})`);
+    }
     const body = await res.json();
     return body.images || [];
 }

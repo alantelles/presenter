@@ -3,7 +3,13 @@ import { uploadImage, fetchImageList, emitImageContent, clearMainContent, thumbU
 async function renderGallery() {
     const gallery = document.getElementById('gallery');
     gallery.innerHTML = '';
-    const names = await fetchImageList();
+    let names;
+    try {
+        names = await fetchImageList();
+    } catch (err) {
+        gallery.textContent = `Erro ao carregar imagens: ${err.message}`;
+        return;
+    }
     for (const name of names) {
         const item = document.createElement('button');
         item.className = 'gallery-item';
