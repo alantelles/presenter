@@ -11,6 +11,13 @@ const (
 	LetrasSite = "https://www.letras.mus.br"
 )
 
+var (
+	artistLinkPattern = regexp.MustCompile(`(?i)<a href="/([a-z0-9-]+)/">([^<]+)</a>`)
+	songLinkPattern   = regexp.MustCompile(`(?i)href="/([a-z0-9-]+)/([a-z0-9-]+)/"(?: title="[^"]*")?>\s*<span>([^<]*)</span>`)
+	trackNamePattern  = regexp.MustCompile(`"track_name":"([^"]+)"`)
+	artistNamePattern = regexp.MustCompile(`"artist_name":"([^"]+)"`)
+)
+
 func buildLetterIndexUrl(letter string) string {
 	return LetrasSite + "/letra/" + strings.ToUpper(letter) + "/artists_ajax.html"
 }
@@ -37,12 +44,12 @@ func fetchLetterIndex(letter string) string {
 }
 
 func findArtistPathInIndex(artist string, content string) string {
-	pattern, _ := regexp.Compile("(?i)<a href=\"\\/([a-z0-9-]+)\\/\">" + artist + "<\\/a>")
-	matches := pattern.FindStringSubmatch(content)
-	if len(matches) < 2 {
-		return ""
+	for _, match := range artistLinkPattern.FindAllStringSubmatch(content, -1) {
+		if strings.EqualFold(match[2], artist) {
+			return match[1]
+		}
 	}
-	return matches[1]
+	return ""
 }
 
 func getArtistPath(artist string) string {
@@ -66,13 +73,16 @@ func fetchArtistsSongs(path string) string {
 
 func findSongLyricsId(artistPath string, content string, songName string) string {
 	noBreakLines := strings.ReplaceAll(content, "\n", "")
-	strPattern := `(?i)href="\/` + artistPath + `\/([a-z0-9-]+)\/"(?: title="` + strings.ToLower(songName) + `")?>\s*<span>` + strings.ToLower(songName) + `<\/span>`
-	pattern, _ := regexp.Compile(strPattern)
-	matches := pattern.FindStringSubmatch(noBreakLines)
-	if len(matches) < 2 {
-		return ""
+	for _, match := range songLinkPattern.FindAllStringSubmatch(noBreakLines, -1) {
+		if match[1] != artistPath {
+			continue
+		}
+		if !strings.EqualFold(match[3], songName) {
+			continue
+		}
+		return match[2]
 	}
-	return matches[1]
+	return ""
 }
 
 func getSongId(artistPath string, songName string) string {
@@ -120,13 +130,9 @@ func processSongLyricsToPresent(rawLyrics string) string {
 }
 
 func getSongNameAndArtistName(content string) (string, string) {
-	strSongPattern := `"track_name":"([^"]+)"`
-	songPattern, _ := regexp.Compile(strSongPattern)
-	songMatches := songPattern.FindStringSubmatch(content)
+	songMatches := trackNamePattern.FindStringSubmatch(content)
 	songName := songMatches[1]
-	strArtistPattern := `"artist_name":"([^"]+)"`
-	artistPattern, _ := regexp.Compile(strArtistPattern)
-	artistMatches := artistPattern.FindStringSubmatch(content)
+	artistMatches := artistNamePattern.FindStringSubmatch(content)
 	artistName := artistMatches[1]
 	return songName, artistName
 }

@@ -19,12 +19,22 @@ o restante é para revisitar quando houver tempo.
       (usa `os.ReadFile` por baixo agora).
 - [x] **`loadMediaList`/`loadMediaListFromFolder`/`loadSongFolders`** (`manager.go`)
       — consolidadas num único `listDirEntries(path, wantDirs)`.
+- [x] **Regexp recompilado a cada chamada** em `letras.go`
+      (`findArtistPathInIndex`, `findSongLyricsId`) — como os patterns interpolavam
+      artista/música vindos do usuário direto no texto do regex (risco de injeção
+      de regex e recompilação a cada request), viraram padrões genéricos
+      compilados uma vez (`artistLinkPattern`, `songLinkPattern`) com filtro feito
+      em Go (`strings.EqualFold`) em vez de embutir o valor no pattern.
+      `getSongNameAndArtistName` também passou a usar patterns estáticos
+      (`trackNamePattern`, `artistNamePattern`). Adicionado `letras_test.go` com
+      casos pra essas três funções — o que exigiu também renomear o módulo raiz
+      de `main` pra `presenter` no `go.mod`, já que `go test` se recusa a rodar
+      num módulo cujo caminho é literalmente `"main"` (`cannot import "main"`).
+      Validado com testes sintéticos e também contra o site real
+      (`/api/lyrics/letras`).
 
 ## Pendente
 
-- [ ] **Regexp recompilado a cada chamada** em `letras.go`
-      (`findArtistPathInIndex`, `findSongLyricsId`) — extrair como `var` de pacote
-      (`regexp.MustCompile`) uma vez só.
 - [ ] **`main()` com ~20 rotas inline** — agrupar em funções tipo
       `registerMediaRoutes(r)`, `registerViewRoutes(r)`, `registerLyricsRoutes(r)`,
       `registerBibleRoutes(r)`.
