@@ -124,6 +124,46 @@ func TestThumbPathIsAlwaysPNGRegardlessOfSourceExtension(t *testing.T) {
 	}
 }
 
+func TestThumbNameDoesNotCollideAcrossExtensions(t *testing.T) {
+	withTempMediaDir(t)
+
+	if _, err := Save("evento.jpg", bytes.NewReader(encodeJPEG(t))); err != nil {
+		t.Fatalf("unexpected error saving jpg: %v", err)
+	}
+	if _, err := Save("evento.png", bytes.NewReader(encodePNG(t))); err != nil {
+		t.Fatalf("unexpected error saving png: %v", err)
+	}
+
+	jpgThumb, err := ThumbPath("evento.jpg")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	pngThumb, err := ThumbPath("evento.png")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if jpgThumb == pngThumb {
+		t.Fatalf("thumbnails for evento.jpg and evento.png collided at %s", jpgThumb)
+	}
+
+	jpgData, err := os.ReadFile(jpgThumb)
+	if err != nil {
+		t.Fatalf("reading jpg thumbnail: %v", err)
+	}
+	pngData, err := os.ReadFile(pngThumb)
+	if err != nil {
+		t.Fatalf("reading png thumbnail: %v", err)
+	}
+
+	if _, err := png.Decode(bytes.NewReader(jpgData)); err != nil {
+		t.Fatalf("jpg-derived thumbnail is not a valid PNG: %v", err)
+	}
+	if _, err := png.Decode(bytes.NewReader(pngData)); err != nil {
+		t.Fatalf("png-derived thumbnail is not a valid PNG: %v", err)
+	}
+}
+
 func TestSaveToleratesThumbnailDecodeFailure(t *testing.T) {
 	withTempMediaDir(t)
 

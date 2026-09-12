@@ -18,13 +18,11 @@ import (
 
 const thumbnailRatio = 8
 
-// thumbName returns name with its extension replaced by .png.
+// thumbName returns the thumbnail file name for name (always .png). The
+// full original name is kept (not just its stem), so two uploads that
+// share a basename but differ only in extension (e.g. foto.jpg and
+// foto.png) get distinct thumbnails instead of colliding.
 func thumbName(name string) string {
-	for i := len(name) - 1; i >= 0; i-- {
-		if name[i] == '.' {
-			return name[:i] + ".png"
-		}
-	}
 	return name + ".png"
 }
 
