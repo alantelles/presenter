@@ -31,3 +31,4 @@ presenter
 *.http
 
 bible/conv.py
+.idea/
