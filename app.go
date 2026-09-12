@@ -5,6 +5,7 @@ import (
 	"log"
 	"net"
 	"presenter/flags"
+	"presenter/providers"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -25,7 +26,7 @@ type Config struct {
 // what handlers now depend on instead of package-level globals.
 type App struct {
 	Config    Config
-	Providers map[string]ProviderData
+	Providers *providers.Store
 }
 
 func buildScheme(secure bool) string {
@@ -84,17 +85,8 @@ func NewConfig() Config {
 // NewApp builds an App with the default set of provider channels.
 func NewApp(cfg Config) *App {
 	return &App{
-		Config: cfg,
-		Providers: map[string]ProviderData{
-			"main":           {},
-			"preview":        {},
-			"aux":            {},
-			"internal":       {},
-			"command":        {},
-			"operator":       {},
-			"sound-engineer": {},
-			"alerts":         {},
-		},
+		Config:    cfg,
+		Providers: providers.NewStore(),
 	}
 }
 

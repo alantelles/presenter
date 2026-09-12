@@ -37,6 +37,8 @@ require (
 	presenter/bible v0.0.0-00010101000000-000000000000
 	presenter/flags v0.0.0-00010101000000-000000000000
 	presenter/fsutil v0.0.0-00010101000000-000000000000
+	presenter/providers v0.0.0-00010101000000-000000000000
+	presenter/storage v0.0.0-00010101000000-000000000000
 )
 
 replace presenter/bible => ./bible
@@ -44,3 +46,7 @@ replace presenter/bible => ./bible
 replace presenter/flags => ./flags
 
 replace presenter/fsutil => ./fsutil
+
+replace presenter/providers => ./providers
+
+replace presenter/storage => ./storage

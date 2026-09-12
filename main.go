@@ -5,6 +5,8 @@ import (
 	"log"
 	"presenter/flags"
 	"presenter/fsutil"
+	"presenter/providers"
+	"presenter/storage"
 
 	"github.com/gin-gonic/gin"
 )
@@ -28,11 +30,9 @@ const (
 	TypeBinary  = "BINARY"
 )
 
-type ProviderData struct {
-	Content   string `json:"content"`
-	Type      string `json:"type,omitempty"`
-	ContentID string `json:"contentId,omitempty"`
-}
+// ProviderData is an alias for providers.Data, kept under this name since
+// it's the JSON shape handlers/templates already speak.
+type ProviderData = providers.Data
 
 type Media struct {
 	Category string `json:"category"`
@@ -76,9 +76,9 @@ func createFolder(path string) {
 }
 
 func createDefaultFolders() {
-	createFolder("media/songs")
-	createFolder("media/images")
-	createFolder("media/images/thumbs")
+	createFolder(storage.Path + "songs")
+	createFolder(storage.Path + "images")
+	createFolder(storage.Path + "images/thumbs")
 }
 
 func main() {

@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"presenter/storage"
 
 	"github.com/gin-gonic/gin"
 )
@@ -14,7 +15,7 @@ type mediaList struct {
 
 func getSongsFolderList(c *gin.Context) {
 	archivePath := c.Query("archive")
-	folders, _ := loadSongFolders(CategorySongs.Name, archivePath)
+	folders, _ := storage.ListFolders(storage.Songs.Name, archivePath)
 	response := mediaList{
 		MediaList: folders,
 	}
@@ -58,7 +59,7 @@ func (a *App) getMediaProviderContent(c *gin.Context) {
 	providerIds := c.QueryArray("providerId")
 	responseData := map[string]ProviderData{}
 	for _, providerId := range providerIds {
-		responseData[providerId] = a.Providers[providerId]
+		responseData[providerId] = a.Providers.Get(providerId)
 	}
 	c.JSON(http.StatusOK, &responseData)
 }
@@ -68,14 +69,13 @@ func saveMedia(c *gin.Context) {
 	if err := c.BindJSON(&command); err != nil {
 		return
 	}
-	categoryP, err := findCategoryByName(command.Category)
+	category, err := storage.FindCategoryByName(command.Category)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	category := *categoryP
 	title := command.Title + " - " + command.Author
-	saveTextFile(category, title, command.Content)
+	storage.SaveTextFile(*category, title, command.Content)
 	response := returnBody{
 		Status:  http.StatusCreated,
 		Message: "New media saved",
@@ -89,14 +89,13 @@ func moveMedia(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	categoryP, err := findCategoryByName(command.Category)
+	category, err := storage.FindCategoryByName(command.Category)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	category := *categoryP
-	src := MediaPath + category.Path + "/" + command.MediaID
-	dest := MediaPath + category.Path + "/" + command.Destination
+	src := storage.Path + category.Path + "/" + command.MediaID
+	dest := storage.Path + category.Path + "/" + command.Destination
 	createFolder(dest)
 	dest = dest + "/" + command.MediaID
 	err = os.Rename(src, dest)
@@ -109,14 +108,14 @@ func moveMedia(c *gin.Context) {
 }
 
 func getAllSongs(c *gin.Context) {
-	songNames, _ := loadMediaList(CategorySongs.Name)
+	songNames, _ := storage.List(storage.Songs.Name)
 	response := mediaList{MediaList: songNames}
 	c.JSON(http.StatusOK, response)
 }
 
 func getAllSongsFromFolder(c *gin.Context) {
-	songNames, _ := loadMediaListFromFolder(
-		CategorySongs.Name,
+	songNames, _ := storage.ListFromFolder(
+		storage.Songs.Name,
 		c.Query("archive"),
 		c.Query("folder"),
 	)
@@ -126,7 +125,7 @@ func getAllSongsFromFolder(c *gin.Context) {
 
 func getSongContent(c *gin.Context) {
 	song := c.Query("song")
-	c.Data(http.StatusOK, ContentTypeText, loadSongFile(song))
+	c.Data(http.StatusOK, ContentTypeText, storage.LoadSongFile(song))
 }
 
 func discover(c *gin.Context) {
