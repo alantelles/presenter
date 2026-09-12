@@ -27,7 +27,7 @@ func uploadImage(c *gin.Context) {
 	files := form.File["files"]
 	for _, file := range files {
 		log.Println(file.Filename)
-		savedName := "./media/images/" + file.Filename
+		savedName := "./" + storage.BasePath() + "images/" + file.Filename
 		c.SaveUploadedFile(file, savedName)
 		createThumbnail(savedName)
 	}
@@ -94,8 +94,8 @@ func moveMedia(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	src := storage.Path + category.Path + "/" + command.MediaID
-	dest := storage.Path + category.Path + "/" + command.Destination
+	src := storage.BasePath() + category.Path + "/" + command.MediaID
+	dest := storage.BasePath() + category.Path + "/" + command.Destination
 	createFolder(dest)
 	dest = dest + "/" + command.MediaID
 	err = os.Rename(src, dest)

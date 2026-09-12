@@ -20,6 +20,7 @@ type Config struct {
 	Location      string
 	BasicAuthUser string
 	BasicAuthPass string
+	MediaPath     string
 }
 
 // App bundles the resolved Config with the in-memory provider state, and is
@@ -79,6 +80,7 @@ func NewConfig() Config {
 		Location:      location,
 		BasicAuthUser: flags.GetUsername(),
 		BasicAuthPass: flags.GetPassword(),
+		MediaPath:     flags.GetMediaPath(),
 	}
 }
 

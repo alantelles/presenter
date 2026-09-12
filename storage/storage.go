@@ -8,9 +8,31 @@ import (
 	"log"
 	"os"
 	"presenter/fsutil"
+	"strings"
 )
 
-const Path = "media/"
+const defaultBasePath = "media/"
+
+var basePath = defaultBasePath
+
+// SetBasePath overrides the base directory under which all media (songs,
+// images, etc.) is stored. An empty path resets it to the default ("media/").
+// A trailing "/" is added automatically if missing. Call this once at
+// startup, before serving any request.
+func SetBasePath(path string) {
+	if path == "" {
+		path = defaultBasePath
+	}
+	if !strings.HasSuffix(path, "/") {
+		path += "/"
+	}
+	basePath = path
+}
+
+// BasePath returns the currently configured base directory.
+func BasePath() string {
+	return basePath
+}
 
 type Category struct {
 	Name, DisplayName, Path string
@@ -33,11 +55,11 @@ func FindCategoryByName(name string) (*Category, error) {
 }
 
 func textPath(category Category, fileName string) string {
-	return Path + category.Path + "/" + fileName + ".txt"
+	return basePath + category.Path + "/" + fileName + ".txt"
 }
 
 func textPathNoPrefix(category Category, fileName string) string {
-	return Path + category.Path + "/" + fileName
+	return basePath + category.Path + "/" + fileName
 }
 
 // SaveTextFile writes content as a .txt file under the category's folder.
@@ -70,17 +92,17 @@ func listDirEntries(path string, wantDirs bool) ([]string, error) {
 
 // List returns the file names directly under a category's folder.
 func List(categoryName string) ([]string, error) {
-	return listDirEntries(Path+categoryName, false)
+	return listDirEntries(basePath+categoryName, false)
 }
 
 // ListFromFolder returns the file names under a category/archive/folder path.
 func ListFromFolder(categoryName string, archivePath string, folder string) ([]string, error) {
-	return listDirEntries(Path+categoryName+"/"+archivePath+"/"+folder, false)
+	return listDirEntries(basePath+categoryName+"/"+archivePath+"/"+folder, false)
 }
 
 // ListFolders returns the subfolder names under a category/archive path.
 func ListFolders(category string, archivePath string) ([]string, error) {
-	return listDirEntries(Path+category+"/"+archivePath, true)
+	return listDirEntries(basePath+category+"/"+archivePath, true)
 }
 
 // LoadSongFile reads a song's raw text content by file name.

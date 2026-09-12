@@ -76,14 +76,15 @@ func createFolder(path string) {
 }
 
 func createDefaultFolders() {
-	createFolder(storage.Path + "songs")
-	createFolder(storage.Path + "images")
-	createFolder(storage.Path + "images/thumbs")
+	createFolder(storage.BasePath() + "songs")
+	createFolder(storage.BasePath() + "images")
+	createFolder(storage.BasePath() + "images/thumbs")
 }
 
 func main() {
 	flags.ProcessFlags()
 	app := NewApp(NewConfig())
+	storage.SetBasePath(app.Config.MediaPath)
 	createDefaultFolders()
 	gin.SetMode(gin.ReleaseMode)
 	router := gin.New()

@@ -28,6 +28,55 @@ func TestFindCategoryByName(t *testing.T) {
 	})
 }
 
+func TestSetBasePath(t *testing.T) {
+	t.Cleanup(func() { SetBasePath("") })
+
+	t.Run("custom path gets a trailing slash", func(t *testing.T) {
+		SetBasePath("/var/dados/media")
+		if got := BasePath(); got != "/var/dados/media/" {
+			t.Errorf("BasePath() = %q, want %q", got, "/var/dados/media/")
+		}
+	})
+
+	t.Run("custom path with trailing slash is kept as-is", func(t *testing.T) {
+		SetBasePath("/var/dados/media/")
+		if got := BasePath(); got != "/var/dados/media/" {
+			t.Errorf("BasePath() = %q, want %q", got, "/var/dados/media/")
+		}
+	})
+
+	t.Run("empty path resets to the default", func(t *testing.T) {
+		SetBasePath("/var/dados/media")
+		SetBasePath("")
+		if got := BasePath(); got != defaultBasePath {
+			t.Errorf("BasePath() = %q, want %q", got, defaultBasePath)
+		}
+	})
+}
+
+func TestListRespectsCustomBasePath(t *testing.T) {
+	dir := withTempCwd(t)
+	t.Cleanup(func() { SetBasePath("") })
+
+	SetBasePath(filepath.Join(dir, "dados-do-culto"))
+
+	songsDir := filepath.Join(dir, "dados-do-culto", "songs")
+	if err := os.MkdirAll(songsDir, 0755); err != nil {
+		t.Fatalf("failed to create songs dir: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(songsDir, "musica.txt"), []byte("letra"), 0644); err != nil {
+		t.Fatalf("failed to write test file: %v", err)
+	}
+
+	names, err := List(Songs.Name)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if len(names) != 1 || names[0] != "musica.txt" {
+		t.Errorf("List() = %v, want [\"musica.txt\"]", names)
+	}
+}
+
 func withTempCwd(t *testing.T) string {
 	t.Helper()
 	dir := t.TempDir()
