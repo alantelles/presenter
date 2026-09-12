@@ -11,8 +11,14 @@ import (
 // uploadImage saves one or more uploaded images (multipart field "files"),
 // validating each one's format and size via the images package.
 func uploadImage(c *gin.Context) {
+	c.Request.Body = http.MaxBytesReader(c.Writer, c.Request.Body, images.MaxUploadSize+(1<<20)) // +1MB of multipart framing overhead
 	form, err := c.MultipartForm()
 	if err != nil {
+		var maxBytesErr *http.MaxBytesError
+		if errors.As(err, &maxBytesErr) {
+			c.JSON(http.StatusRequestEntityTooLarge, gin.H{"error": err.Error()})
+			return
+		}
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}

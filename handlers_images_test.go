@@ -8,6 +8,7 @@ import (
 	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
+	"presenter/images"
 	"testing"
 
 	"github.com/gin-gonic/gin"
@@ -124,6 +125,38 @@ func TestUploadImageRejectsUnsupportedFormat(t *testing.T) {
 
 	if w.Code != http.StatusBadRequest {
 		t.Fatalf("status = %d, want %d, body = %s", w.Code, http.StatusBadRequest, w.Body.String())
+	}
+}
+
+func TestUploadImageRejectsBodyOverMaxUploadSize(t *testing.T) {
+	router, app := newImageTestRouter(t)
+
+	// A single file field a few hundred KB over images.MaxUploadSize is
+	// enough to trip http.MaxBytesReader while the multipart form is being
+	// parsed, without allocating a multi-GB body in the test.
+	oversized := bytes.Repeat([]byte{0xFF}, images.MaxUploadSize+512*1024)
+
+	body := &bytes.Buffer{}
+	writer := multipart.NewWriter(body)
+	part, err := writer.CreateFormFile("files", "gigante.bin")
+	if err != nil {
+		t.Fatalf("creating form file: %v", err)
+	}
+	if _, err := part.Write(oversized); err != nil {
+		t.Fatalf("writing form file: %v", err)
+	}
+	if err := writer.Close(); err != nil {
+		t.Fatalf("closing multipart writer: %v", err)
+	}
+
+	w := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodPost, "/api/images", body)
+	req.Header.Set("Content-Type", writer.FormDataContentType())
+	req.SetBasicAuth(app.Config.BasicAuthUser, app.Config.BasicAuthPass)
+	router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusRequestEntityTooLarge && w.Code != http.StatusBadRequest {
+		t.Fatalf("status = %d, want %d or %d, body = %s", w.Code, http.StatusRequestEntityTooLarge, http.StatusBadRequest, w.Body.String())
 	}
 }
 
