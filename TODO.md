@@ -33,25 +33,42 @@ o restante é para revisitar quando houver tempo.
       Validado com testes sintéticos e também contra o site real
       (`/api/lyrics/letras`).
 
+- [x] **`main()` com ~20 rotas inline** — agrupadas em `routes.go`
+      (`registerMediaRoutes`, `registerViewRoutes`, `registerMiscRoutes`,
+      `registerLyricsRoutes`, `registerBibleRoutes`). `main()` ficou só com o
+      bootstrap. `routes_test.go` verifica via `router.Routes()` que cada
+      grupo registra exatamente os endpoints esperados, sem invocar handlers.
+- [x] **`categories` como array + busca linear para 1 elemento só** — virou
+      `map[string]Category` em `manager.go` (depois movido pra
+      `presenter/storage`, ver abaixo). `TestFindCategoryByName` cobre
+      categoria conhecida/desconhecida.
+- [x] **Content-Type inconsistente** — `handlers_api.go`/`handlers_letras.go`
+      passaram a usar a constante `ContentTypeText` já existente; `bible/bible.go`
+      ganhou sua própria `ContentTypeJSON` (módulo separado). Teste HTTP
+      (`handlers_api_test.go`) valida o header em `getSongContent`.
+- [x] **Estado global mutável** (`port`, `location`, `usePort`,
+      `basicAuthUser`/`basicAuthPass`, `providers`) — encapsulado em `app.go`:
+      `Config` (resolvida uma vez via `NewConfig`) + `App` (Config + Providers).
+      Handlers que dependiam de globals (`AuthMiddleware`,
+      `viewPanel`/`viewController`/`viewHome`,
+      `setMediaProviderContent`/`getMediaProviderContent`,
+      `CopyIncomingProviderToExistent`) viraram métodos de `*App`.
+      `app_test.go` cobre `AuthMiddleware` (credenciais válidas/inválidas/
+      ausentes), substituição de tokens e providers.
+- [x] **Pacote raiz monolítico (`main`)** — extraídos `presenter/storage`
+      (categorias, listagem/gravação de texto — era `manager.go`) e
+      `presenter/providers` (`Store` com `Get`/`Set` no lugar do
+      `map[string]ProviderData` solto). Seguiu a convenção já existente no
+      repo (módulos via `replace` no `go.mod`, como `bible`/`flags`/`fsutil`)
+      em vez de introduzir `internal/`. `storage_test.go` e
+      `providers_test.go` cobrem os dois. **Cuidado**: o módulo chama-se
+      `storage`, não `media` — colide com a pasta `media/` de dados em
+      runtime do app (ver `.gitignore`) se usar esse nome.
+
 ## Pendente
 
-- [ ] **`main()` com ~20 rotas inline** — agrupar em funções tipo
-      `registerMediaRoutes(r)`, `registerViewRoutes(r)`, `registerLyricsRoutes(r)`,
-      `registerBibleRoutes(r)`.
-- [ ] **Estado global mutável** (`port`, `location`, `usePort`,
-      `basicAuthUser`/`basicAuthPass`, `providers`) — encapsular num `struct
-      Config`/`struct App` passado explicitamente, em vez de `var` de pacote
-      setados em `main()`/`varSetup()`. Melhora testabilidade.
-- [ ] **`categories` como array + busca linear para 1 elemento só**
-      (`manager.go:19-32`) — se a ideia é crescer, virar `map[string]Category`;
-      se não, simplificar direto.
-- [ ] **Pacote raiz monolítico (`main`)** — considerar separar em
-      `internal/media`, `internal/providers`, `internal/httpapi`, etc., se o
-      projeto crescer.
-- [ ] **Content-Type inconsistente** — existem constantes como
-      `ContentTypeText = "text/plain; charset=utf-8"` em `main.go`, mas alguns
-      handlers hardcodam `"text/plain; charset=UTF-8"` (casing diferente) em vez
-      de usar a constante.
-- [ ] **Providers dinâmicos** (já registrado no `CLAUDE.md`) — hoje o mapa
-      `providers` é fixo/hardcoded; a ideia é permitir múltiplos providers
-      configuráveis para alimentar outras telas além dos canais atuais.
+- [ ] **Providers dinâmicos** (já registrado no `CLAUDE.md`) — hoje o
+      `providers.Store` tem um conjunto fixo/hardcoded de canais; a ideia é
+      permitir múltiplos providers configuráveis para alimentar outras telas
+      além dos canais atuais. Fora do escopo desta rodada por ser uma
+      feature nova, não uma refatoração.
