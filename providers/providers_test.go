@@ -1,8 +1,41 @@
 package providers
 
-import "testing"
+import (
+	"os"
+	"testing"
+)
+
+func withTempDir(t *testing.T) {
+	t.Helper()
+	dir := t.TempDir()
+	cwd, err := os.Getwd()
+	if err != nil {
+		t.Fatalf("failed to get cwd: %v", err)
+	}
+	if err := os.Chdir(dir); err != nil {
+		t.Fatalf("failed to chdir into temp dir: %v", err)
+	}
+	t.Cleanup(func() { os.Chdir(cwd) })
+}
+
+func TestNewStorePersistsAcrossRestarts(t *testing.T) {
+	withTempDir(t)
+
+	store := NewStore()
+	if err := store.Set("main", Data{Content: "ola"}); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	restarted := NewStore()
+	got := restarted.Get("main")
+	want := Data{Label: "Conteúdo principal", Content: "ola"}
+	if got != want {
+		t.Errorf("after restart, Get(\"main\") = %+v, want %+v", got, want)
+	}
+}
 
 func TestNewStoreDefaultsToFourProtectedProviders(t *testing.T) {
+	withTempDir(t)
 	store := NewStore()
 
 	want := map[string]string{
@@ -25,6 +58,7 @@ func TestNewStoreDefaultsToFourProtectedProviders(t *testing.T) {
 }
 
 func TestStoreGetUnknownChannelReturnsZeroValue(t *testing.T) {
+	withTempDir(t)
 	store := NewStore()
 	got := store.Get("nao-existe")
 	if got != (Data{}) {
@@ -33,6 +67,7 @@ func TestStoreGetUnknownChannelReturnsZeroValue(t *testing.T) {
 }
 
 func TestStoreSetKnownChannel(t *testing.T) {
+	withTempDir(t)
 	store := NewStore()
 	content := Data{Content: "ola", Type: "TEXT"}
 
@@ -47,6 +82,7 @@ func TestStoreSetKnownChannel(t *testing.T) {
 }
 
 func TestStoreSetUnknownChannel(t *testing.T) {
+	withTempDir(t)
 	store := NewStore()
 	if err := store.Set("nao-existe", Data{}); err == nil {
 		t.Fatal("expected an error for an unknown channel")

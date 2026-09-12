@@ -17,6 +17,7 @@ func assertRouteRegistered(t *testing.T, router *gin.Engine, method, path string
 }
 
 func TestRegisterMediaRoutes(t *testing.T) {
+	withTempWorkDir(t)
 	gin.SetMode(gin.TestMode)
 	router := gin.New()
 	registerMediaRoutes(router, NewApp(Config{}))
@@ -41,6 +42,7 @@ func TestRegisterMediaRoutes(t *testing.T) {
 }
 
 func TestRegisterViewRoutes(t *testing.T) {
+	withTempWorkDir(t)
 	gin.SetMode(gin.TestMode)
 	router := gin.New()
 	registerViewRoutes(router, NewApp(Config{}))

@@ -3,10 +3,24 @@ package main
 import (
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"testing"
 
 	"github.com/gin-gonic/gin"
 )
+
+func withTempWorkDir(t *testing.T) {
+	t.Helper()
+	dir := t.TempDir()
+	cwd, err := os.Getwd()
+	if err != nil {
+		t.Fatalf("failed to get cwd: %v", err)
+	}
+	if err := os.Chdir(dir); err != nil {
+		t.Fatalf("failed to chdir into temp dir: %v", err)
+	}
+	t.Cleanup(func() { os.Chdir(cwd) })
+}
 
 func newTestApp() *App {
 	return NewApp(Config{
@@ -17,6 +31,7 @@ func newTestApp() *App {
 }
 
 func TestAppInsertAddressOnContent(t *testing.T) {
+	withTempWorkDir(t)
 	app := newTestApp()
 	got := string(app.insertAddressOnContent([]byte(`fetch('{{APP_LOCATION}}/api/songs')`)))
 	want := `fetch('http://192.168.0.10:8080/api/songs')`
@@ -26,6 +41,7 @@ func TestAppInsertAddressOnContent(t *testing.T) {
 }
 
 func TestAppInsertAuthTokenOnContent(t *testing.T) {
+	withTempWorkDir(t)
 	app := newTestApp()
 	got := string(app.insertAuthTokenOnContent([]byte(`token: '{{BASIC_AUTH_TOKEN}}'`)))
 	want := "token: '" + app.getAuthAsB64() + "'"
@@ -38,6 +54,7 @@ func TestAppInsertAuthTokenOnContent(t *testing.T) {
 }
 
 func TestAppAuthMiddleware(t *testing.T) {
+	withTempWorkDir(t)
 	gin.SetMode(gin.TestMode)
 	app := newTestApp()
 
@@ -77,6 +94,7 @@ func TestAppAuthMiddleware(t *testing.T) {
 }
 
 func TestAppCopyIncomingProviderToExistent(t *testing.T) {
+	withTempWorkDir(t)
 	app := newTestApp()
 
 	t.Run("known provider gets updated", func(t *testing.T) {
