@@ -28,6 +28,7 @@ build/**
 media/songs/**
 media/**
 presenter
+/main
 *.http
 
 bible/conv.py

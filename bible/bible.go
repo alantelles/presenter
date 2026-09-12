@@ -21,15 +21,7 @@ type Chapter struct {
 	Book   string  `json:"book"`
 }
 
-func CORS(c *gin.Context) {
-	c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
-	c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
-	c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With")
-	c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS, GET, PUT")
-}
-
 func GetBooksList(c *gin.Context) {
-	CORS(c)
 	status := http.StatusOK
 	cached, err := LoadTextFile("books.json")
 	if err == nil && len(cached) > 0 {
@@ -48,7 +40,6 @@ func GetBooksList(c *gin.Context) {
 }
 
 func GetChapter(c *gin.Context) {
-	CORS(c)
 	version := c.Param("version")
 	book := c.Param("book")
 	chapter := c.Param("chapter")
