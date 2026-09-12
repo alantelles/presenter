@@ -10,6 +10,8 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+const ContentTypeJSON = "application/json; charset=utf-8"
+
 type Verse struct {
 	Number int    `json:"number"`
 	Text   string `json:"text"`
@@ -26,7 +28,7 @@ func GetBooksList(c *gin.Context) {
 	cached, err := LoadTextFile("books.json")
 	if err == nil && len(cached) > 0 {
 		log.Println("Lista de livros carregada do cache.")
-		c.Data(status, "application/json; charset=utf-8", cached)
+		c.Data(status, ContentTypeJSON, cached)
 		return
 	}
 	result, err := FetchBooksList()
@@ -36,7 +38,7 @@ func GetBooksList(c *gin.Context) {
 		errMsg := strings.ReplaceAll(err.Error(), `"`, `'`)
 		result = fmt.Sprintf(`{"error": "Erro ao buscar lista de livros: %s"}`, errMsg)
 	}
-	c.Data(status, "application/json; charset=utf-8", []byte(result))
+	c.Data(status, ContentTypeJSON, []byte(result))
 }
 
 func GetChapter(c *gin.Context) {
@@ -57,7 +59,7 @@ func GetChapter(c *gin.Context) {
 	cached, err := LoadChapter(book, version, chapterNumber)
 	if err == nil && len(cached) > 0 {
 		log.Println("Capítulo carregado do cache.")
-		c.Data(http.StatusOK, "application/json; charset=utf-8", cached)
+		c.Data(http.StatusOK, ContentTypeJSON, cached)
 		return
 	}
 	result, status, err := FetchChapter(version, book, chapterNumber)
@@ -71,7 +73,7 @@ func GetChapter(c *gin.Context) {
 		return
 	}
 	SaveChapter(book, version, chapterNumber, result)
-	c.Data(status, "application/json; charset=utf-8", []byte(result))
+	c.Data(status, ContentTypeJSON, []byte(result))
 }
 
 func SaveChapter(book, version string, chapter int, content string) {

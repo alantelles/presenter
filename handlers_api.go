@@ -126,7 +126,7 @@ func getAllSongsFromFolder(c *gin.Context) {
 
 func getSongContent(c *gin.Context) {
 	song := c.Query("song")
-	c.Data(http.StatusOK, "text/plain; charset=UTF-8", loadSongFile(song))
+	c.Data(http.StatusOK, ContentTypeText, loadSongFile(song))
 }
 
 func discover(c *gin.Context) {
