@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log"
 	"os"
 	"sort"
 	"strings"
@@ -76,7 +77,8 @@ func Save(name string, content io.Reader) (string, error) {
 	if len(data) > MaxUploadSize {
 		return "", ErrTooLarge
 	}
-	if _, err := sniffFormat(data); err != nil {
+	format, err := sniffFormat(data)
+	if err != nil {
 		return "", err
 	}
 	if _, err := fsutil.CreateFolder(imagesDir()); err != nil {
@@ -84,6 +86,9 @@ func Save(name string, content io.Reader) (string, error) {
 	}
 	if err := os.WriteFile(imagesDir()+name, data, 0644); err != nil {
 		return "", fmt.Errorf("saving image: %w", err)
+	}
+	if err := saveThumbnail(name, format, data); err != nil {
+		log.Printf("images: failed to generate thumbnail for %s: %v", name, err)
 	}
 	return name, nil
 }
