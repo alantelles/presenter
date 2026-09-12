@@ -102,8 +102,10 @@ func TestAppCopyIncomingProviderToExistent(t *testing.T) {
 		if err := app.CopyIncomingProviderToExistent("main", newContent); err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
-		if got := app.Providers.Get("main"); got != newContent {
-			t.Errorf("providers[main] = %+v, want %+v", got, newContent)
+		want := newContent
+		want.Label = "Conteúdo principal"
+		if got := app.Providers.Get("main"); got != want {
+			t.Errorf("providers[main] = %+v, want %+v", got, want)
 		}
 	})
 
