@@ -2,6 +2,7 @@ package providers
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -139,5 +140,42 @@ func (s *Store) Create(id, label string) error {
 	existing := s.channels[id]
 	existing.Label = label
 	s.channels[id] = existing
+	return s.save()
+}
+
+var (
+	// ErrProtected is returned by Delete when id is one of the providers
+	// that can never be removed.
+	ErrProtected = errors.New("provider is protected and cannot be deleted")
+	// ErrNotFound is returned by Delete when id doesn't exist.
+	ErrNotFound = errors.New("provider not found")
+)
+
+// Delete removes a provider and persists the change. It returns
+// ErrProtected if id is one of the protected providers, or ErrNotFound if
+// id doesn't exist.
+func (s *Store) Delete(id string) error {
+	if _, protected := protectedIDs[id]; protected {
+		return fmt.Errorf("%s: %w", id, ErrProtected)
+	}
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if _, ok := s.channels[id]; !ok {
+		return fmt.Errorf("%s: %w", id, ErrNotFound)
+	}
+	delete(s.channels, id)
+	return s.save()
+}
+
+// DeleteAll removes every custom provider, keeping the protected ones, and
+// persists the change.
+func (s *Store) DeleteAll() error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	for id := range s.channels {
+		if _, protected := protectedIDs[id]; !protected {
+			delete(s.channels, id)
+		}
+	}
 	return s.save()
 }

@@ -1,6 +1,7 @@
 package providers
 
 import (
+	"errors"
 	"os"
 	"testing"
 )
@@ -144,5 +145,61 @@ func TestStoreCreateRejectsEmptyID(t *testing.T) {
 	store := NewStore()
 	if err := store.Create("", "label"); err == nil {
 		t.Fatal("expected an error for an empty id")
+	}
+}
+
+func TestStoreDeleteProtectedProviderFails(t *testing.T) {
+	withTempDir(t)
+	store := NewStore()
+
+	err := store.Delete("main")
+	if !errors.Is(err, ErrProtected) {
+		t.Fatalf("Delete(\"main\") error = %v, want ErrProtected", err)
+	}
+	if got := store.Get("main"); got.Label == "" {
+		t.Error("protected provider should still exist after failed delete")
+	}
+}
+
+func TestStoreDeleteUnknownProviderFails(t *testing.T) {
+	withTempDir(t)
+	store := NewStore()
+
+	err := store.Delete("nao-existe")
+	if !errors.Is(err, ErrNotFound) {
+		t.Fatalf("Delete(\"nao-existe\") error = %v, want ErrNotFound", err)
+	}
+}
+
+func TestStoreDeleteCustomProvider(t *testing.T) {
+	withTempDir(t)
+	store := NewStore()
+	if err := store.Create("telao-2", "Telão"); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if err := store.Delete("telao-2"); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if got := store.Get("telao-2"); got != (Data{}) {
+		t.Errorf("Get(\"telao-2\") = %+v, want zero value after delete", got)
+	}
+}
+
+func TestStoreDeleteAllKeepsProtected(t *testing.T) {
+	withTempDir(t)
+	store := NewStore()
+	if err := store.Create("telao-2", "Telão"); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if err := store.DeleteAll(); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if got := store.Get("telao-2"); got != (Data{}) {
+		t.Errorf("custom provider should be gone, got %+v", got)
+	}
+	if got := store.Get("main"); got.Label == "" {
+		t.Error("protected provider should survive DeleteAll")
 	}
 }
