@@ -19,7 +19,7 @@ func assertRouteRegistered(t *testing.T, router *gin.Engine, method, path string
 func TestRegisterMediaRoutes(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	router := gin.New()
-	registerMediaRoutes(router)
+	registerMediaRoutes(router, NewApp(Config{}))
 
 	want := []struct{ method, path string }{
 		{"POST", "/api/content/set/:providerId"},
@@ -43,7 +43,7 @@ func TestRegisterMediaRoutes(t *testing.T) {
 func TestRegisterViewRoutes(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	router := gin.New()
-	registerViewRoutes(router)
+	registerViewRoutes(router, NewApp(Config{}))
 
 	want := []struct{ method, path string }{
 		{"GET", "/controller"},

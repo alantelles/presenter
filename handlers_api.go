@@ -33,13 +33,13 @@ func uploadImage(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "OK"})
 }
 
-func setMediaProviderContent(c *gin.Context) {
+func (a *App) setMediaProviderContent(c *gin.Context) {
 	providerId := c.Param("providerId")
 	var newContent ProviderData
 	if err := c.BindJSON(&newContent); err != nil {
 		return
 	}
-	err := CopyIncomingProviderToExistent(providerId, newContent)
+	err := a.CopyIncomingProviderToExistent(providerId, newContent)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 		return
@@ -54,11 +54,11 @@ func setMediaProviderContent(c *gin.Context) {
 	c.JSON(http.StatusCreated, response)
 }
 
-func getMediaProviderContent(c *gin.Context) {
+func (a *App) getMediaProviderContent(c *gin.Context) {
 	providerIds := c.QueryArray("providerId")
 	responseData := map[string]ProviderData{}
 	for _, providerId := range providerIds {
-		responseData[providerId] = providers[providerId]
+		responseData[providerId] = a.Providers[providerId]
 	}
 	c.JSON(http.StatusOK, &responseData)
 }

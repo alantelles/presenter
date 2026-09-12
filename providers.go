@@ -2,23 +2,12 @@ package main
 
 import "fmt"
 
-var providers = map[string]ProviderData{
-	"main":           {},
-	"preview":        {},
-	"aux":            {},
-	"internal":       {},
-	"command":        {},
-	"operator":       {},
-	"sound-engineer": {},
-	"alerts":         {},
-}
-
-func CopyIncomingProviderToExistent(providerId string, newContent ProviderData) error {
-	_, ok := providers[providerId]
+func (a *App) CopyIncomingProviderToExistent(providerId string, newContent ProviderData) error {
+	_, ok := a.Providers[providerId]
 	if !ok {
 		return fmt.Errorf("provider with id %s not found", providerId)
 	}
-	providers[providerId] = newContent
+	a.Providers[providerId] = newContent
 	fmt.Printf("Provider %s of type %s updated with new content\n", providerId, newContent.Type)
 	return nil
 }

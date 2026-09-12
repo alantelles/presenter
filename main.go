@@ -1,14 +1,10 @@
 package main
 
 import (
-	"bytes"
-	"encoding/base64"
 	"fmt"
 	"log"
-	"net"
 	"presenter/flags"
 	"presenter/fsutil"
-	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -60,82 +56,12 @@ type returnBody struct {
 	ContentId  string  `json:"contentId,omitempty"`
 }
 
-var port = 8080 // TODO: receive this by running argument
-var location string
-var usePort = true
-var basicAuthUser string
-var basicAuthPass string
-
 func CORSMiddleware(c *gin.Context) {
 	c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
 	c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
 	c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With")
 	c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS, GET, PUT")
 	c.Next()
-}
-
-func getScheme(secure bool) string {
-	if secure {
-		return "https://"
-	}
-	return "http://"
-}
-
-func getPortSuffix() string {
-	if usePort {
-		return ":" + fmt.Sprint(port)
-	}
-	return ""
-}
-
-func setLocation() string {
-	address := getLocalIp()
-	scheme := getScheme(false) // TODO: receive this by running argument
-	return scheme + address + getPortSuffix()
-}
-
-func setBasicAuthCredentials() {
-	basicAuthUser = flags.GetUsername()
-	basicAuthPass = flags.GetPassword()
-}
-
-func varSetup() {
-	location = flags.GetLocation()
-	if location == "" {
-		location = setLocation()
-	}
-	setBasicAuthCredentials()
-}
-
-func getLocalIp() string {
-	conn, err := net.Dial("udp", "8.8.8.8:80")
-	if err != nil {
-		log.Print("Não foi possível obter o IP. Será utilizado localhost.")
-		log.Print(err)
-		return "localhost"
-	}
-	defer conn.Close()
-	full := conn.LocalAddr().String()
-
-	return full[:strings.Index(full, ":")]
-}
-
-func insertAddressOnContent(content []byte) []byte {
-	return bytes.Replace(
-		content,
-		[]byte(AppLocationToken),
-		[]byte(location),
-		-1,
-	)
-}
-
-func insertAuthTokenOnContent(content []byte) []byte {
-	return bytes.Replace(
-		content,
-		[]byte(AppAuthToken),
-		[]byte(getAuthAsB64()),
-		-1,
-	)
 }
 
 func createFolder(path string) {
@@ -155,25 +81,9 @@ func createDefaultFolders() {
 	createFolder("media/images/thumbs")
 }
 
-func getAuthAsB64() string {
-	return base64.StdEncoding.EncodeToString([]byte(basicAuthUser + ":" + basicAuthPass))
-}
-
-func AuthMiddleware(c *gin.Context) {
-	user, pass, ok := c.Request.BasicAuth()
-	if !(user == basicAuthUser && pass == basicAuthPass && ok) {
-		c.Writer.Header().Set("WWW-Authenticate", "Basic realm=Restricted")
-		c.JSON(401, gin.H{"status": 401, "message": "Unauthorized"})
-		c.Abort()
-		return
-	}
-	c.Next()
-}
-
 func main() {
-
 	flags.ProcessFlags()
-	varSetup()
+	app := NewApp(NewConfig())
 	createDefaultFolders()
 	gin.SetMode(gin.ReleaseMode)
 	router := gin.New()
@@ -184,14 +94,14 @@ func main() {
 	)
 	router.Static("/static", "./static")
 
-	registerMediaRoutes(router)
-	registerViewRoutes(router)
+	registerMediaRoutes(router, app)
+	registerViewRoutes(router, app)
 	registerMiscRoutes(router)
 	registerLyricsRoutes(router)
 	registerBibleRoutes(router)
 
 	log.Print("PRESENTER - Desenvolvido por Alan Telles")
 	log.Print("Iniciando serviço...")
-	log.Print("Endereço: " + location)
-	router.Run("0.0.0.0:" + fmt.Sprint(port))
+	log.Print("Endereço: " + app.Config.Location)
+	router.Run(fmt.Sprintf("0.0.0.0:%d", app.Config.Port))
 }
