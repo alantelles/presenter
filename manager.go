@@ -17,18 +17,17 @@ type Category struct {
 }
 
 var CategorySongs = Category{Name: "songs", DisplayName: "Músicas", Path: "songs"}
-var categories = [1]Category{CategorySongs}
+
+var categories = map[string]Category{
+	CategorySongs.Name: CategorySongs,
+}
 
 func findCategoryByName(name string) (*Category, error) {
-	length := len(categories)
-	i := 0
-	for i < length {
-		if categories[i].Name == name {
-			return &categories[i], nil
-		}
-		i += 1
+	category, ok := categories[name]
+	if !ok {
+		return nil, errors.New("category not found")
 	}
-	return nil, errors.New("category not found")
+	return &category, nil
 }
 
 func getTextPath(category Category, fileName string) string {
