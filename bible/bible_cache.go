@@ -2,69 +2,37 @@ package bible
 
 import (
 	"fmt"
-	"io"
 	"log"
-	"os"
+	"presenter/fsutil"
 )
-
-// exists returns whether the given file or directory exists
-func PathExists(path string) (bool, error) {
-	_, err := os.Stat(path)
-	if err == nil {
-		return true, nil
-	}
-	if os.IsNotExist(err) {
-		return false, nil
-	}
-	return false, err
-}
 
 func CreateFolder(path string) {
 	path = "bible/fetched/" + path
-	exists, _ := PathExists(path)
-	if exists {
-		return
-	}
-	err := os.MkdirAll(path, 0755)
+	created, err := fsutil.CreateFolder(path)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
-	log.Printf("Diretório %s criado com sucesso", path)
+	if created {
+		log.Printf("Diretório %s criado com sucesso", path)
+	}
 }
 
 func SaveTextFile(fileName string, content string) {
 	path := "bible/fetched/" + fileName
-	f, err := os.Create(path)
-	if err != nil {
+	if err := fsutil.WriteTextFile(path, content); err != nil {
 		fmt.Println(err)
 		return
 	}
-	l, err := f.WriteString(content)
-	if err != nil {
-		fmt.Println(err)
-		f.Close()
-		return
-	}
-	fmt.Println(l, "bytes written successfully")
-	err = f.Close()
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
+	fmt.Println(len(content), "bytes written successfully")
 }
 
 func LoadTextFile(fileName string) ([]byte, error) {
 	path := "bible/content/" + fileName
 	log.Print(path)
-	file, err := os.Open(path)
+	content, err := fsutil.ReadTextFile(path)
 	if err != nil {
 		log.Print(err)
 	}
-	defer func() {
-		if err = file.Close(); err != nil {
-			log.Print(err)
-		}
-	}()
-	return io.ReadAll(file)
+	return content, err
 }

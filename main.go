@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"log"
 	"net"
-	"os"
 	"presenter/bible"
 	"presenter/flags"
+	"presenter/fsutil"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -139,29 +139,15 @@ func insertAuthTokenOnContent(content []byte) []byte {
 	)
 }
 
-// exists returns whether the given file or directory exists
-func pathExists(path string) (bool, error) {
-	_, err := os.Stat(path)
-	if err == nil {
-		return true, nil
-	}
-	if os.IsNotExist(err) {
-		return false, nil
-	}
-	return false, err
-}
-
 func createFolder(path string) {
-	exists, _ := pathExists(path)
-	if exists {
-		return
-	}
-	err := os.MkdirAll(path, 0755)
+	created, err := fsutil.CreateFolder(path)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
-	log.Printf("Diretório %s criado com sucesso", path)
+	if created {
+		log.Printf("Diretório %s criado com sucesso", path)
+	}
 }
 
 func createDefaultFolders() {

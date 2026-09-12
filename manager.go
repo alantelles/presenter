@@ -2,10 +2,10 @@ package main
 
 import (
 	"errors"
-	"fmt"
 	"io"
 	"log"
 	"os"
+	"presenter/fsutil"
 )
 
 const (
@@ -41,81 +41,41 @@ func getTextPathNoPrefix(category Category, fileName string) string {
 
 func saveTextFile(category Category, fileName string, content string) {
 	path := getTextPath(category, fileName)
-	f, err := os.Create(path)
-	if err != nil {
-		fmt.Println(err)
+	if err := fsutil.WriteTextFile(path, content); err != nil {
+		log.Print(err)
 		return
 	}
-	l, err := f.WriteString(content)
+	log.Printf("%d bytes written successfully to %s", len(content), path)
+}
+
+// listDirEntries lists the names directly under path, keeping only entries
+// whose IsDir() matches wantDirs (i.e. only subfolders, or only files).
+func listDirEntries(path string, wantDirs bool) ([]string, error) {
+	entries, err := os.ReadDir(path)
 	if err != nil {
-		fmt.Println(err)
-		f.Close()
-		return
+		log.Print(err)
+		return nil, err
 	}
-	fmt.Println(l, "bytes written successfully")
-	err = f.Close()
-	if err != nil {
-		fmt.Println(err)
-		return
+	names := make([]string, 0, len(entries))
+	for _, entry := range entries {
+		if entry.IsDir() != wantDirs {
+			continue
+		}
+		names = append(names, entry.Name())
 	}
+	return names, nil
 }
 
 func loadMediaList(categoryName string) ([]string, error) {
-	files, err := os.ReadDir("media/" + categoryName)
-	if err != nil {
-		log.Print(err)
-		return nil, err
-	}
-	count := len(files)
-	ret := make([]string, count)
-	index := 0
-	for i := 0; i < count; i++ {
-		if files[i].IsDir() {
-			continue
-		}
-		ret[index] = files[i].Name()
-		index++
-	}
-	return ret[:index], nil
+	return listDirEntries(MediaPath+categoryName, false)
 }
 
-// TODO: muito código repetido
 func loadMediaListFromFolder(categoryName string, archivePath string, folder string) ([]string, error) {
-	files, err := os.ReadDir("media/" + categoryName + "/" + archivePath + "/" + folder)
-	if err != nil {
-		log.Print(err)
-		return nil, err
-	}
-	count := len(files)
-	ret := make([]string, count)
-	index := 0
-	for i := 0; i < count; i++ {
-		if files[i].IsDir() {
-			continue
-		}
-		ret[index] = files[i].Name()
-		index++
-	}
-	return ret[:index], nil
+	return listDirEntries(MediaPath+categoryName+"/"+archivePath+"/"+folder, false)
 }
 
 func loadSongFolders(category string, archivePath string) ([]string, error) {
-	files, err := os.ReadDir("media/" + category + "/" + archivePath)
-	if err != nil {
-		log.Print(err)
-		return nil, err
-	}
-	count := len(files)
-	ret := make([]string, count)
-	index := 0
-	for i := 0; i < count; i++ {
-		if !files[i].IsDir() {
-			continue
-		}
-		ret[index] = files[i].Name()
-		index++
-	}
-	return ret[:index], nil
+	return listDirEntries(MediaPath+category+"/"+archivePath, true)
 }
 
 func loadSongFile(fileName string) []byte {
