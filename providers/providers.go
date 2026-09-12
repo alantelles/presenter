@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"sort"
 	"sync"
 )
 
@@ -103,5 +104,40 @@ func (s *Store) Set(providerId string, content Data) error {
 	}
 	content.Label = existing.Label
 	s.channels[providerId] = content
+	return s.save()
+}
+
+// ProviderInfo is the public listing shape for a provider: its id plus
+// display label, without the current content.
+type ProviderInfo struct {
+	ID    string `json:"id"`
+	Label string `json:"label"`
+}
+
+// List returns every registered provider's id and label, sorted by id.
+func (s *Store) List() []ProviderInfo {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	infos := make([]ProviderInfo, 0, len(s.channels))
+	for id, data := range s.channels {
+		infos = append(infos, ProviderInfo{ID: id, Label: data.Label})
+	}
+	sort.Slice(infos, func(i, j int) bool { return infos[i].ID < infos[j].ID })
+	return infos
+}
+
+// Create registers a provider under id with the given label, persisting the
+// change. If id already exists (protected or custom), only its label is
+// overwritten and its current content is preserved; otherwise a new
+// provider is created with empty content.
+func (s *Store) Create(id, label string) error {
+	if id == "" {
+		return fmt.Errorf("provider id must not be empty")
+	}
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	existing := s.channels[id]
+	existing.Label = label
+	s.channels[id] = existing
 	return s.save()
 }

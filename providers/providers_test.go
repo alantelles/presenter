@@ -88,3 +88,61 @@ func TestStoreSetUnknownChannel(t *testing.T) {
 		t.Fatal("expected an error for an unknown channel")
 	}
 }
+
+func TestStoreList(t *testing.T) {
+	withTempDir(t)
+	store := NewStore()
+
+	got := store.List()
+	want := []ProviderInfo{
+		{ID: "aux", Label: "Visão auxiliar"},
+		{ID: "command", Label: "Linha de comandos"},
+		{ID: "main", Label: "Conteúdo principal"},
+		{ID: "preview", Label: "Prévia conteúdo"},
+	}
+	if len(got) != len(want) {
+		t.Fatalf("got %d providers, want %d: %+v", len(got), len(want), got)
+	}
+	for i := range want {
+		if got[i] != want[i] {
+			t.Errorf("List()[%d] = %+v, want %+v", i, got[i], want[i])
+		}
+	}
+}
+
+func TestStoreCreateNewProvider(t *testing.T) {
+	withTempDir(t)
+	store := NewStore()
+
+	if err := store.Create("telao-2", "Telão da entrada"); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	want := Data{Label: "Telão da entrada"}
+	if got := store.Get("telao-2"); got != want {
+		t.Errorf("Get(\"telao-2\") = %+v, want %+v", got, want)
+	}
+}
+
+func TestStoreCreateOverwritesLabelPreservingContent(t *testing.T) {
+	withTempDir(t)
+	store := NewStore()
+	if err := store.Set("main", Data{Content: "ola"}); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if err := store.Create("main", "Novo nome"); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	want := Data{Label: "Novo nome", Content: "ola"}
+	if got := store.Get("main"); got != want {
+		t.Errorf("Get(\"main\") = %+v, want %+v", got, want)
+	}
+}
+
+func TestStoreCreateRejectsEmptyID(t *testing.T) {
+	withTempDir(t)
+	store := NewStore()
+	if err := store.Create("", "label"); err == nil {
+		t.Fatal("expected an error for an empty id")
+	}
+}
