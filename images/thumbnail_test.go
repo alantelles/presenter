@@ -164,6 +164,68 @@ func TestThumbNameDoesNotCollideAcrossExtensions(t *testing.T) {
 	}
 }
 
+// TestThumbNameDoesNotCollideAcrossAllFormats reproduces a reported bug:
+// uploading images that share a basename ("sample") across all 5 accepted
+// formats used to collide on a single media/images/thumbs/sample.png file,
+// since thumbName used to strip the extension before appending .png.
+func TestThumbNameDoesNotCollideAcrossAllFormats(t *testing.T) {
+	withTempMediaDir(t)
+
+	files := map[string][]byte{
+		"sample.jpg":  encodeJPEG(t),
+		"sample.png":  encodePNG(t),
+		"sample.gif":  encodeGIF(t),
+		"sample.bmp":  encodeBMP(t),
+		"sample.webp": readWebpFixture(t),
+	}
+	for name, data := range files {
+		if _, err := Save(name, bytes.NewReader(data)); err != nil {
+			t.Fatalf("unexpected error saving %s: %v", name, err)
+		}
+	}
+
+	thumbPaths := make(map[string]string, len(files))
+	for name := range files {
+		path, err := ThumbPath(name)
+		if err != nil {
+			t.Fatalf("unexpected error for %s: %v", name, err)
+		}
+		thumbPaths[name] = path
+	}
+
+	seenPaths := make(map[string]string, len(thumbPaths))
+	for name, path := range thumbPaths {
+		if other, collides := seenPaths[path]; collides {
+			t.Fatalf("thumbnail path collision: %s and %s both resolved to %s", name, other, path)
+		}
+		seenPaths[path] = name
+	}
+
+	// Note: all 5 fixtures encode the same solid-color pixels (sampleImage),
+	// so their PNG-encoded thumbnails are legitimately byte-identical in
+	// content — that's not the bug. The bug was that they'd collide onto
+	// the SAME on-disk path (already asserted above) and overwrite each
+	// other, leaving fewer than 5 files in thumbsDir(). Here we only
+	// confirm each thumbnail is independently a valid, decodable PNG.
+	for name, path := range thumbPaths {
+		data, err := os.ReadFile(path)
+		if err != nil {
+			t.Fatalf("reading thumbnail for %s: %v", name, err)
+		}
+		if _, err := png.Decode(bytes.NewReader(data)); err != nil {
+			t.Fatalf("thumbnail for %s is not a valid PNG: %v", name, err)
+		}
+	}
+
+	entries, err := os.ReadDir(thumbsDir())
+	if err != nil {
+		t.Fatalf("reading thumbs dir: %v", err)
+	}
+	if got := len(entries); got != len(files) {
+		t.Errorf("thumbs dir has %d files, want %d (one per uploaded format)", got, len(files))
+	}
+}
+
 func TestSaveToleratesThumbnailDecodeFailure(t *testing.T) {
 	withTempMediaDir(t)
 
