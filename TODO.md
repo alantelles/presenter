@@ -74,6 +74,19 @@ o restante é para revisitar quando houver tempo.
       `main.go`). Ver plano/spec em
       `.superpowers/sdd/2026-09-12-providers-dinamicos/`.
 
+- [x] **Upload e exibição de imagens** — novo submódulo `presenter/images`
+      (`images.go`, `thumbnail.go`) valida formato por content-sniffing
+      (JPEG/PNG/GIF/BMP/WEBP), limite de 10MB, armazenamento achatado sob
+      `storage.BasePath()+"images/"` e miniaturas sempre em PNG. Endpoints
+      em `handlers_images.go` (`GET/POST /api/images`, `GET
+      /api/images/content`, `GET /api/images/thumb`, registrados via
+      `registerImageRoutes` em `routes.go`), painel (`panel.html`) passou a
+      renderizar conteúdo `type=IMAGE` como `<img>`, e novo controller
+      (`templates/controllers/images.html`) para upload/galeria, linkado a
+      partir de `templates/index.html`. Ver spec/plano em
+      `docs/superpowers/specs/2026-09-12-upload-exibicao-imagens-design.md`
+      e `docs/superpowers/plans/2026-09-12-upload-exibicao-imagens.md`.
+
 ## Pendente
 
 (nenhum item pendente no momento)

@@ -98,6 +98,16 @@ aplicação.
 **Submódulo `fsutil/`** (`presenter/fsutil`): helpers de I/O compartilhados (`PathExists`,
 `CreateFolder`, `WriteTextFile`, `ReadTextFile`), usados por `storage/` e `bible/`.
 
+**Submódulo `images/`** (`presenter/images`): upload, armazenamento e recuperação de imagens de
+apresentação. `Save` valida formato por content-sniffing dos primeiros bytes (JPEG/PNG/GIF/BMP/WEBP,
+não pela extensão do nome) e tamanho (limite de 10MB, `MaxUploadSize`), e grava tudo achatado (sem
+subpastas por categoria) sob `storage.BasePath()+"images/"`. Toda imagem aceita ganha uma miniatura
+gerada como PNG (`thumbnail.go`), independente do formato original, guardada em
+`storage.BasePath()+"images/thumbs/"`. Endpoints HTTP (`handlers_images.go`, registrados via
+`registerImageRoutes` em `routes.go`): `POST /api/images` (upload multipart, campo `files`, requer
+`AuthMiddleware`), `GET /api/images` (lista nomes, público), `GET /api/images/content?name=...`
+(serve o arquivo original, público) e `GET /api/images/thumb?name=...` (serve a miniatura, público).
+
 **Autenticação**: Basic Auth simples e global (`(*App).AuthMiddleware` em `app.go`), aplicada apenas
 às rotas de escrita/administração (`/api/content/set`, `/api/media`, `/controller`, `/api/images`).
 Rotas de leitura pública (painel, descoberta, letras, bíblia) não exigem autenticação.
