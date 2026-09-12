@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"log"
 	"net"
-	"presenter/bible"
 	"presenter/flags"
 	"presenter/fsutil"
 	"strings"
@@ -184,30 +183,12 @@ func main() {
 		CORSMiddleware,
 	)
 	router.Static("/static", "./static")
-	router.POST("/api/content/set/:providerId", AuthMiddleware, setMediaProviderContent)
-	router.GET("/api/content", getMediaProviderContent)
-	router.POST("/api/media", AuthMiddleware, saveMedia)
-	router.PUT("/api/media/move", AuthMiddleware, moveMedia)
 
-	router.POST("/api/images", AuthMiddleware, uploadImage)
-
-	router.GET("/api/songs", getAllSongs)
-	router.GET("/api/songs/content", getSongContent)
-	router.GET("/api/songs/folders", getSongsFolderList)
-	router.GET("/api/songs/folder", getAllSongsFromFolder)
-
-	router.GET("/controller", AuthMiddleware, viewController)
-	router.GET("/controller/:page", AuthMiddleware, viewController)
-	router.GET("/", viewHome)
-	router.GET("/live", viewPanel)
-
-	router.GET("/api/discover", discover)
-
-	router.GET("/api/lyrics/letras", getSongLyricsFromLetras)
-	router.GET("/api/lyrics/letras/song", getSongLyricFromLetrasByUrl)
-
-	router.GET("/api/bible/books", bible.GetBooksList)
-	router.GET("/api/bible/chapter/:version/:book/:chapter", bible.GetChapter)
+	registerMediaRoutes(router)
+	registerViewRoutes(router)
+	registerMiscRoutes(router)
+	registerLyricsRoutes(router)
+	registerBibleRoutes(router)
 
 	log.Print("PRESENTER - Desenvolvido por Alan Telles")
 	log.Print("Iniciando serviço...")
