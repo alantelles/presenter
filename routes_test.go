@@ -27,11 +27,30 @@ func TestRegisterMediaRoutes(t *testing.T) {
 		{"GET", "/api/content"},
 		{"POST", "/api/media"},
 		{"PUT", "/api/media/move"},
-		{"POST", "/api/images"},
 		{"GET", "/api/songs"},
 		{"GET", "/api/songs/content"},
 		{"GET", "/api/songs/folders"},
 		{"GET", "/api/songs/folder"},
+	}
+	for _, r := range want {
+		assertRouteRegistered(t, router, r.method, r.path)
+	}
+	if got := len(router.Routes()); got != len(want) {
+		t.Errorf("got %d routes registered, want %d", got, len(want))
+	}
+}
+
+func TestRegisterImageRoutes(t *testing.T) {
+	withTempWorkDir(t)
+	gin.SetMode(gin.TestMode)
+	router := gin.New()
+	registerImageRoutes(router, NewApp(Config{}))
+
+	want := []struct{ method, path string }{
+		{"POST", "/api/images"},
+		{"GET", "/api/images"},
+		{"GET", "/api/images/content"},
+		{"GET", "/api/images/thumb"},
 	}
 	for _, r := range want {
 		assertRouteRegistered(t, router, r.method, r.path)

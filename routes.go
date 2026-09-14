@@ -6,7 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// registerMediaRoutes wires up song/image/provider content management: the
+// registerMediaRoutes wires up song/provider content management: the
 // endpoints controllers use to publish, list, save and move media.
 func registerMediaRoutes(router *gin.Engine, app *App) {
 	router.POST("/api/content/set/:providerId", app.AuthMiddleware, app.setMediaProviderContent)
@@ -14,12 +14,20 @@ func registerMediaRoutes(router *gin.Engine, app *App) {
 	router.POST("/api/media", app.AuthMiddleware, saveMedia)
 	router.PUT("/api/media/move", app.AuthMiddleware, moveMedia)
 
-	router.POST("/api/images", app.AuthMiddleware, uploadImage)
-
 	router.GET("/api/songs", getAllSongs)
 	router.GET("/api/songs/content", getSongContent)
 	router.GET("/api/songs/folders", getSongsFolderList)
 	router.GET("/api/songs/folder", getAllSongsFromFolder)
+}
+
+// registerImageRoutes wires up image upload, listing and retrieval — the
+// endpoints the images controller and the live panel use to publish, list
+// and read back uploaded images and their thumbnails.
+func registerImageRoutes(router *gin.Engine, app *App) {
+	router.POST("/api/images", app.AuthMiddleware, uploadImage)
+	router.GET("/api/images", listImages)
+	router.GET("/api/images/content", getImageContent)
+	router.GET("/api/images/thumb", getImageThumb)
 }
 
 // registerProviderRoutes wires up provider management: creating, listing

@@ -24,18 +24,6 @@ func getSongsFolderList(c *gin.Context) {
 	c.JSON(http.StatusOK, response)
 }
 
-func uploadImage(c *gin.Context) {
-	form, _ := c.MultipartForm()
-	files := form.File["files"]
-	for _, file := range files {
-		log.Println(file.Filename)
-		savedName := "./" + storage.BasePath() + "images/" + file.Filename
-		c.SaveUploadedFile(file, savedName)
-		createThumbnail(savedName)
-	}
-	c.JSON(http.StatusOK, gin.H{"message": "OK"})
-}
-
 func (a *App) setMediaProviderContent(c *gin.Context) {
 	providerId := c.Param("providerId")
 	var newContent ProviderData

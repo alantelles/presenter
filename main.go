@@ -96,6 +96,7 @@ func main() {
 	router.Static("/static", "./static")
 
 	registerMediaRoutes(router, app)
+	registerImageRoutes(router, app)
 	registerProviderRoutes(router, app)
 	registerViewRoutes(router, app)
 	registerMiscRoutes(router)

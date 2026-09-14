@@ -72,6 +72,7 @@ table {
             align-items: center;
             justify-content: center;
             height: 100vh;
+            overflow: hidden;
         }
         .bible-chapter {
             position: absolute;
@@ -91,6 +92,18 @@ table {
         }
         .stroke {
             -webkit-text-stroke: 2px black;
+        }
+        #liveblock {
+            min-width: 0;
+            min-height: 0;
+            overflow: hidden;
+        }
+        .live-image {
+            max-width: 100%;
+            max-height: 100vh;
+            object-fit: contain;
+            display: block;
+            margin: 0 auto;
         }
         .auxblock {
             font-size: 25px !important;
@@ -194,6 +207,7 @@ table {
         var lastCommandId = window.sessionStorage.getItem('lastCommandId') || undefined;
         var lastChronoId = undefined;
         var lastMainText = '';
+        var lastMainType = '';
         var lastAuxText = '';
         function processarConteudo(content) {
             // negrito
@@ -218,7 +232,7 @@ table {
             bibleChapter.textContent = capitulo;
         }
         function processMainProviderData(data) {
-            const liveBlock = document.getElementById('liveblock'); 
+            const liveBlock = document.getElementById('liveblock');
             const metaBlock = document.getElementById('metablock');
             if (isShowClockMode()) {
                 if (data.content === '') {
@@ -227,9 +241,23 @@ table {
                     liveBlock.style.backgroundColor = 'black';
                 }
             }
-            if (lastMainText === data.content) {
+            if (lastMainText === data.content && lastMainType === data.type) {
                 return;
             }
+            lastMainText = data.content;
+            lastMainType = data.type;
+
+            if (data.type === 'IMAGE') {
+                metaBlock.innerHTML = '';
+                liveBlock.innerHTML = data.content
+                    ? `<img class="live-image" src="/api/images/content?name=${encodeURIComponent(data.content)}">`
+                    : '';
+                const bibleChapter = document.querySelector('.bible-chapter');
+                bibleChapter.textContent = '';
+                toggleVideo({content: 'on'});
+                return;
+            }
+
             const contentLines = data.content.split('\n');
             const categorized = {
                 meta: contentLines.filter(e => e.startsWith('meta:')).map(e => e.replace('meta:', '')),
@@ -237,7 +265,6 @@ table {
             }
             const metaContent = categorized.meta.join('\n');
             const liveContent = categorized.live.join('\n');
-            lastMainText = data.content;
             liveBlock.innerHTML = processarConteudo(liveContent);
             metaBlock.innerHTML = processarConteudo(metaContent);
             if (data.contentId && data.contentId.startsWith('bible ')) {
