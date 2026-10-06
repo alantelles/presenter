@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Logger culto</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background-color: #f4f4f4;
+    }
+
+    h1 {
+      text-align: center;
+      color: #333;
+    }
+
+    .botoes-momentos {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    .botao-momento button {
+      padding: 10px 20px;
+      font-size: 20px;
+      cursor: pointer;
+      border: none;
+      width: 150px; height: 150px;
+      border-radius: 5px;
+      background-color: #007BFF;
+      color: white;
+      transition: background-color 0.3s ease;
+    }
+
+    .botao-momento button:hover {
+      background-color: #0056b3;
+    }
+  </style>
+</head>
+<body>
+  <input type="hidden" name="basic-auth-token" id="basic-auth-token" value="{{BASIC_AUTH_TOKEN}}">
+  <h1>Logger culto</h1>
+  <div class="botoes-momentos">
+    <div class="botao-momento">
+      <button class="logger-momento" value="inicio">Início</button>
+    </div>
+    <div class="botao-momento">
+      <button class="logger-momento" value="louvor">Louvor</button>
+    </div>
+    <div class="botao-momento">
+      <button class="logger-momento" value="oferta">Oferta</button>
+    </div>
+    <div class="botao-momento">
+      <button class="logger-momento" value="anuncios">Anúncios</button>
+    </div>
+    <div class="botao-momento">
+      <button class="logger-momento" value="prolog">Prólogo</button>
+    </div>
+    <div class="botao-momento">
+      <button class="logger-momento" value="pregacao">Pregação</button>
+    </div>
+    <div class="botao-momento">
+      <button class="logger-momento" value="fim-pregacao">Fim pregação</button>
+    </div>
+    <div class="botao-momento">
+      <button class="logger-momento" value="encerramento">Fim culto</button>
+    </div>
+  </div>
+  <script type="module" src="/static/js/logger/logger.js"></script>
+</body>
+</html>
