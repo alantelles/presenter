@@ -1,3 +1,10 @@
+const isPrefixed = window.location.pathname.startsWith('/presenter');
+const APP_BASE_PATH = isPrefixed ? '/presenter' : '';
+
+function withBasePath(path) {
+    return APP_BASE_PATH + path;
+}
+
 function getAuthHeader() {
     const token = document.getElementById('basic-auth-token').value;
     return `Basic ${token}`;
@@ -6,7 +13,7 @@ function getAuthHeader() {
 export async function uploadImage(file) {
     const formData = new FormData();
     formData.append('files', file);
-    const res = await fetch('/api/images', {
+    const res = await fetch(withBasePath('/api/images'), {
         method: 'POST',
         headers: { Authorization: getAuthHeader() },
         body: formData
@@ -19,7 +26,7 @@ export async function uploadImage(file) {
 }
 
 export async function fetchImageList() {
-    const res = await fetch('/api/images');
+    const res = await fetch(withBasePath('/api/images'));
     if (!res.ok) {
         throw new Error(`failed to list images (status ${res.status})`);
     }
@@ -28,7 +35,7 @@ export async function fetchImageList() {
 }
 
 export function emitImageContent(name) {
-    return fetch('/api/content/set/main', {
+    return fetch(withBasePath('/api/content/set/main'), {
         method: 'POST',
         headers: {
             Authorization: getAuthHeader(),
@@ -39,7 +46,7 @@ export function emitImageContent(name) {
 }
 
 export function clearMainContent() {
-    return fetch('/api/content/set/main', {
+    return fetch(withBasePath('/api/content/set/main'), {
         method: 'POST',
         headers: {
             Authorization: getAuthHeader(),
@@ -50,5 +57,5 @@ export function clearMainContent() {
 }
 
 export function thumbUrl(name) {
-    return `/api/images/thumb?name=${encodeURIComponent(name)}`;
+    return withBasePath(`/api/images/thumb?name=${encodeURIComponent(name)}`);
 }

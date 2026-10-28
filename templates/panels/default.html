@@ -204,6 +204,11 @@ table {
         <div class="presentation stroke" id='liveblock'></div>
     </div>
     <script>
+        const isPrefixed = window.location.pathname.startsWith('/presenter');
+        const APP_BASE_PATH = isPrefixed ? '/presenter' : '';
+        function withBasePath(path) {
+            return APP_BASE_PATH + path;
+        }
         var lastCommandId = window.sessionStorage.getItem('lastCommandId') || undefined;
         var lastChronoId = undefined;
         var lastMainText = '';
@@ -250,7 +255,7 @@ table {
             if (data.type === 'IMAGE') {
                 metaBlock.innerHTML = '';
                 liveBlock.innerHTML = data.content
-                    ? `<img class="live-image" src="/api/images/content?name=${encodeURIComponent(data.content)}">`
+                    ? `<img class="live-image" src="${withBasePath('/api/images/content?name=' + encodeURIComponent(data.content))}">`
                     : '';
                 const bibleChapter = document.querySelector('.bible-chapter');
                 bibleChapter.textContent = '';
@@ -389,12 +394,11 @@ table {
                             .filter(provider => provider !== 'null')
                     ));
                     const providerIds = streams.map(stream => `providerId=${stream}`).join('&');
-                    const url = `{{APP_LOCATION}}/api/content?${providerIds}`;
-                    console.log('Fetching data from: ', url);
+                    const url = `/api/content?${providerIds}`;
                     // Fetch data from the API
                     // Note: Replace `{{APP_LOCATION}}` with the actual app location in your environment
                     // This is a placeholder, this will be replaced by the server-side template engine
-                    const res = await fetch(url);
+                    const res = await fetch(withBasePath(url));
                     if (!res.ok) {
                         throw new Error(`HTTP error! status: ${res.status}`);
                     }
