@@ -93,6 +93,32 @@ func TestAppAuthMiddleware(t *testing.T) {
 	})
 }
 
+func TestCORSMiddlewarePreflight(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	router := gin.New()
+	router.Use(CORSMiddleware)
+	router.POST("/api/content/set/:providerId", func(c *gin.Context) {
+		c.Status(http.StatusOK)
+	})
+
+	req := httptest.NewRequest(http.MethodOptions, "/api/content/set/main", nil)
+	req.Header.Set("Origin", "http://localhost:4200")
+	req.Header.Set("Access-Control-Request-Method", http.MethodPost)
+	req.Header.Set("Access-Control-Request-Headers", "authorization,content-type")
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusNoContent {
+		t.Fatalf("preflight status = %d, want %d", w.Code, http.StatusNoContent)
+	}
+	if got := w.Header().Get("Access-Control-Allow-Origin"); got != "*" {
+		t.Errorf("Access-Control-Allow-Origin = %q, want *", got)
+	}
+	if got := w.Header().Get("Access-Control-Allow-Headers"); got == "" {
+		t.Error("expected Access-Control-Allow-Headers to be set")
+	}
+}
+
 func TestAppCopyIncomingProviderToExistent(t *testing.T) {
 	withTempWorkDir(t)
 	app := newTestApp()
