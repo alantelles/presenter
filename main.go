@@ -1,15 +1,12 @@
 package main
 
 import (
-	"bytes"
-	"encoding/base64"
 	"fmt"
 	"log"
-	"net"
-	"os"
-	"presenter/bible"
 	"presenter/flags"
-	"strings"
+	"presenter/fsutil"
+	"presenter/providers"
+	"presenter/storage"
 
 	"github.com/gin-gonic/gin"
 )
@@ -33,11 +30,9 @@ const (
 	TypeBinary  = "BINARY"
 )
 
-type ProviderData struct {
-	Content   string `json:"content"`
-	Type      string `json:"type,omitempty"`
-	ContentID string `json:"contentId,omitempty"`
-}
+// ProviderData is an alias for providers.Data, kept under this name since
+// it's the JSON shape handlers/templates already speak.
+type ProviderData = providers.Data
 
 type Media struct {
 	Category string `json:"category"`
@@ -61,165 +56,58 @@ type returnBody struct {
 	ContentId  string  `json:"contentId,omitempty"`
 }
 
-var port = 8080 // TODO: receive this by running argument
-var location string
-var usePort = true
-var basicAuthUser string
-var basicAuthPass string
-
-func CORS(c *gin.Context) {
+func CORSMiddleware(c *gin.Context) {
 	c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
-	c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
 	c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With")
-	c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS, GET, PUT")
-}
-
-func getScheme(secure bool) string {
-	if secure {
-		return "https://"
-	}
-	return "http://"
-}
-
-func getPortSuffix() string {
-	if usePort {
-		return ":" + fmt.Sprint(port)
-	}
-	return ""
-}
-
-func setLocation() string {
-	address := getLocalIp()
-	scheme := getScheme(false) // TODO: receive this by running argument
-	return scheme + address + getPortSuffix()
-}
-
-func setBasicAuthCredentials() {
-	basicAuthUser = flags.GetUsername()
-	basicAuthPass = flags.GetPassword()
-}
-
-func varSetup() {
-	location = flags.GetLocation()
-	if location == "" {
-		location = setLocation()
-	}
-	setBasicAuthCredentials()
-}
-
-func getLocalIp() string {
-	conn, err := net.Dial("udp", "8.8.8.8:80")
-	if err != nil {
-		log.Print("Não foi possível obter o IP. Será utilizado localhost.")
-		log.Print(err)
-		return "localhost"
-	}
-	defer conn.Close()
-	full := conn.LocalAddr().String()
-
-	return full[:strings.Index(full, ":")]
-}
-
-func insertAddressOnContent(content []byte) []byte {
-	return bytes.Replace(
-		content,
-		[]byte(AppLocationToken),
-		[]byte(location),
-		-1,
-	)
-}
-
-func insertAuthTokenOnContent(content []byte) []byte {
-	return bytes.Replace(
-		content,
-		[]byte(AppAuthToken),
-		[]byte(getAuthAsB64()),
-		-1,
-	)
-}
-
-// exists returns whether the given file or directory exists
-func pathExists(path string) (bool, error) {
-	_, err := os.Stat(path)
-	if err == nil {
-		return true, nil
-	}
-	if os.IsNotExist(err) {
-		return false, nil
-	}
-	return false, err
-}
-
-func createFolder(path string) {
-	exists, _ := pathExists(path)
-	if exists {
-		return
-	}
-	err := os.MkdirAll(path, 0755)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	log.Printf("Diretório %s criado com sucesso", path)
-}
-
-func createDefaultFolders() {
-	createFolder("media/songs")
-}
-
-func getAuthAsB64() string {
-	return base64.StdEncoding.EncodeToString([]byte(basicAuthUser + ":" + basicAuthPass))
-}
-
-func AuthMiddleware(c *gin.Context) {
-	CORS(c)
-	user, pass, ok := c.Request.BasicAuth()
-	if !(user == basicAuthUser && pass == basicAuthPass && ok) {
-		c.Writer.Header().Set("WWW-Authenticate", "Basic realm=Restricted")
-		c.JSON(401, gin.H{"status": 401, "message": "Unauthorized"})
-		c.Abort()
+	c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS, GET, PUT, DELETE")
+	if c.Request.Method == "OPTIONS" {
+		c.AbortWithStatus(204)
 		return
 	}
 	c.Next()
 }
 
-func main() {
+func createFolder(path string) {
+	created, err := fsutil.CreateFolder(path)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	if created {
+		log.Printf("Diretório %s criado com sucesso", path)
+	}
+}
 
+func createDefaultFolders() {
+	createFolder(storage.BasePath() + "songs")
+	createFolder(storage.BasePath() + "images")
+	createFolder(storage.BasePath() + "images/thumbs")
+}
+
+func main() {
 	flags.ProcessFlags()
-	varSetup()
+	app := NewApp(NewConfig())
+	storage.SetBasePath(app.Config.MediaPath)
 	createDefaultFolders()
 	gin.SetMode(gin.ReleaseMode)
 	router := gin.New()
 	router.Use(
 		gin.LoggerWithWriter(gin.DefaultWriter, "/api/content"),
 		gin.Recovery(),
+		CORSMiddleware,
 	)
-	router.Static("/static", "./static")
-	router.POST("/api/content/set/:providerId", AuthMiddleware, setMediaProviderContent)
-	router.GET("/api/content", getMediaProviderContent)
-	router.POST("/api/media", AuthMiddleware, saveMedia)
-	router.PUT("/api/media/move", AuthMiddleware, moveMedia)
+	router.Static("/presenter-static", "./static")
 
-	router.GET("/api/songs", getAllSongs)
-	router.GET("/api/songs/content", getSongContent)
-	router.GET("/api/songs/folders", getSongsFolderList)
-	router.GET("/api/songs/folder", getAllSongsFromFolder)
-
-	router.GET("/controller", AuthMiddleware, viewController)
-	router.GET("/controller/:page", AuthMiddleware, viewController)
-	router.GET("/", viewHome)
-	router.GET("/live", viewPanel)
-
-	router.GET("/api/discover", discover)
-
-	router.GET("/api/lyrics/letras", getSongLyricsFromLetras)
-	router.GET("/api/lyrics/letras/song", getSongLyricFromLetrasByUrl)
-
-	router.GET("/api/bible/books", bible.GetBooksList)
-	router.GET("/api/bible/chapter/:version/:book/:chapter", bible.GetChapter)
+	registerMediaRoutes(router, app)
+	registerImageRoutes(router, app)
+	registerProviderRoutes(router, app)
+	registerViewRoutes(router, app)
+	registerMiscRoutes(router)
+	registerLyricsRoutes(router)
+	registerBibleRoutes(router)
 
 	log.Print("PRESENTER - Desenvolvido por Alan Telles")
 	log.Print("Iniciando serviço...")
-	log.Print("Endereço: " + location)
-	router.Run("0.0.0.0:" + fmt.Sprint(port))
+	log.Print("Endereço: " + app.Config.Location)
+	router.Run(fmt.Sprintf("0.0.0.0:%d", app.Config.Port))
 }

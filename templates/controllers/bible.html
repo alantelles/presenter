@@ -357,8 +357,13 @@
     </div>
   </div>
   <script>
+    const isPrefixed = window.location.pathname.startsWith('/presenter');
+    const APP_BASE_PATH = isPrefixed ? '/presenter' : '';
+    function withBasePath(path) {
+        return APP_BASE_PATH + path;
+    }
     async function fetchLivros() {
-      resp = await fetch('{{APP_LOCATION}}/api/bible/books');
+      resp = await fetch(withBasePath('/api/bible/books'));
       if (!resp.ok) {
         throw new Error('Erro ao buscar livros da Bíblia');
       }
@@ -371,7 +376,7 @@
     }
     async function fetchCapitulo(livro, numCapitulo) {
       // TODO: permitir selecionar versao
-      resp = await fetch(`{{APP_LOCATION}}/api/bible/chapter/acf/${livro}/${numCapitulo}`);
+      resp = await fetch(withBasePath(`/api/bible/chapter/acf/${livro}/${numCapitulo}`));
       if (!resp.ok) {
         const body = await resp.json();
         throw new Error(body.error || 'Erro ao buscar capítulo da Bíblia');
@@ -383,7 +388,7 @@
       }));
     }
     async function emitContent(chapter, content) {
-        return await fetch('{{APP_LOCATION}}/api/content/set/main', {
+        return await fetch(withBasePath('/api/content/set/main'), {
             method: 'POST',
             body: JSON.stringify({
                 content,

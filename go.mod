@@ -1,6 +1,8 @@
-module main
+module presenter
 
-go 1.23.4
+go 1.24.0
+
+toolchain go1.24.9
 
 require github.com/gin-gonic/gin v1.10.1
 
@@ -26,15 +28,28 @@ require (
 	github.com/ugorji/go/codec v1.2.12 // indirect
 	golang.org/x/arch v0.8.0 // indirect
 	golang.org/x/crypto v0.23.0 // indirect
+	golang.org/x/image v0.32.0 // indirect
 	golang.org/x/net v0.25.0 // indirect
 	golang.org/x/sys v0.20.0 // indirect
-	golang.org/x/text v0.15.0 // indirect
+	golang.org/x/text v0.30.0 // indirect
 	google.golang.org/protobuf v1.34.1 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	presenter/bible v0.0.0-00010101000000-000000000000
 	presenter/flags v0.0.0-00010101000000-000000000000
+	presenter/fsutil v0.0.0-00010101000000-000000000000
+	presenter/images v0.0.0-00010101000000-000000000000
+	presenter/providers v0.0.0-00010101000000-000000000000
+	presenter/storage v0.0.0-00010101000000-000000000000
 )
 
 replace presenter/bible => ./bible
 
 replace presenter/flags => ./flags
+
+replace presenter/fsutil => ./fsutil
+
+replace presenter/images => ./images
+
+replace presenter/providers => ./providers
+
+replace presenter/storage => ./storage

@@ -1,9 +1,12 @@
 package main
 
 import (
+	"errors"
 	"log"
 	"net/http"
 	"os"
+	"presenter/providers"
+	"presenter/storage"
 
 	"github.com/gin-gonic/gin"
 )
@@ -13,24 +16,27 @@ type mediaList struct {
 }
 
 func getSongsFolderList(c *gin.Context) {
-	CORS(c)
 	archivePath := c.Query("archive")
-	folders, _ := loadSongFolders(CategorySongs.Name, archivePath)
+	folders, _ := storage.ListFolders(storage.Songs.Name, archivePath)
 	response := mediaList{
 		MediaList: folders,
 	}
 	c.JSON(http.StatusOK, response)
 }
 
-func setMediaProviderContent(c *gin.Context) {
+func (a *App) setMediaProviderContent(c *gin.Context) {
 	providerId := c.Param("providerId")
 	var newContent ProviderData
 	if err := c.BindJSON(&newContent); err != nil {
 		return
 	}
-	err := CopyIncomingProviderToExistent(providerId, newContent)
+	err := a.CopyIncomingProviderToExistent(providerId, newContent)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		if errors.Is(err, providers.ErrNotFound) {
+			c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		}
 		return
 	}
 	response := returnBody{
@@ -40,16 +46,14 @@ func setMediaProviderContent(c *gin.Context) {
 		Type:       newContent.Type,
 		ContentId:  newContent.ContentID,
 	}
-	CORS(c)
 	c.JSON(http.StatusCreated, response)
 }
 
-func getMediaProviderContent(c *gin.Context) {
-	CORS(c)
+func (a *App) getMediaProviderContent(c *gin.Context) {
 	providerIds := c.QueryArray("providerId")
 	responseData := map[string]ProviderData{}
 	for _, providerId := range providerIds {
-		responseData[providerId] = providers[providerId]
+		responseData[providerId] = a.Providers.Get(providerId)
 	}
 	c.JSON(http.StatusOK, &responseData)
 }
@@ -59,32 +63,36 @@ func saveMedia(c *gin.Context) {
 	if err := c.BindJSON(&command); err != nil {
 		return
 	}
-	categoryP, _ := findCategoryByName(command.Category)
-	category := *categoryP
+	category, err := storage.FindCategoryByName(command.Category)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
 	title := command.Title + " - " + command.Author
-	saveTextFile(category, title, command.Content)
+	storage.SaveTextFile(*category, title, command.Content)
 	response := returnBody{
 		Status:  http.StatusCreated,
 		Message: "New media saved",
 	}
-	CORS(c)
 	c.JSON(http.StatusOK, response)
 }
 
 func moveMedia(c *gin.Context) {
-	CORS(c)
 	var command MoveMediaCommand
 	if err := c.BindJSON(&command); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	categoryP, _ := findCategoryByName(command.Category)
-	category := *categoryP
-	src := MediaPath + category.Path + "/" + command.MediaID
-	dest := MediaPath + category.Path + "/" + command.Destination
+	category, err := storage.FindCategoryByName(command.Category)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	src := storage.BasePath() + category.Path + "/" + command.MediaID
+	dest := storage.BasePath() + category.Path + "/" + command.Destination
 	createFolder(dest)
 	dest = dest + "/" + command.MediaID
-	err := os.Rename(src, dest)
+	err = os.Rename(src, dest)
 	if err != nil {
 		log.Print(err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -94,27 +102,24 @@ func moveMedia(c *gin.Context) {
 }
 
 func getAllSongs(c *gin.Context) {
-	songNames, _ := loadMediaList(CategorySongs.Name)
-	CORS(c)
+	songNames, _ := storage.List(storage.Songs.Name)
 	response := mediaList{MediaList: songNames}
 	c.JSON(http.StatusOK, response)
 }
 
 func getAllSongsFromFolder(c *gin.Context) {
-	songNames, _ := loadMediaListFromFolder(
-		CategorySongs.Name,
+	songNames, _ := storage.ListFromFolder(
+		storage.Songs.Name,
 		c.Query("archive"),
 		c.Query("folder"),
 	)
-	CORS(c)
 	response := mediaList{MediaList: songNames}
 	c.JSON(http.StatusOK, response)
 }
 
 func getSongContent(c *gin.Context) {
 	song := c.Query("song")
-	CORS(c)
-	c.Data(http.StatusOK, "text/plain; charset=UTF-8", loadSongFile(song))
+	c.Data(http.StatusOK, ContentTypeText, storage.LoadSongFile(song))
 }
 
 func discover(c *gin.Context) {
@@ -129,6 +134,5 @@ func discover(c *gin.Context) {
 		Message:    "Presenter up!",
 		Validation: vcr,
 	}
-	CORS(c)
 	c.JSON(http.StatusOK, response)
 }

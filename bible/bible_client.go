@@ -55,7 +55,7 @@ func FetchChapter(version, book string, chapter int) (string, int, error) {
 	}
 	resp, err := client.Do(req)
 	if err != nil {
-		return "Erro ao buscar o capítulo: " + err.Error(), resp.StatusCode, err
+		return "Erro ao buscar o capítulo: " + err.Error(), http.StatusInternalServerError, err
 	}
 	if resp.StatusCode == http.StatusNotFound {
 		return "Erro ao buscar o capítulo: Capítulo não encontrado. Verifique número ou se versão existe", resp.StatusCode, nil

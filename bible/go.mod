@@ -5,6 +5,7 @@ go 1.23.4
 require (
 	github.com/gin-gonic/gin v1.10.1
 	presenter/flags v0.0.0-00010101000000-000000000000
+	presenter/fsutil v0.0.0-00010101000000-000000000000
 )
 
 require (
@@ -37,3 +38,5 @@ require (
 )
 
 replace presenter/flags => ../flags
+
+replace presenter/fsutil => ../fsutil

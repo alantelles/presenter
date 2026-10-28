@@ -9,6 +9,7 @@ type FlagsSetup struct {
 	TokenBibliaDigital string
 	Username           string
 	Password           string
+	MediaPath          string
 }
 
 var FlagsUsed FlagsSetup
@@ -19,10 +20,12 @@ func ProcessFlags() {
 	// tokenBibliaDigitalTokenPtr := GetTokenBibliaDigitalTokenFlag()
 	usernamePtr := GetUsernameFlag()
 	passwordPtr := GetPasswordFlag()
+	mediaPathPtr := GetMediaPathFlag()
 	flag.Parse()
 	FlagsUsed.Username = *usernamePtr
 	FlagsUsed.Password = *passwordPtr
 	FlagsUsed.Location = *locationPtr
+	FlagsUsed.MediaPath = *mediaPathPtr
 	// TODO: remover
 	// FlagsUsed.TokenBibliaDigital = *tokenBibliaDigitalTokenPtr
 }
@@ -51,6 +54,12 @@ func GetPasswordFlag() *string {
 	return flag.String("senha", "admin", description)
 }
 
+func GetMediaPathFlag() *string {
+	description := "Caminho da pasta onde os arquivos de mídia (músicas, imagens) são armazenados. " +
+		"Pode ser relativo ao diretório de execução ou absoluto. Se não for informado, será usado \"media\""
+	return flag.String("pastaMedia", "media", description)
+}
+
 func GetLocation() string {
 	return FlagsUsed.Location
 }
@@ -65,4 +74,8 @@ func GetUsername() string {
 
 func GetPassword() string {
 	return FlagsUsed.Password
+}
+
+func GetMediaPath() string {
+	return FlagsUsed.MediaPath
 }
