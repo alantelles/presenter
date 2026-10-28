@@ -96,7 +96,7 @@ func main() {
 		gin.Recovery(),
 		CORSMiddleware,
 	)
-	router.Static("/static", "./static")
+	router.Static("/presenter-static", "./static")
 
 	registerMediaRoutes(router, app)
 	registerImageRoutes(router, app)
