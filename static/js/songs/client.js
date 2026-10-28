@@ -1,10 +1,17 @@
+const isPrefixed = window.location.pathname.startsWith('/presenter');
+const APP_BASE_PATH = isPrefixed ? '/presenter' : '';
+
 function getAuthHeader() {
     const token = document.getElementById('basic-auth-token').value;
     return `Basic ${token}`;
 }
 
+function withBasePath(path) {
+    return `${APP_BASE_PATH}${path}`;
+}
+
 function authorizedRequest(path, bodyObj, method = 'POST') {
-    return fetch(path, {
+    return fetch(withBasePath(path), {
         headers: {
             Authorization: getAuthHeader(),
             'Content-Type': 'application/json'
@@ -39,36 +46,36 @@ export function sendCommand({ contentId, content }) {
 }
 
 export async function fetchSongs() {
-    const res = await fetch('/api/songs');
+    const res = await fetch(withBasePath('/api/songs'));
     return res.json();
 }
 
 export async function fetchSongContent(song) {
     const params = new URLSearchParams({ song }).toString();
-    const res = await fetch(`/api/songs/content?${params}`);
+    const res = await fetch(withBasePath(`/api/songs/content?${params}`));
     return res.text();
 }
 
 export async function fetchSongFolders(archive) {
     const params = new URLSearchParams({ archive }).toString();
-    const res = await fetch(`/api/songs/folders?${params}`);
+    const res = await fetch(withBasePath(`/api/songs/folders?${params}`));
     return res.json();
 }
 
 export async function fetchSongsFromFolder(archive, folder) {
     const params = new URLSearchParams({ archive, folder }).toString();
-    const res = await fetch(`/api/songs/folder?${params}`);
+    const res = await fetch(withBasePath(`/api/songs/folder?${params}`));
     return res.json();
 }
 
 export async function fetchLyricsByUrl(url) {
     const params = new URLSearchParams({ url }).toString();
-    const res = await fetch(`/api/lyrics/letras/song?${params}`);
+    const res = await fetch(withBasePath(`/api/lyrics/letras/song?${params}`));
     return res.text();
 }
 
 export async function fetchLyricsByArtistAndSong(artista, musica) {
     const params = new URLSearchParams({ artista, musica }).toString();
-    const res = await fetch(`/api/lyrics/letras?${params}`);
+    const res = await fetch(withBasePath(`/api/lyrics/letras?${params}`));
     return res.text();
 }
