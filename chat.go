@@ -17,6 +17,7 @@ const (
 	chatProtocol     = "presenter-chat"
 	chatHistoryLimit = 100
 	chatMessageLimit = 500
+	chatNameLimit    = 40
 	chatClientQueue  = 128
 	chatWriteWait    = 10 * time.Second
 	chatPongWait     = 60 * time.Second
@@ -151,9 +152,21 @@ func (client *chatClient) readPump() {
 			break
 		}
 		var incoming struct {
-			Content string `json:"content"`
+			Type     string `json:"type"`
+			Username string `json:"username"`
+			Content  string `json:"content"`
 		}
 		if json.Unmarshal(payload, &incoming) != nil {
+			continue
+		}
+		if incoming.Type == "identify" {
+			username := strings.TrimSpace(incoming.Username)
+			if username != "" && utf8.RuneCountInString(username) <= chatNameLimit && !strings.ContainsAny(username, "\r\n") {
+				client.username = username
+			}
+			continue
+		}
+		if client.username == "" {
 			continue
 		}
 		content := strings.TrimSpace(incoming.Content)

@@ -1,8 +1,14 @@
 const CHAT_PROTOCOL = 'presenter-chat';
 const MAX_RENDERED_MESSAGES = 100;
+const CHAT_NAME_STORAGE_KEY = 'presenter.chat.username';
+const MAX_CHAT_NAME_LENGTH = 40;
 
 export function initializeChat() {
     const dialog = document.getElementById('chat-dialog');
+    const nameDialog = document.getElementById('chat-name-dialog');
+    const nameInput = document.getElementById('chat-name-input');
+    const nameForm = document.getElementById('chat-name-form');
+    const nameCancel = document.getElementById('chat-name-cancel');
     const trigger = document.getElementById('chat-trigger');
     const closeButton = document.getElementById('chat-close');
     const status = document.getElementById('chat-status');
@@ -14,6 +20,18 @@ export function initializeChat() {
     let unreadCount = 0;
     let reconnectDelay = 1000;
     let socket;
+    let username = '';
+
+    function isValidUsername(value) {
+        return value.length > 0 && [...value].length <= MAX_CHAT_NAME_LENGTH && !/[\r\n]/.test(value);
+    }
+
+    function showNameDialog() {
+        if (!nameDialog.open) {
+            nameDialog.showModal();
+            nameInput.focus();
+        }
+    }
 
     function setStatus(message, state) {
         status.textContent = message;
@@ -60,7 +78,8 @@ export function initializeChat() {
 
         socket.addEventListener('open', () => {
             reconnectDelay = 1000;
-            setStatus('Conectado', 'connected');
+            socket.send(JSON.stringify({ type: 'identify', username }));
+            setStatus(`Conectado como ${username}`, 'connected');
         });
         socket.addEventListener('message', event => {
             try {
@@ -83,6 +102,10 @@ export function initializeChat() {
     }
 
     trigger.addEventListener('click', () => {
+        if (!username) {
+            showNameDialog();
+            return;
+        }
         if (!dialog.open) {
             dialog.showModal();
             unreadCount = 0;
@@ -91,16 +114,38 @@ export function initializeChat() {
         }
     });
     closeButton.addEventListener('click', () => dialog.close());
+    nameCancel.addEventListener('click', () => nameDialog.close());
+    nameForm.addEventListener('submit', event => {
+        event.preventDefault();
+        const enteredName = nameInput.value.trim();
+        if (!isValidUsername(enteredName)) {
+            nameInput.setCustomValidity('Informe um nome com até 40 caracteres.');
+            nameInput.reportValidity();
+            return;
+        }
+        nameInput.setCustomValidity('');
+        username = enteredName;
+        localStorage.setItem(CHAT_NAME_STORAGE_KEY, username);
+        nameDialog.close();
+        connect();
+    });
     form.addEventListener('submit', event => {
         event.preventDefault();
         const content = input.value.trim();
-        if (!content || socket.readyState !== WebSocket.OPEN) {
+        if (!content || !socket || socket.readyState !== WebSocket.OPEN) {
             return;
         }
-        socket.send(JSON.stringify({ content }));
+        socket.send(JSON.stringify({ type: 'message', content }));
         input.value = '';
         input.focus();
     });
 
-    connect();
+    const savedName = localStorage.getItem(CHAT_NAME_STORAGE_KEY)?.trim() || '';
+    if (isValidUsername(savedName)) {
+        username = savedName;
+        connect();
+    } else {
+        localStorage.removeItem(CHAT_NAME_STORAGE_KEY);
+        showNameDialog();
+    }
 }

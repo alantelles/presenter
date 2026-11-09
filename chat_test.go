@@ -51,8 +51,13 @@ func TestChatWebSocketBroadcastsAndKeepsRecentHistory(t *testing.T) {
 		t.Fatalf("second websocket connection failed: %v", err)
 	}
 	defer second.Close()
+	for _, client := range []*websocket.Conn{first, second} {
+		if err := client.WriteJSON(map[string]string{"type": "identify", "username": "Equipe do culto"}); err != nil {
+			t.Fatalf("sending chat identity failed: %v", err)
+		}
+	}
 
-	if err := first.WriteJSON(map[string]string{"content": "Mensagem de teste"}); err != nil {
+	if err := first.WriteJSON(map[string]string{"type": "message", "content": "Mensagem de teste"}); err != nil {
 		t.Fatalf("sending chat message failed: %v", err)
 	}
 	for _, client := range []*websocket.Conn{first, second} {
@@ -61,7 +66,7 @@ func TestChatWebSocketBroadcastsAndKeepsRecentHistory(t *testing.T) {
 		if err := client.ReadJSON(&message); err != nil {
 			t.Fatalf("receiving chat message failed: %v", err)
 		}
-		if message.Username != "operator" || message.Content != "Mensagem de teste" || message.SentAt.IsZero() {
+		if message.Username != "Equipe do culto" || message.Content != "Mensagem de teste" || message.SentAt.IsZero() {
 			t.Errorf("unexpected chat message: %+v", message)
 		}
 	}
@@ -71,6 +76,9 @@ func TestChatWebSocketBroadcastsAndKeepsRecentHistory(t *testing.T) {
 		t.Fatalf("third websocket connection failed: %v", err)
 	}
 	defer third.Close()
+	if err := third.WriteJSON(map[string]string{"type": "identify", "username": "Terceiro operador"}); err != nil {
+		t.Fatalf("sending history reader identity failed: %v", err)
+	}
 	third.SetReadDeadline(time.Now().Add(2 * time.Second))
 	var historyMessage chatMessage
 	if err := third.ReadJSON(&historyMessage); err != nil {
