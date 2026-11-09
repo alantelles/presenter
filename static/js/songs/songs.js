@@ -15,6 +15,7 @@ import { CHAT_NAME_STORAGE_KEY, initializeChat, sendSongLoadCommand } from './ch
 
 const REMOVE_FROM_LIST_DESTINATION = 'musicas/_removidas';
 const CATEGORY_SONGS = 'songs';
+let songCatalog = [];
 
 function createElemPs(line) {
     return line.split('\n').map(line => {
@@ -288,6 +289,63 @@ async function loadSongListFromFolder() {
     fillSongListFromFolderTable(json.mediaList, folder, archive);
 }
 
+async function loadSongCatalog() {
+    const folders = (await fetchSongFolders('musicas')).mediaList
+        .filter(folder => !folder.startsWith('_'));
+    const songsByFolder = await Promise.all(folders.map(async folder => {
+        const json = await fetchSongsFromFolder('musicas', folder);
+        return json.mediaList.map(song => ({
+            name: song,
+            path: `musicas/${folder}/${song}`
+        }));
+    }));
+    songCatalog = songsByFolder.flat().sort((first, second) =>
+        first.name.localeCompare(second.name, 'pt-BR', { sensitivity: 'base' })
+    );
+}
+
+function normalizeSongSearch(value) {
+    return value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase('pt-BR');
+}
+
+function searchSongs() {
+    const query = normalizeSongSearch(document.getElementById('buscar-musicas').value.trim());
+    if (!query) {
+        loadSongListFromFolder();
+        return;
+    }
+    const matches = songCatalog.filter(song =>
+        normalizeSongSearch(song.name.replace(/\.txt$/i, '')).includes(query)
+    );
+    fillSongSearchResults(matches);
+}
+
+function fillSongSearchResults(songs) {
+    const tbody = document.getElementById('tabela-lista-musicas');
+    tbody.textContent = '';
+    if (songs.length === 0) {
+        const row = document.createElement('tr');
+        const cell = document.createElement('td');
+        cell.colSpan = 2;
+        cell.textContent = 'Nenhuma música encontrada';
+        row.appendChild(cell);
+        tbody.appendChild(row);
+        return;
+    }
+    songs.forEach(song => {
+        const row = document.createElement('tr');
+        const buttonCell = document.createElement('td');
+        buttonCell.classList.add('tg0-lax', 'autosize');
+        buttonCell.appendChild(createButtonLoadSongNode(song.path));
+        const nameCell = document.createElement('td');
+        nameCell.classList.add('tg0-lax');
+        nameCell.textContent = song.name;
+        row.append(buttonCell, nameCell);
+        tbody.appendChild(row);
+    });
+    addLoadSongFromFolderEventListener();
+}
+
 function fillSongListFromFolderTable(songs, folder, archive) {
     const tbody = document.getElementById('tabela-lista-musicas');
     tbody.textContent = '';
@@ -478,12 +536,16 @@ document.addEventListener('DOMContentLoaded', () => {
     // });
     document.getElementById('open-modal-procurar').addEventListener('click', async () => {
         await loadSongListFromFolder();
+        await loadSongCatalog();
+        document.getElementById('buscar-musicas').value = '';
         document.getElementById('folder-options').addEventListener('change', loadSongListFromFolder);
+        document.getElementById('buscar-musicas').addEventListener('input', searchSongs);
         document.getElementById('modal').classList.remove('hide');
         document.getElementById('buscar-musica').classList.remove('hide');
     });
     document.getElementById('close-modal-procurar').addEventListener('click', () => {
         document.getElementById('folder-options').removeEventListener('change', loadSongListFromFolder);
+        document.getElementById('buscar-musicas').removeEventListener('input', searchSongs);
         document.getElementById('modal').classList.add('hide');
         document.getElementById('buscar-musica').classList.add('hide');
     });

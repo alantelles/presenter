@@ -655,6 +655,31 @@
             font-size: 19px;
         }
 
+        .content-modal-form label[for="buscar-musicas"] {
+            display: block;
+            margin: 4px 0 6px;
+            font-size: 15px;
+        }
+
+        #buscar-musicas {
+            box-sizing: border-box;
+            width: calc(100% - 20px);
+            max-width: 560px;
+            height: 42px;
+            margin-bottom: 12px;
+            padding: 0 12px;
+            border: 1px solid #b8c5cb;
+            border-radius: 4px;
+            background: #fff;
+            color: #172326;
+            font-size: 16px;
+        }
+
+        #buscar-musicas:focus-visible {
+            outline: 2px solid #409cff;
+            outline-offset: 1px;
+        }
+
         .content-modal-form p {
             margin-bottom: 10px;
         }
@@ -940,6 +965,8 @@
                 <select class="select select-reduced" name="folder-options" id="folder-options">                    
                 </select>
                 <button class="button" id="carregar-lista-pasta">Listar músicas</button>
+                <label for="buscar-musicas">Buscar no acervo</label>
+                <input type="search" id="buscar-musicas" placeholder="Nome da música ou artista" autocomplete="off">
                 <div class="limited-height">
                     <table class="tg">
                         <thead>
