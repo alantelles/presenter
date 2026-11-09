@@ -2,6 +2,15 @@ const CHAT_PROTOCOL = 'presenter-chat';
 const MAX_RENDERED_MESSAGES = 100;
 export const CHAT_NAME_STORAGE_KEY = 'presenter.chat.username';
 const MAX_CHAT_NAME_LENGTH = 40;
+let activeSocket;
+
+export function sendSongLoadCommand(songName) {
+    if (!activeSocket || activeSocket.readyState !== WebSocket.OPEN) {
+        return false;
+    }
+    activeSocket.send(JSON.stringify({ type: 'command', action: 'loadSongByName', songName }));
+    return true;
+}
 
 export function initializeChat() {
     const dialog = document.getElementById('chat-dialog');
@@ -77,6 +86,7 @@ export function initializeChat() {
         endpoint.protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
         const encodedCredential = authToken.replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
         socket = new WebSocket(endpoint, [CHAT_PROTOCOL, `auth.${encodedCredential}`]);
+        activeSocket = socket;
 
         socket.addEventListener('open', () => {
             reconnectDelay = 1000;
@@ -89,6 +99,9 @@ export function initializeChat() {
                 renderMessage(message);
                 if (message.type === 'system' && message.action === 'refreshSongs' && !message.history) {
                     window.dispatchEvent(new CustomEvent('presenter:refresh-songs', { detail: message }));
+                }
+                if (message.type === 'system' && message.action === 'loadSongByName' && !message.history && validSongName(message.songName)) {
+                    window.dispatchEvent(new CustomEvent('presenter:load-song-by-name', { detail: message }));
                 }
                 if (!message.history && !dialog.open) {
                     unreadCount += 1;
@@ -105,6 +118,10 @@ export function initializeChat() {
             reconnectDelay = Math.min(reconnectDelay * 2, 30000);
         });
         socket.addEventListener('error', () => socket.close());
+    }
+
+    function validSongName(songName) {
+        return typeof songName === 'string' && songName.length > 0 && !/[\\/]/.test(songName) && songName.endsWith('.txt');
     }
 
     triggers.forEach(trigger => {

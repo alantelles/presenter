@@ -223,3 +223,59 @@ func TestRemovingSongBroadcastsSystemRefreshCommand(t *testing.T) {
 		t.Errorf("unexpected system message: %+v", message)
 	}
 }
+
+func TestChatLoadSongCommandBroadcastsOnlySongName(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	app := NewApp(Config{BasicAuthUser: "operator", BasicAuthPass: "secret"})
+	router := gin.New()
+	registerChatRoutes(router, app)
+	server := httptest.NewServer(router)
+	defer server.Close()
+	websocketURL := "ws" + strings.TrimPrefix(server.URL, "http") + "/api/chat"
+	credential := base64.RawURLEncoding.EncodeToString([]byte("operator:secret"))
+	dialer := websocket.Dialer{Subprotocols: []string{chatProtocol, "auth." + credential}}
+	clients := make([]*websocket.Conn, 0, 2)
+	for i := 0; i < 2; i++ {
+		client, _, err := dialer.Dial(websocketURL, nil)
+		if err != nil {
+			t.Fatalf("websocket connection failed: %v", err)
+		}
+		clients = append(clients, client)
+		t.Cleanup(func() { client.Close() })
+		if err := client.WriteJSON(map[string]string{"type": "identify", "username": "Ana"}); err != nil {
+			t.Fatalf("sending chat identity failed: %v", err)
+		}
+	}
+
+	if err := clients[0].WriteJSON(map[string]string{
+		"type":     "command",
+		"action":   "loadSongByName",
+		"songName": "Cancao Teste.txt",
+		"content":  "este conteúdo não deve ser transmitido",
+	}); err != nil {
+		t.Fatalf("sending load command failed: %v", err)
+	}
+	for _, client := range clients {
+		client.SetReadDeadline(time.Now().Add(2 * time.Second))
+		var message chatMessage
+		if err := client.ReadJSON(&message); err != nil {
+			t.Fatalf("receiving load command failed: %v", err)
+		}
+		if message.Type != "system" || message.Action != "loadSongByName" || message.SongName != "Cancao Teste.txt" || message.Username != "Sistema" || strings.Contains(message.Content, "este conteúdo") {
+			t.Errorf("unexpected load command: %+v", message)
+		}
+	}
+
+	if err := clients[0].WriteJSON(map[string]string{
+		"type":     "command",
+		"action":   "loadSongByName",
+		"songName": "../secret.txt",
+	}); err != nil {
+		t.Fatalf("sending invalid load command failed: %v", err)
+	}
+	clients[0].SetReadDeadline(time.Now().Add(100 * time.Millisecond))
+	var invalidMessage chatMessage
+	if err := clients[0].ReadJSON(&invalidMessage); err == nil {
+		t.Fatalf("received unexpected command for invalid song name: %+v", invalidMessage)
+	}
+}

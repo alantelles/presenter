@@ -4,6 +4,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"net/http"
+	"path/filepath"
 	"strings"
 	"sync"
 	"time"
@@ -27,6 +28,7 @@ const (
 type chatMessage struct {
 	Type     string    `json:"type"`
 	Action   string    `json:"action,omitempty"`
+	SongName string    `json:"songName,omitempty"`
 	Username string    `json:"username"`
 	Content  string    `json:"content"`
 	SentAt   time.Time `json:"sentAt"`
@@ -76,6 +78,22 @@ func (h *ChatHub) publishTextRemoved(username, title string) {
 		Content:  username + " removeu o texto " + title,
 		SentAt:   time.Now().UTC(),
 	})
+}
+
+func (h *chatHub) publishLoadSong(username, songName string) {
+	h.publish(chatMessage{
+		Type:     "system",
+		Action:   "loadSongByName",
+		SongName: songName,
+		Username: "Sistema",
+		Content:  username + " carregou o texto " + strings.TrimSuffix(songName, ".txt"),
+		SentAt:   time.Now().UTC(),
+	})
+}
+
+func validSongName(songName string) bool {
+	return songName != "" && songName == filepath.Base(songName) &&
+		!strings.ContainsAny(songName, `/\\`) && strings.HasSuffix(songName, ".txt")
 }
 
 func (a *App) authenticateChatRequest(r *http.Request) (string, bool) {
@@ -179,8 +197,10 @@ func (client *chatClient) readPump() {
 		}
 		var incoming struct {
 			Type     string `json:"type"`
+			Action   string `json:"action"`
 			Username string `json:"username"`
 			Content  string `json:"content"`
+			SongName string `json:"songName"`
 		}
 		if json.Unmarshal(payload, &incoming) != nil {
 			continue
@@ -189,6 +209,13 @@ func (client *chatClient) readPump() {
 			username := strings.TrimSpace(incoming.Username)
 			if validChatUsername(username) {
 				client.username = username
+			}
+			continue
+		}
+		if incoming.Type == "command" && incoming.Action == "loadSongByName" && client.username != "" {
+			songName := strings.TrimSpace(incoming.SongName)
+			if validSongName(songName) {
+				client.hub.publishLoadSong(client.username, songName)
 			}
 			continue
 		}

@@ -11,7 +11,7 @@ import {
     fetchLyricsByUrl,
     fetchLyricsByArtistAndSong,
 } from './client.js';
-import { CHAT_NAME_STORAGE_KEY, initializeChat } from './chat.js';
+import { CHAT_NAME_STORAGE_KEY, initializeChat, sendSongLoadCommand } from './chat.js';
 
 const REMOVE_FROM_LIST_DESTINATION = 'musicas/_removidas';
 const CATEGORY_SONGS = 'songs';
@@ -189,6 +189,25 @@ async function pasteToTextInput() {
 async function fillTextInput() {
     const fileName = document.getElementById('select-text-options').value;
     clearTextInput().value = await loadTextFromBackend(fileName);
+}
+function loadTextForAll() {
+    const fileName = document.getElementById('select-text-options').value;
+    if (!fileName) {
+        displayAlert('Selecione um texto para carregar.');
+        return;
+    }
+    if (!sendSongLoadCommand(fileName)) {
+        displayAlert('Chat desconectado. Não foi possível carregar para todos.');
+    }
+}
+async function loadNamedTextIntoController(event) {
+    const songName = event.detail.songName;
+    try {
+        document.getElementById('text-to-show').value = await loadTextFromBackend(songName);
+        displayAlert(`${event.detail.username} carregou ${songName}`);
+    } catch (error) {
+        displayAlert(`Não foi possível carregar ${songName}.`);
+    }
 }
 async function loadAndCreateBlocks() {
     const fileName = document.getElementById('select-text-options').value;
@@ -411,6 +430,7 @@ function displayAlert(conteudo) {
 document.addEventListener('DOMContentLoaded', () => {
     initializeChat();
     window.addEventListener('presenter:refresh-songs', () => getSongList());
+    window.addEventListener('presenter:load-song-by-name', loadNamedTextIntoController);
     window.addEventListener('presenter:new-chat-message', event => {
         displayAlert(`Nova mensagem de ${event.detail.username}`);
     });
@@ -445,6 +465,7 @@ document.addEventListener('DOMContentLoaded', () => {
         setAuxTextToBackend('');
     });
     document.getElementById('carregar-texto').addEventListener('click', fillTextInput);
+    document.getElementById('carregar-texto-para-todos').addEventListener('click', loadTextForAll);
     document.getElementById('carregar-blocos').addEventListener('click', loadAndCreateBlocks);
     document.getElementById('remover-texto').addEventListener('click', removeFromList);
     // document.getElementById('open-modal-letras').addEventListener('click', () => {
