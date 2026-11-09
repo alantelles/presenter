@@ -54,6 +54,18 @@ export function initializeChat() {
         });
     }
 
+    function scrollToLatestMessage() {
+        window.requestAnimationFrame(() => {
+            messages.scrollTop = messages.scrollHeight;
+        });
+    }
+
+    function focusMessageInputOnDesktop() {
+        if (!window.matchMedia('(max-width: 1000px)').matches) {
+            input.focus();
+        }
+    }
+
     function renderMessage(message) {
         const item = document.createElement('li');
         item.className = 'chat-message';
@@ -132,9 +144,10 @@ export function initializeChat() {
             }
             if (!dialog.open) {
                 dialog.showModal();
+                scrollToLatestMessage();
                 unreadCount = 0;
                 updateUnread();
-                input.focus();
+                focusMessageInputOnDesktop();
             }
         });
     });
@@ -162,7 +175,7 @@ export function initializeChat() {
         }
         socket.send(JSON.stringify({ type: 'message', content }));
         input.value = '';
-        input.focus();
+        focusMessageInputOnDesktop();
     });
 
     const savedName = localStorage.getItem(CHAT_NAME_STORAGE_KEY)?.trim() || '';
