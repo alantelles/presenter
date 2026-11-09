@@ -25,6 +25,8 @@ const (
 )
 
 type chatMessage struct {
+	Type     string    `json:"type"`
+	Action   string    `json:"action,omitempty"`
 	Username string    `json:"username"`
 	Content  string    `json:"content"`
 	SentAt   time.Time `json:"sentAt"`
@@ -50,6 +52,20 @@ type chatClient struct {
 
 func NewChatHub() *ChatHub {
 	return &ChatHub{hub: chatHub{clients: make(map[*chatClient]struct{})}}
+}
+
+func validChatUsername(username string) bool {
+	return username != "" && utf8.RuneCountInString(username) <= chatNameLimit && !strings.ContainsAny(username, "\r\n")
+}
+
+func (h *ChatHub) publishTextAdded(username, title string) {
+	h.hub.publish(chatMessage{
+		Type:     "system",
+		Action:   "refreshSongs",
+		Username: "Sistema",
+		Content:  username + " adicionou o texto " + title,
+		SentAt:   time.Now().UTC(),
+	})
 }
 
 func (a *App) authenticateChatRequest(r *http.Request) (string, bool) {
@@ -161,12 +177,12 @@ func (client *chatClient) readPump() {
 		}
 		if incoming.Type == "identify" {
 			username := strings.TrimSpace(incoming.Username)
-			if username != "" && utf8.RuneCountInString(username) <= chatNameLimit && !strings.ContainsAny(username, "\r\n") {
+			if validChatUsername(username) {
 				client.username = username
 			}
 			continue
 		}
-		if client.username == "" {
+		if incoming.Type != "message" || client.username == "" {
 			continue
 		}
 		content := strings.TrimSpace(incoming.Content)
@@ -174,6 +190,7 @@ func (client *chatClient) readPump() {
 			continue
 		}
 		client.hub.publish(chatMessage{
+			Type:     "chat",
 			Username: client.username,
 			Content:  content,
 			SentAt:   time.Now().UTC(),

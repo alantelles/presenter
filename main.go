@@ -39,6 +39,7 @@ type Media struct {
 	Content  string `json:"content"`
 	Title    string `json:"title"`
 	Author   string `json:"author"`
+	Username string `json:"username,omitempty"`
 }
 
 type MoveMediaCommand struct {

@@ -11,7 +11,7 @@ import (
 func registerMediaRoutes(router *gin.Engine, app *App) {
 	router.POST("/api/content/set/:providerId", app.AuthMiddleware, app.setMediaProviderContent)
 	router.GET("/api/content", app.getMediaProviderContent)
-	router.POST("/api/media", app.AuthMiddleware, saveMedia)
+	router.POST("/api/media", app.AuthMiddleware, app.saveMedia)
 	router.PUT("/api/media/move", app.AuthMiddleware, moveMedia)
 
 	router.GET("/api/songs", getAllSongs)

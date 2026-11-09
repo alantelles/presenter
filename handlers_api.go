@@ -7,6 +7,7 @@ import (
 	"os"
 	"presenter/providers"
 	"presenter/storage"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -58,7 +59,7 @@ func (a *App) getMediaProviderContent(c *gin.Context) {
 	c.JSON(http.StatusOK, &responseData)
 }
 
-func saveMedia(c *gin.Context) {
+func (a *App) saveMedia(c *gin.Context) {
 	var command Media
 	if err := c.BindJSON(&command); err != nil {
 		return
@@ -69,7 +70,14 @@ func saveMedia(c *gin.Context) {
 		return
 	}
 	title := command.Title + " - " + command.Author
-	storage.SaveTextFile(*category, title, command.Content)
+	if err := storage.SaveTextFile(*category, title, command.Content); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	username := strings.TrimSpace(command.Username)
+	if category.Name == storage.Songs.Name && validChatUsername(username) {
+		a.Chat.publishTextAdded(username, title)
+	}
 	response := returnBody{
 		Status:  http.StatusCreated,
 		Message: "New media saved",

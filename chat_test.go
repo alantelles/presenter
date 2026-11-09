@@ -1,9 +1,13 @@
 package main
 
 import (
+	"bytes"
 	"encoding/base64"
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
@@ -86,5 +90,72 @@ func TestChatWebSocketBroadcastsAndKeepsRecentHistory(t *testing.T) {
 	}
 	if historyMessage.Content != "Mensagem de teste" || !historyMessage.History {
 		t.Errorf("history message = %+v, want marked historical message", historyMessage)
+	}
+}
+
+func TestSavingSongBroadcastsSystemRefreshCommand(t *testing.T) {
+	withTempWorkDir(t)
+	if err := os.MkdirAll(filepath.Join("media", "songs"), 0755); err != nil {
+		t.Fatalf("creating songs directory failed: %v", err)
+	}
+	gin.SetMode(gin.TestMode)
+	app := NewApp(Config{BasicAuthUser: "operator", BasicAuthPass: "secret"})
+	router := gin.New()
+	registerChatRoutes(router, app)
+	registerMediaRoutes(router, app)
+	server := httptest.NewServer(router)
+	defer server.Close()
+	websocketURL := "ws" + strings.TrimPrefix(server.URL, "http") + "/api/chat"
+	credential := base64.RawURLEncoding.EncodeToString([]byte("operator:secret"))
+	dialer := websocket.Dialer{Subprotocols: []string{chatProtocol, "auth." + credential}}
+	clients := make([]*websocket.Conn, 0, 2)
+	for _, username := range []string{"Ana", "Bruno"} {
+		client, _, err := dialer.Dial(websocketURL, nil)
+		if err != nil {
+			t.Fatalf("websocket connection failed: %v", err)
+		}
+		clients = append(clients, client)
+		t.Cleanup(func() { client.Close() })
+		if err := client.WriteJSON(map[string]string{"type": "identify", "username": username}); err != nil {
+			t.Fatalf("sending chat identity failed: %v", err)
+		}
+	}
+
+	payload, err := json.Marshal(Media{
+		Category: "songs",
+		Title:    "Canção Nova",
+		Author:   "Equipe",
+		Content:  "Letra salva",
+		Username: "Ana",
+	})
+	if err != nil {
+		t.Fatalf("encoding media payload failed: %v", err)
+	}
+	request, err := http.NewRequest(http.MethodPost, server.URL+"/api/media", bytes.NewReader(payload))
+	if err != nil {
+		t.Fatalf("creating media request failed: %v", err)
+	}
+	request.SetBasicAuth("operator", "secret")
+	response, err := http.DefaultClient.Do(request)
+	if err != nil {
+		t.Fatalf("saving media failed: %v", err)
+	}
+	response.Body.Close()
+	if response.StatusCode != http.StatusOK {
+		t.Fatalf("save status = %d, want %d", response.StatusCode, http.StatusOK)
+	}
+	if _, err := os.Stat(filepath.Join("media", "songs", "Canção Nova - Equipe.txt")); err != nil {
+		t.Fatalf("saved song was not found: %v", err)
+	}
+
+	for _, client := range clients {
+		client.SetReadDeadline(time.Now().Add(2 * time.Second))
+		var message chatMessage
+		if err := client.ReadJSON(&message); err != nil {
+			t.Fatalf("receiving refresh command failed: %v", err)
+		}
+		if message.Type != "system" || message.Action != "refreshSongs" || message.Username != "Sistema" || message.Content != "Ana adicionou o texto Canção Nova - Equipe" {
+			t.Errorf("unexpected system message: %+v", message)
+		}
 	}
 }

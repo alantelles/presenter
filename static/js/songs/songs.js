@@ -11,7 +11,7 @@ import {
     fetchLyricsByUrl,
     fetchLyricsByArtistAndSong,
 } from './client.js';
-import { initializeChat } from './chat.js';
+import { CHAT_NAME_STORAGE_KEY, initializeChat } from './chat.js';
 
 const REMOVE_FROM_LIST_DESTINATION = 'musicas/_removidas';
 const CATEGORY_SONGS = 'songs';
@@ -144,7 +144,8 @@ function getSongToSavePayload(content) {
     const title = titleParts[0]
     const author = titleParts.length == 2 ? titleParts[1] : "Artista desconhecido"
     const category = "songs"
-    return { title, author, category, content }
+    const username = window.localStorage.getItem(CHAT_NAME_STORAGE_KEY) || '';
+    return { title, author, category, content, username }
 }
 
 function setAuxTextToBackend(content) {
@@ -153,7 +154,11 @@ function setAuxTextToBackend(content) {
 
 async function saveProcessedTextToBackend(content) {
     const payload = getSongToSavePayload(content);
-    await saveMedia(payload);
+    const response = await saveMedia(payload);
+    if (!response.ok) {
+        displayAlert('Não foi possível salvar o texto.');
+        return;
+    }
     getSongList();
     displayAlert('Texto salvo com sucesso!');
 }
@@ -399,6 +404,7 @@ function displayAlert(conteudo) {
 }
 document.addEventListener('DOMContentLoaded', () => {
     initializeChat();
+    window.addEventListener('presenter:refresh-songs', () => getSongList());
     addGoLiveEventListener();
     document.getElementById('process-text').addEventListener('click', (event) => {
         createBlocks(event);

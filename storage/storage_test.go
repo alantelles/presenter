@@ -108,6 +108,13 @@ func TestSaveTextFileAndList(t *testing.T) {
 	}
 }
 
+func TestSaveTextFileReturnsWriteError(t *testing.T) {
+	withTempCwd(t)
+	if err := SaveTextFile(Songs, "Minha Musica", "conteudo"); err == nil {
+		t.Fatal("SaveTextFile() error = nil, want error when songs directory is missing")
+	}
+}
+
 func TestListFromFolderAndListFolders(t *testing.T) {
 	dir := withTempCwd(t)
 
