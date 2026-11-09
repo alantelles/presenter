@@ -100,12 +100,33 @@ async function sendBlockToLive() {
     removeBlockSelectedClass();
     clicked.classList.remove('bloco-waiting');
     clicked.classList.add('bloco-selected');
+    clicked.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
 function removeBlockSelectedClass() {
     document.querySelectorAll('.bloco-selected').forEach(elemQuery => {
         const elem = document.getElementById(elemQuery.id).classList.remove('bloco-selected');
     });
+}
+
+function navigateSelectedBlock(event) {
+    if (event.key !== 'ArrowUp' && event.key !== 'ArrowDown') {
+        return;
+    }
+    if (event.target.matches('input, textarea, select, [contenteditable="true"]')) {
+        return;
+    }
+
+    const blocks = Array.from(document.querySelectorAll('.bloco-verse'));
+    const selectedBlock = document.querySelector('.bloco-verse.bloco-selected');
+    const selectedIndex = blocks.indexOf(selectedBlock);
+    const nextIndex = selectedIndex + (event.key === 'ArrowUp' ? -1 : 1);
+    if (selectedIndex < 0 || nextIndex < 0 || nextIndex >= blocks.length) {
+        return;
+    }
+
+    event.preventDefault();
+    blocks[nextIndex].click();
 }
 
 function triggerTimer(horas, minutos) {
@@ -487,6 +508,7 @@ function displayAlert(conteudo) {
 }
 document.addEventListener('DOMContentLoaded', () => {
     initializeChat();
+    document.addEventListener('keydown', navigateSelectedBlock);
     window.addEventListener('presenter:refresh-songs', () => getSongList());
     window.addEventListener('presenter:load-song-by-name', loadNamedTextIntoController);
     window.addEventListener('presenter:new-chat-message', event => {
