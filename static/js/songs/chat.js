@@ -9,13 +9,13 @@ export function initializeChat() {
     const nameInput = document.getElementById('chat-name-input');
     const nameForm = document.getElementById('chat-name-form');
     const nameCancel = document.getElementById('chat-name-cancel');
-    const trigger = document.getElementById('chat-trigger');
+    const triggers = document.querySelectorAll('.chat-trigger');
     const closeButton = document.getElementById('chat-close');
     const status = document.getElementById('chat-status');
     const messages = document.getElementById('chat-messages');
     const form = document.getElementById('chat-form');
     const input = document.getElementById('chat-input');
-    const unreadBadge = document.getElementById('chat-unread');
+    const unreadBadges = document.querySelectorAll('.chat-unread');
     const authToken = document.getElementById('basic-auth-token').value;
     let unreadCount = 0;
     let reconnectDelay = 1000;
@@ -39,8 +39,10 @@ export function initializeChat() {
     }
 
     function updateUnread() {
-        unreadBadge.textContent = unreadCount > 99 ? '99+' : String(unreadCount);
-        unreadBadge.hidden = unreadCount === 0;
+        unreadBadges.forEach(badge => {
+            badge.textContent = unreadCount > 99 ? '99+' : String(unreadCount);
+            badge.hidden = unreadCount === 0;
+        });
     }
 
     function renderMessage(message) {
@@ -105,17 +107,19 @@ export function initializeChat() {
         socket.addEventListener('error', () => socket.close());
     }
 
-    trigger.addEventListener('click', () => {
-        if (!username) {
-            showNameDialog();
-            return;
-        }
-        if (!dialog.open) {
-            dialog.showModal();
-            unreadCount = 0;
-            updateUnread();
-            input.focus();
-        }
+    triggers.forEach(trigger => {
+        trigger.addEventListener('click', () => {
+            if (!username) {
+                showNameDialog();
+                return;
+            }
+            if (!dialog.open) {
+                dialog.showModal();
+                unreadCount = 0;
+                updateUnread();
+                input.focus();
+            }
+        });
     });
     closeButton.addEventListener('click', () => dialog.close());
     nameCancel.addEventListener('click', () => nameDialog.close());

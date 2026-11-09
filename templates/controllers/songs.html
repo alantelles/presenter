@@ -710,6 +710,24 @@
             box-shadow: 4px 4px 6px 2px rgb(196, 196, 196);
             margin-bottom: 8px;
         }
+        .toggle-controller .chat-trigger {
+            display: grid;
+            flex: 0 0 70px;
+            width: 70px;
+            height: 70px;
+            padding: 0;
+            background-color: #409cff;
+            border: none;
+            border-radius: 35px;
+            box-shadow: 4px 4px 6px 2px rgb(196, 196, 196);
+        }
+        .toggle-controller .chat-trigger:hover,
+        .toggle-controller .chat-trigger:focus-visible {
+            background-color: #287fd4;
+        }
+        .toggle-controller .chat-unread {
+            border-color: #409cff;
+        }
         .toggle-off {
             background-color: #9ABAD9 !important;
         }
@@ -753,6 +771,9 @@
             .toggle-controller {
                 display: flex;
                 flex-direction: column;
+            }
+            .title .chat-trigger {
+                display: none;
             }
             .functions-triggers button, .functions button {
                 font-size: 24px;
@@ -881,6 +902,13 @@
     <div id="toggle-controller-container" class="toggle-controller">
         <button id="toggle-controller-button">&#x274F;</button>
         <button id="toggle-controller-button-clear">&#x2613;</button>
+        <button type="button" class="chat-trigger" aria-label="Abrir chat" aria-haspopup="dialog" aria-controls="chat-dialog" title="Abrir chat">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"></path>
+                <path d="M10 21h4"></path>
+            </svg>
+            <span class="chat-unread" aria-live="polite" hidden>0</span>
+        </button>
     </div>
     <input type="hidden" name="basic-auth-token" id="basic-auth-token" value="{{BASIC_AUTH_TOKEN}}">
     <div id="modal" class="hide">
