@@ -11,6 +11,7 @@ import {
     fetchLyricsByUrl,
     fetchLyricsByArtistAndSong,
 } from './client.js';
+import { initializeChat } from './chat.js';
 
 const REMOVE_FROM_LIST_DESTINATION = 'musicas/_removidas';
 const CATEGORY_SONGS = 'songs';
@@ -397,6 +398,7 @@ function displayAlert(conteudo) {
     }, 4000);
 }
 document.addEventListener('DOMContentLoaded', () => {
+    initializeChat();
     addGoLiveEventListener();
     document.getElementById('process-text').addEventListener('click', (event) => {
         createBlocks(event);

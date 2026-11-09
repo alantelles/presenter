@@ -101,6 +101,7 @@ func main() {
 	registerMediaRoutes(router, app)
 	registerImageRoutes(router, app)
 	registerProviderRoutes(router, app)
+	registerChatRoutes(router, app)
 	registerViewRoutes(router, app)
 	registerMiscRoutes(router)
 	registerLyricsRoutes(router)

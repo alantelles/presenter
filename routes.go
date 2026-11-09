@@ -39,6 +39,10 @@ func registerProviderRoutes(router *gin.Engine, app *App) {
 	router.DELETE("/api/providers", app.AuthMiddleware, app.deleteAllProviders)
 }
 
+func registerChatRoutes(router *gin.Engine, app *App) {
+	router.GET("/api/chat", app.chatWebSocket)
+}
+
 // registerViewRoutes wires up the HTML pages: controller UIs, the home page
 // and the live presentation panel.
 func registerViewRoutes(router *gin.Engine, app *App) {

@@ -187,11 +187,234 @@
         }
 
         .title {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
             background-color: brown;
             color: white;
             padding: 10px;
             width: calc(100% - 20px);
             border-bottom: solid 2px rgb(255, 255, 255);
+        }
+
+        .chat-trigger {
+            position: relative;
+            display: grid;
+            place-items: center;
+            flex: 0 0 42px;
+            width: 42px;
+            height: 42px;
+            padding: 0;
+            border: 1px solid rgba(255, 255, 255, 0.55);
+            border-radius: 4px;
+            background: transparent;
+            color: white;
+        }
+
+        .chat-trigger:hover,
+        .chat-trigger:focus-visible {
+            background: rgba(255, 255, 255, 0.16);
+        }
+
+        .chat-trigger svg {
+            width: 22px;
+            height: 22px;
+        }
+
+        .chat-unread {
+            position: absolute;
+            top: -6px;
+            right: -6px;
+            display: grid;
+            place-items: center;
+            min-width: 18px;
+            height: 18px;
+            padding: 0 3px;
+            border: 2px solid brown;
+            border-radius: 12px;
+            background: #d9382b;
+            color: white;
+            font-size: 11px;
+            font-weight: bold;
+        }
+
+        .chat-unread[hidden] {
+            display: none;
+        }
+
+        .chat-dialog {
+            box-sizing: border-box;
+            width: min(440px, calc(100vw - 24px));
+            height: min(620px, calc(100dvh - 24px));
+            max-width: none;
+            max-height: none;
+            padding: 0;
+            border: 1px solid #9ab0b1;
+            border-radius: 8px;
+            background: #fff;
+            color: #172326;
+            box-shadow: 0 18px 55px rgba(0, 0, 0, 0.28);
+        }
+
+        .chat-dialog[open] {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat-dialog::backdrop {
+            background: rgba(9, 20, 22, 0.58);
+        }
+
+        .chat-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 14px 16px;
+            border-bottom: 1px solid #d7e0df;
+            background: #f5f8f6;
+        }
+
+        .chat-header h2 {
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .chat-status {
+            margin-top: 5px;
+            color: #687678;
+            font-size: 12px;
+        }
+
+        .chat-status::before {
+            display: inline-block;
+            width: 7px;
+            height: 7px;
+            margin-right: 6px;
+            border-radius: 50%;
+            background: #d49a33;
+            content: '';
+        }
+
+        .chat-status[data-state="connected"]::before {
+            background: #21865b;
+        }
+
+        .chat-status[data-state="disconnected"]::before {
+            background: #bd443b;
+        }
+
+        .chat-close {
+            display: grid;
+            place-items: center;
+            flex: 0 0 34px;
+            width: 34px;
+            height: 34px;
+            border: 0;
+            border-radius: 4px;
+            background: transparent;
+            color: #39494b;
+            font-size: 24px;
+        }
+
+        .chat-close:hover,
+        .chat-close:focus-visible {
+            background: #e4ebea;
+        }
+
+        .chat-messages {
+            flex: 1;
+            min-height: 0;
+            overflow-y: auto;
+            padding: 10px 12px;
+            background: #edf2f0;
+        }
+
+        .chat-message {
+            margin-bottom: 8px;
+            padding: 9px 11px;
+            border: 1px solid #d8e1de;
+            border-radius: 5px;
+            background: white;
+        }
+
+        .chat-message-meta {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 5px;
+            color: #526365;
+            font-size: 12px;
+        }
+
+        .chat-message-meta strong {
+            color: #245c51;
+            font-weight: bold;
+            overflow-wrap: anywhere;
+        }
+
+        .chat-message-meta time {
+            flex: 0 0 auto;
+        }
+
+        .chat-message-content {
+            overflow-wrap: anywhere;
+            white-space: pre-wrap;
+            line-height: 1.4;
+        }
+
+        .chat-form {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px;
+            border-top: 1px solid #d7e0df;
+            background: white;
+        }
+
+        .chat-form input {
+            box-sizing: border-box;
+            flex: 1;
+            min-width: 0;
+            height: 40px;
+            padding: 0 10px;
+            border: 1px solid #aebdbc;
+            border-radius: 4px;
+            color: #172326;
+            font-size: 15px;
+        }
+
+        .chat-form input:focus-visible {
+            outline: 2px solid #287861;
+            outline-offset: 1px;
+        }
+
+        .chat-send {
+            height: 40px;
+            padding: 0 14px;
+            border: 0;
+            border-radius: 4px;
+            background: #245f52;
+            color: white;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .chat-send:hover,
+        .chat-send:focus-visible {
+            background: #174b40;
+        }
+
+        .visually-hidden {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
         }
 
         .input-text {
@@ -570,6 +793,21 @@
             <p id="alert-text"></p>
         </div>
     </div>
+    <dialog id="chat-dialog" class="chat-dialog" aria-labelledby="chat-title">
+        <div class="chat-header">
+            <div>
+                <h2 id="chat-title">Chat da equipe</h2>
+                <p id="chat-status" class="chat-status" data-state="connecting" role="status">Conectando...</p>
+            </div>
+            <button type="button" id="chat-close" class="chat-close" aria-label="Fechar chat">&times;</button>
+        </div>
+        <ol id="chat-messages" class="chat-messages" role="log" aria-live="polite" aria-relevant="additions"></ol>
+        <form id="chat-form" class="chat-form">
+            <label for="chat-input" class="visually-hidden">Mensagem</label>
+            <input id="chat-input" name="message" type="text" maxlength="500" autocomplete="off" placeholder="Escreva uma mensagem..." required>
+            <button type="submit" class="chat-send">Enviar</button>
+        </form>
+    </dialog>
     <div id="toggle-controller-container" class="toggle-controller">
         <button id="toggle-controller-button">&#x274F;</button>
         <button id="toggle-controller-button-clear">&#x2613;</button>
@@ -627,6 +865,13 @@
         <div id="controller-panel" class="fixed">
             <div class="title">
                 <h1>Presenter - Músicas e texto</h1>
+                <button type="button" id="chat-trigger" class="chat-trigger" aria-label="Abrir chat" aria-haspopup="dialog" aria-controls="chat-dialog" title="Abrir chat">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"></path>
+                        <path d="M10 21h4"></path>
+                    </svg>
+                    <span id="chat-unread" class="chat-unread" aria-live="polite" hidden>0</span>
+                </button>
             </div>            
             <div class="functions-buttons">
                 <div class="functions-buttons-group">
