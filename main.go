@@ -46,6 +46,7 @@ type MoveMediaCommand struct {
 	MediaID     string `json:"mediaId" binding:"required"`
 	Destination string `json:"destination" binding:"required"`
 	Category    string `json:"category" binding:"required"`
+	Username    string `json:"username,omitempty"`
 }
 
 type returnBody struct {

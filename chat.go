@@ -68,6 +68,16 @@ func (h *ChatHub) publishTextAdded(username, title string) {
 	})
 }
 
+func (h *ChatHub) publishTextRemoved(username, title string) {
+	h.hub.publish(chatMessage{
+		Type:     "system",
+		Action:   "refreshSongs",
+		Username: "Sistema",
+		Content:  username + " removeu o texto " + title,
+		SentAt:   time.Now().UTC(),
+	})
+}
+
 func (a *App) authenticateChatRequest(r *http.Request) (string, bool) {
 	if username, password, ok := r.BasicAuth(); ok && a.validChatCredentials(username, password) {
 		return username, true

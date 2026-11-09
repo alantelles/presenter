@@ -85,7 +85,7 @@ func (a *App) saveMedia(c *gin.Context) {
 	c.JSON(http.StatusOK, response)
 }
 
-func moveMedia(c *gin.Context) {
+func (a *App) moveMedia(c *gin.Context) {
 	var command MoveMediaCommand
 	if err := c.BindJSON(&command); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -105,6 +105,10 @@ func moveMedia(c *gin.Context) {
 		log.Print(err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
+	}
+	username := strings.TrimSpace(command.Username)
+	if category.Name == storage.Songs.Name && command.Destination == "musicas/_removidas" && validChatUsername(username) {
+		a.Chat.publishTextRemoved(username, strings.TrimSuffix(command.MediaID, ".txt"))
 	}
 	c.JSON(http.StatusOK, gin.H{"success": true})
 }

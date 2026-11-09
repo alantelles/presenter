@@ -382,9 +382,14 @@ async function removeFromList() {
     const body = {
         mediaId,
         category: CATEGORY_SONGS,
-        destination: REMOVE_FROM_LIST_DESTINATION
+        destination: REMOVE_FROM_LIST_DESTINATION,
+        username: window.localStorage.getItem(CHAT_NAME_STORAGE_KEY) || ''
     };
-    await moveMedia(body);
+    const response = await moveMedia(body);
+    if (!response.ok) {
+        displayAlert('Não foi possível remover o texto da lista.');
+        return;
+    }
     getSongList();
     getSongFolders();
     displayAlert('Texto removido da lista com sucesso');

@@ -159,3 +159,67 @@ func TestSavingSongBroadcastsSystemRefreshCommand(t *testing.T) {
 		}
 	}
 }
+
+func TestRemovingSongBroadcastsSystemRefreshCommand(t *testing.T) {
+	withTempWorkDir(t)
+	songPath := filepath.Join("media", "songs", "Cancao Teste.txt")
+	if err := os.MkdirAll(filepath.Dir(songPath), 0755); err != nil {
+		t.Fatalf("creating songs directory failed: %v", err)
+	}
+	if err := os.WriteFile(songPath, []byte("letra"), 0644); err != nil {
+		t.Fatalf("creating song file failed: %v", err)
+	}
+	gin.SetMode(gin.TestMode)
+	app := NewApp(Config{BasicAuthUser: "operator", BasicAuthPass: "secret"})
+	router := gin.New()
+	registerChatRoutes(router, app)
+	registerMediaRoutes(router, app)
+	server := httptest.NewServer(router)
+	defer server.Close()
+	websocketURL := "ws" + strings.TrimPrefix(server.URL, "http") + "/api/chat"
+	credential := base64.RawURLEncoding.EncodeToString([]byte("operator:secret"))
+	dialer := websocket.Dialer{Subprotocols: []string{chatProtocol, "auth." + credential}}
+	client, _, err := dialer.Dial(websocketURL, nil)
+	if err != nil {
+		t.Fatalf("websocket connection failed: %v", err)
+	}
+	defer client.Close()
+	if err := client.WriteJSON(map[string]string{"type": "identify", "username": "Ana"}); err != nil {
+		t.Fatalf("sending chat identity failed: %v", err)
+	}
+
+	payload, err := json.Marshal(MoveMediaCommand{
+		MediaID:     "Cancao Teste.txt",
+		Destination: "musicas/_removidas",
+		Category:    "songs",
+		Username:    "Ana",
+	})
+	if err != nil {
+		t.Fatalf("encoding move payload failed: %v", err)
+	}
+	request, err := http.NewRequest(http.MethodPut, server.URL+"/api/media/move", bytes.NewReader(payload))
+	if err != nil {
+		t.Fatalf("creating move request failed: %v", err)
+	}
+	request.SetBasicAuth("operator", "secret")
+	response, err := http.DefaultClient.Do(request)
+	if err != nil {
+		t.Fatalf("removing song failed: %v", err)
+	}
+	response.Body.Close()
+	if response.StatusCode != http.StatusOK {
+		t.Fatalf("move status = %d, want %d", response.StatusCode, http.StatusOK)
+	}
+	if _, err := os.Stat(filepath.Join("media", "songs", "musicas", "_removidas", "Cancao Teste.txt")); err != nil {
+		t.Fatalf("removed song was not moved to archive: %v", err)
+	}
+
+	client.SetReadDeadline(time.Now().Add(2 * time.Second))
+	var message chatMessage
+	if err := client.ReadJSON(&message); err != nil {
+		t.Fatalf("receiving refresh command failed: %v", err)
+	}
+	if message.Type != "system" || message.Action != "refreshSongs" || message.Username != "Sistema" || message.Content != "Ana removeu o texto Cancao Teste" {
+		t.Errorf("unexpected system message: %+v", message)
+	}
+}
