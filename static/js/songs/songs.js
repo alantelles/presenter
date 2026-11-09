@@ -394,14 +394,15 @@ async function removeFromList() {
     getSongFolders();
     displayAlert('Texto removido da lista com sucesso');
 }
-// TODO: criar um elemento para cada alerta em vez de todos reaproveitarem
+let alertTimeout;
 function displayAlert(conteudo) {
     const alertBox = document.getElementById('alert-modal');
     const alertContent = document.getElementById('alert-text');
     alertContent.textContent = conteudo;
     alertBox.style.display = 'block';
     alertBox.style.opacity = 100;
-    setTimeout(t => {
+    window.clearTimeout(alertTimeout);
+    alertTimeout = window.setTimeout(() => {
         alertContent.textContent = '';
         alertBox.style.opacity = 0;
         alertBox.style.display = 'none';
@@ -410,6 +411,9 @@ function displayAlert(conteudo) {
 document.addEventListener('DOMContentLoaded', () => {
     initializeChat();
     window.addEventListener('presenter:refresh-songs', () => getSongList());
+    window.addEventListener('presenter:new-chat-message', event => {
+        displayAlert(`Nova mensagem de ${event.detail.username}`);
+    });
     addGoLiveEventListener();
     document.getElementById('process-text').addEventListener('click', (event) => {
         createBlocks(event);

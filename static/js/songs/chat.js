@@ -91,6 +91,7 @@ export function initializeChat() {
                 if (!message.history && !dialog.open) {
                     unreadCount += 1;
                     updateUnread();
+                    window.dispatchEvent(new CustomEvent('presenter:new-chat-message', { detail: message }));
                 }
             } catch (error) {
                 console.error('Não foi possível ler uma mensagem do chat:', error);
