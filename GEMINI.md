@@ -64,6 +64,14 @@ Localizado em `videos/` com seu próprio `go.mod`:
 - `GET /api/videos`: Lista de nomes de arquivos ordenados em JSON `{"videos": [...]}`.
 - `GET /api/videos/content?name=...`: Streaming do vídeo.
 - `DELETE /api/videos/:name`: Exclui arquivo de vídeo. Requer autenticação Basic Auth.
+- `GET /api/videos/downloader/status`: Verifica se `yt-dlp` e `ffmpeg` estão instalados no servidor.
+- `POST /api/videos/download`: Baixa vídeo via URL usando `yt-dlp -f "bv*+ba/b" --merge-output-format mp4`. Requer autenticação Basic Auth.
+
+### Script de Instalação de Ferramentas de Vídeo
+Localizado na raiz do projeto: `install-video-tools.sh` (executável via `sudo ./install-video-tools.sh`):
+- Instala o `ffmpeg` via apt.
+- Baixa o binário standalone compilado oficial `yt-dlp_linux` (com runtime Python 3.11 embutido) diretamente para `/usr/local/bin/yt-dlp`.
+- Garante total compatibilidade com Ubuntu 20.04, 22.04 e 24.04 sem conflitos de versões de Python.
 
 ---
 

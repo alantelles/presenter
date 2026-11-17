@@ -137,3 +137,45 @@ func TestGetVideoContentNotFound(t *testing.T) {
 		t.Fatalf("status = %d, want %d", w.Code, http.StatusNotFound)
 	}
 }
+
+func TestGetDownloaderStatus(t *testing.T) {
+	router, _ := newVideoTestRouter(t)
+
+	w := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodGet, "/api/videos/downloader/status", nil)
+	router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Fatalf("status = %d, want %d", w.Code, http.StatusOK)
+	}
+	if !bytes.Contains(w.Body.Bytes(), []byte("installScript")) {
+		t.Errorf("expected response to contain installScript, got %s", w.Body.String())
+	}
+}
+
+func TestDownloadVideoRequiresAuth(t *testing.T) {
+	router, _ := newVideoTestRouter(t)
+
+	w := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodPost, "/api/videos/download", bytes.NewBufferString(`{"url":"https://youtube.com/watch?v=123"}`))
+	req.Header.Set("Content-Type", "application/json")
+	router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusUnauthorized {
+		t.Fatalf("status = %d, want %d", w.Code, http.StatusUnauthorized)
+	}
+}
+
+func TestDownloadVideoRejectsEmptyURL(t *testing.T) {
+	router, app := newVideoTestRouter(t)
+
+	w := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodPost, "/api/videos/download", bytes.NewBufferString(`{"url":""}`))
+	req.Header.Set("Content-Type", "application/json")
+	req.SetBasicAuth(app.Config.BasicAuthUser, app.Config.BasicAuthPass)
+	router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusBadRequest {
+		t.Fatalf("status = %d, want %d", w.Code, http.StatusBadRequest)
+	}
+}

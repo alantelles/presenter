@@ -90,3 +90,42 @@ func deleteVideo(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "OK"})
 }
+
+type downloadVideoRequest struct {
+	URL string `json:"url" binding:"required"`
+}
+
+// getDownloaderStatus reports whether yt-dlp and ffmpeg are installed on the server.
+func getDownloaderStatus(c *gin.Context) {
+	c.JSON(http.StatusOK, videos.CheckDownloaderTools())
+}
+
+// downloadVideo downloads a video from a URL using yt-dlp and merges into MP4.
+func downloadVideo(c *gin.Context) {
+	var req downloadVideoRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "URL inválida ou ausente"})
+		return
+	}
+
+	status := videos.CheckDownloaderTools()
+	if !status.Available {
+		c.JSON(http.StatusServiceUnavailable, gin.H{
+			"error":         status.Message,
+			"installScript": status.InstallScript,
+			"tools":         status,
+		})
+		return
+	}
+
+	savedName, err := videos.DownloadVideo(c.Request.Context(), req.URL)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "OK",
+		"name":    savedName,
+	})
+}

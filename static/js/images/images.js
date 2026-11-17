@@ -15,6 +15,8 @@ import {
     restartVideo,
     thumbUrl,
     videoContentUrl,
+    fetchDownloaderStatus,
+    downloadVideoFromUrl,
     withBasePath
 } from './client.js';
 
@@ -504,6 +506,85 @@ function setupTabsAndSearch() {
     });
 }
 
+let downloaderAvailable = false;
+
+async function checkDownloaderToolsStatus() {
+    const alertBox = document.getElementById('tools-missing-alert');
+    const alertMsg = document.getElementById('tools-missing-message');
+    const submitBtn = document.getElementById('btn-submit-download');
+
+    try {
+        const status = await fetchDownloaderStatus();
+        downloaderAvailable = Boolean(status.available);
+
+        if (!downloaderAvailable) {
+            alertBox.style.display = 'flex';
+            if (status.message) {
+                alertMsg.innerHTML = `${escapeHtml(status.message)}`;
+            }
+            if (submitBtn) {
+                submitBtn.title = 'Ferramentas de download não instaladas no servidor.';
+            }
+        } else {
+            alertBox.style.display = 'none';
+            if (submitBtn) {
+                submitBtn.title = 'Baixar vídeo';
+            }
+        }
+    } catch (err) {
+        console.warn('Erro ao verificar status das ferramentas:', err);
+    }
+}
+
+function setupUrlDownloader() {
+    const form = document.getElementById('url-download-form');
+    const input = document.getElementById('url-download-input');
+    const submitBtn = document.getElementById('btn-submit-download');
+    const btnIcon = document.getElementById('btn-download-icon');
+    const btnLabel = document.getElementById('btn-download-label');
+    const statusText = document.getElementById('download-status-text');
+
+    if (!form) return;
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const url = input.value.trim();
+        if (!url) return;
+
+        if (!downloaderAvailable) {
+            alert('Atenção: O yt-dlp e o ffmpeg não estão instalados no servidor.\nExecute "sudo ./install-video-tools.sh" no servidor para habilitar esta funcionalidade.');
+            return;
+        }
+
+        // Estado de carregamento
+        input.disabled = true;
+        submitBtn.disabled = true;
+        btnIcon.textContent = '⏳';
+        btnLabel.textContent = 'Baixando...';
+        statusText.style.display = 'block';
+        statusText.textContent = 'Baixando e mesclando vídeo via yt-dlp e ffmpeg... isso pode levar alguns segundos.';
+
+        try {
+            const res = await downloadVideoFromUrl(url);
+            showToast(`Vídeo "${res.name}" baixado com sucesso!`);
+            input.value = '';
+            statusText.style.display = 'none';
+            await loadMediaData();
+            if (res.name) {
+                selectItem({ name: res.name, type: 'VIDEO' });
+            }
+        } catch (err) {
+            alert(`Erro no download: ${err.message}`);
+            statusText.style.display = 'none';
+        } finally {
+            input.disabled = false;
+            submitBtn.disabled = false;
+            btnIcon.textContent = '📥';
+            btnLabel.textContent = 'Baixar Vídeo';
+        }
+    });
+}
+
 function setupNavLinks() {
     document.querySelectorAll('.header-nav a.nav-link').forEach(link => {
         const href = link.getAttribute('href');
@@ -516,10 +597,12 @@ function setupNavLinks() {
 document.addEventListener('DOMContentLoaded', () => {
     setupNavLinks();
     setupUploadAndDropZone();
+    setupUrlDownloader();
     setupControlButtons();
     setupTabsAndSearch();
     loadMediaData();
     loadCurrentContent();
+    checkDownloaderToolsStatus();
 
     // Sincroniza status do telão periodicamente
     setInterval(loadCurrentContent, 2000);

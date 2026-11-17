@@ -71,6 +71,8 @@ func TestRegisterVideoRoutes(t *testing.T) {
 		{"GET", "/api/videos"},
 		{"GET", "/api/videos/content"},
 		{"DELETE", "/api/videos/:name"},
+		{"GET", "/api/videos/downloader/status"},
+		{"POST", "/api/videos/download"},
 	}
 	for _, r := range want {
 		assertRouteRegistered(t, router, r.method, r.path)

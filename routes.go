@@ -36,6 +36,8 @@ func registerVideoRoutes(router *gin.Engine, app *App) {
 	router.GET("/api/videos", listVideos)
 	router.GET("/api/videos/content", getVideoContent)
 	router.DELETE("/api/videos/:name", app.AuthMiddleware, deleteVideo)
+	router.GET("/api/videos/downloader/status", getDownloaderStatus)
+	router.POST("/api/videos/download", app.AuthMiddleware, downloadVideo)
 }
 
 // registerProviderRoutes wires up provider management: creating, listing

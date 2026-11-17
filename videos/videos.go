@@ -5,10 +5,13 @@ package videos
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"fmt"
 	"io"
+	"net/url"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -196,4 +199,95 @@ func Delete(name string) error {
 		return ErrNotFound
 	}
 	return os.Remove(path)
+}
+
+// DownloaderStatus indicates whether the system dependencies (yt-dlp and ffmpeg)
+// are available on the host machine.
+type DownloaderStatus struct {
+	Available     bool   `json:"available"`
+	YtDlp         bool   `json:"ytdlp"`
+	FFmpeg        bool   `json:"ffmpeg"`
+	InstallScript string `json:"installScript"`
+	Message       string `json:"message"`
+}
+
+// CheckDownloaderTools inspects PATH for yt-dlp and ffmpeg binaries.
+func CheckDownloaderTools() DownloaderStatus {
+	_, errYt := exec.LookPath("yt-dlp")
+	_, errFfmpeg := exec.LookPath("ffmpeg")
+
+	ytdlpOk := errYt == nil
+	ffmpegOk := errFfmpeg == nil
+	available := ytdlpOk && ffmpegOk
+
+	msg := "Ferramentas instaladas e prontas para download de vídeos."
+	if !available {
+		msg = "Para baixar vídeos da internet, é necessário instalar o yt-dlp e o ffmpeg no servidor. Execute: sudo ./install-video-tools.sh"
+	}
+
+	return DownloaderStatus{
+		Available:     available,
+		YtDlp:         ytdlpOk,
+		FFmpeg:        ffmpegOk,
+		InstallScript: "./install-video-tools.sh",
+		Message:       msg,
+	}
+}
+
+// DownloadVideo downloads a video from rawURL using yt-dlp with merged MP4 output.
+func DownloadVideo(ctx context.Context, rawURL string) (string, error) {
+	parsed, err := url.ParseRequestURI(strings.TrimSpace(rawURL))
+	if err != nil || (parsed.Scheme != "http" && parsed.Scheme != "https") {
+		return "", errors.New("URL inválida: informe uma URL iniciando com http:// ou https://")
+	}
+
+	status := CheckDownloaderTools()
+	if !status.Available {
+		return "", errors.New(status.Message)
+	}
+
+	if _, err := fsutil.CreateFolder(videosDir()); err != nil {
+		return "", fmt.Errorf("creating videos dir: %w", err)
+	}
+
+	destTemplate := filepath.Join(videosDir(), "%(title)s.%(ext)s")
+	cmd := exec.CommandContext(ctx, "yt-dlp",
+		"--no-playlist",
+		"-f", "bv*+ba/b",
+		"--merge-output-format", "mp4",
+		"--restrict-filenames",
+		"-o", destTemplate,
+		"--print", "after_move:filename",
+		parsed.String(),
+	)
+
+	var stdout, stderr bytes.Buffer
+	cmd.Stdout = &stdout
+	cmd.Stderr = &stderr
+
+	if err := cmd.Run(); err != nil {
+		errMsg := strings.TrimSpace(stderr.String())
+		if errMsg == "" {
+			errMsg = err.Error()
+		}
+		return "", fmt.Errorf("falha ao baixar vídeo: %s", errMsg)
+	}
+
+	lines := strings.Split(strings.TrimSpace(stdout.String()), "\n")
+	var finalName string
+	for i := len(lines) - 1; i >= 0; i-- {
+		line := strings.TrimSpace(lines[i])
+		if line != "" && strings.HasSuffix(strings.ToLower(line), ".mp4") {
+			finalName = filepath.Base(line)
+			break
+		}
+	}
+	if finalName == "" && len(lines) > 0 {
+		finalName = filepath.Base(strings.TrimSpace(lines[len(lines)-1]))
+	}
+	if finalName == "" {
+		return "", errors.New("não foi possível identificar o nome do arquivo baixado")
+	}
+
+	return finalName, nil
 }

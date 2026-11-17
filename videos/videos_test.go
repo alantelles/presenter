@@ -182,3 +182,21 @@ func TestDeleteVideo(t *testing.T) {
 		t.Errorf("expected ErrNotFound after deletion, got %v", err)
 	}
 }
+
+func TestCheckDownloaderTools(t *testing.T) {
+	status := CheckDownloaderTools()
+	if status.InstallScript == "" {
+		t.Errorf("expected non-empty InstallScript")
+	}
+	if status.Message == "" {
+		t.Errorf("expected non-empty Message")
+	}
+}
+
+func TestDownloadVideoInvalidURL(t *testing.T) {
+	withTempMediaDir(t)
+	_, err := DownloadVideo(t.Context(), "not-a-url")
+	if err == nil {
+		t.Fatal("expected error for invalid URL, got nil")
+	}
+}

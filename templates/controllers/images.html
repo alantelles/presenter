@@ -232,6 +232,116 @@
             z-index: 2;
         }
 
+        /* URL Download Section */
+        .url-download-section {
+            margin-bottom: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .tools-alert {
+            background: rgba(220, 38, 38, 0.15);
+            border: 1px solid #ef4444;
+            border-radius: var(--radius-md);
+            padding: 16px 20px;
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
+            color: #fca5a5;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .tools-alert-icon {
+            font-size: 24px;
+            line-height: 1;
+        }
+
+        .tools-alert-content {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            font-size: 14px;
+        }
+
+        .tools-alert-content strong {
+            color: #fff;
+            font-size: 15px;
+        }
+
+        .tools-alert-action {
+            margin-top: 4px;
+            background: rgba(0, 0, 0, 0.4);
+            padding: 6px 12px;
+            border-radius: var(--radius-sm);
+            display: inline-block;
+            font-family: monospace;
+            color: #e5e7eb;
+            font-size: 13px;
+        }
+
+        .tools-alert-action code {
+            color: #60a5fa;
+            font-weight: bold;
+        }
+
+        .url-download-card {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 20px 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .url-download-header {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .url-download-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .url-download-subtitle {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        .url-download-form {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .url-download-form input {
+            flex: 1;
+            min-width: 260px;
+            background: var(--bg-body);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            padding: 10px 14px;
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s ease;
+        }
+
+        .url-download-form input:focus {
+            border-color: var(--border-color-focus);
+        }
+
+        .download-status-text {
+            font-size: 13px;
+            color: #60a5fa;
+            display: none;
+        }
+
         /* Video Player Control Bar */
         .video-control-panel {
             background: var(--bg-surface);
@@ -666,6 +776,36 @@
             <button id="btn-video-stop" class="btn btn-danger" title="Parar vídeo e limpar telão">
                 ⏹ Parar Vídeo
             </button>
+        </div>
+    </section>
+
+    <!-- URL Video Downloader Section -->
+    <section class="url-download-section" id="url-download-section">
+        <!-- Alert shown when tools are missing -->
+        <div class="tools-alert" id="tools-missing-alert" style="display: none;">
+            <div class="tools-alert-icon">⚠️</div>
+            <div class="tools-alert-content">
+                <strong>Ferramentas de Download Não Encontradas no Servidor</strong>
+                <p id="tools-missing-message">Para baixar vídeos do YouTube e da internet, é necessário ter o <code>yt-dlp</code> e o <code>ffmpeg</code> instalados no servidor.</p>
+                <div class="tools-alert-action">
+                    Execute no terminal do servidor: <code>sudo ./install-video-tools.sh</code>
+                </div>
+            </div>
+        </div>
+
+        <div class="url-download-card">
+            <div class="url-download-header">
+                <span class="url-download-title">📥 Baixar Vídeo da Web (YouTube / Instagram / Web)</span>
+                <span class="url-download-subtitle">Cole o link do vídeo para baixar em MP4 (áudio + vídeo mesclados em alta qualidade)</span>
+            </div>
+            <form class="url-download-form" id="url-download-form">
+                <input type="url" id="url-download-input" placeholder="https://www.youtube.com/watch?v=... ou https://youtu.be/..." required>
+                <button type="submit" id="btn-submit-download" class="btn btn-primary">
+                    <span id="btn-download-icon">📥</span>
+                    <span id="btn-download-label">Baixar Vídeo</span>
+                </button>
+            </form>
+            <div class="download-status-text" id="download-status-text"></div>
         </div>
     </section>
 

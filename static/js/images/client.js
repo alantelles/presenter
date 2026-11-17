@@ -147,6 +147,30 @@ export function restartVideo() {
     return sendVideoCommand('videoRestart');
 }
 
+export async function fetchDownloaderStatus() {
+    const res = await fetch(withBasePath('/api/videos/downloader/status'));
+    if (!res.ok) {
+        return { available: false, message: 'Falha ao verificar status das ferramentas.' };
+    }
+    return res.json();
+}
+
+export async function downloadVideoFromUrl(url) {
+    const res = await fetch(withBasePath('/api/videos/download'), {
+        method: 'POST',
+        headers: {
+            Authorization: getAuthHeader(),
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ url })
+    });
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok) {
+        throw new Error(body.error || `Download falhou (status ${res.status})`);
+    }
+    return body;
+}
+
 export function thumbUrl(name) {
     return withBasePath(`/api/images/thumb?name=${encodeURIComponent(name)}`);
 }
