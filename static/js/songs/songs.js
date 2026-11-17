@@ -11,9 +11,21 @@ import {
     fetchLyricsByUrl,
     fetchLyricsByArtistAndSong,
 } from './client.js';
+import { CHAT_NAME_STORAGE_KEY, initializeChat, sendSongLoadCommand } from './chat.js';
 
 const REMOVE_FROM_LIST_DESTINATION = 'musicas/_removidas';
 const CATEGORY_SONGS = 'songs';
+const BLOCK_NAVIGATION_DEBOUNCE_MS = 50;
+const BLOCK_NAVIGATION_DIRECTIONS = {
+    ArrowLeft: -1,
+    ArrowUp: -1,
+    ArrowRight: 1,
+    ArrowDown: 1
+};
+let songCatalog = [];
+let blockNavigationTimeout = null;
+let hasPendingBlockNavigation = false;
+const activeBlockNavigationKeys = new Set();
 
 function createElemPs(line) {
     return line.split('\n').map(line => {
@@ -73,6 +85,11 @@ function createBlock(paragraph, index) {
 }
 
 async function sendBlockToLive() {
+    if (blockNavigationTimeout !== null) {
+        window.clearTimeout(blockNavigationTimeout);
+        blockNavigationTimeout = null;
+    }
+    hasPendingBlockNavigation = false;
     const nextId = `bl${parseInt(this.id.replace('bl', '')) + 1}`;
     let nextBlock = '';
     try {
@@ -93,17 +110,68 @@ async function sendBlockToLive() {
         .filter(e => e.length > 1)
         .join('\n') + '\n' + nextBlock;
     const clicked = document.getElementById(this.id);
+    selectBlock(clicked);
     clicked.classList.add('bloco-waiting');
     await emitContent(content);
-    removeBlockSelectedClass();
     clicked.classList.remove('bloco-waiting');
-    clicked.classList.add('bloco-selected');
 }
 
 function removeBlockSelectedClass() {
     document.querySelectorAll('.bloco-selected').forEach(elemQuery => {
         const elem = document.getElementById(elemQuery.id).classList.remove('bloco-selected');
     });
+}
+
+function navigateSelectedBlock(event) {
+    const direction = BLOCK_NAVIGATION_DIRECTIONS[event.key];
+    if (!direction) {
+        return;
+    }
+    if (event.target.matches('input, textarea, select, [contenteditable="true"]')) {
+        return;
+    }
+
+    if (!document.querySelector('.bloco-verse.bloco-selected')) {
+        return;
+    }
+
+    activeBlockNavigationKeys.add(event.key);
+    event.preventDefault();
+    window.clearTimeout(blockNavigationTimeout);
+    blockNavigationTimeout = null;
+    const blocks = Array.from(document.querySelectorAll('.bloco-verse'));
+    const selectedBlock = document.querySelector('.bloco-verse.bloco-selected');
+    const selectedIndex = blocks.indexOf(selectedBlock);
+    const nextIndex = selectedIndex + direction;
+    if (nextIndex >= 0 && nextIndex < blocks.length) {
+        selectBlock(blocks[nextIndex]);
+        hasPendingBlockNavigation = true;
+    }
+}
+
+function finishBlockNavigation(event) {
+    if (!BLOCK_NAVIGATION_DIRECTIONS[event.key]) {
+        return;
+    }
+    activeBlockNavigationKeys.delete(event.key);
+    if (activeBlockNavigationKeys.size > 0 || !hasPendingBlockNavigation) {
+        return;
+    }
+
+    blockNavigationTimeout = window.setTimeout(() => {
+        blockNavigationTimeout = null;
+        hasPendingBlockNavigation = false;
+        const latestBlock = document.querySelector('.bloco-verse.bloco-selected');
+        if (latestBlock) {
+            sendBlockToLive.call(latestBlock);
+        }
+    }, BLOCK_NAVIGATION_DEBOUNCE_MS);
+}
+
+function selectBlock(block) {
+    removeBlockSelectedClass();
+    block.classList.add('bloco-selected');
+    block.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
 function triggerTimer(horas, minutos) {
@@ -143,7 +211,8 @@ function getSongToSavePayload(content) {
     const title = titleParts[0]
     const author = titleParts.length == 2 ? titleParts[1] : "Artista desconhecido"
     const category = "songs"
-    return { title, author, category, content }
+    const username = window.localStorage.getItem(CHAT_NAME_STORAGE_KEY) || '';
+    return { title, author, category, content, username }
 }
 
 function setAuxTextToBackend(content) {
@@ -152,7 +221,11 @@ function setAuxTextToBackend(content) {
 
 async function saveProcessedTextToBackend(content) {
     const payload = getSongToSavePayload(content);
-    await saveMedia(payload);
+    const response = await saveMedia(payload);
+    if (!response.ok) {
+        displayAlert('Não foi possível salvar o texto.');
+        return;
+    }
     getSongList();
     displayAlert('Texto salvo com sucesso!');
 }
@@ -183,6 +256,25 @@ async function pasteToTextInput() {
 async function fillTextInput() {
     const fileName = document.getElementById('select-text-options').value;
     clearTextInput().value = await loadTextFromBackend(fileName);
+}
+function loadTextForAll() {
+    const fileName = document.getElementById('select-text-options').value;
+    if (!fileName) {
+        displayAlert('Selecione um texto para carregar.');
+        return;
+    }
+    if (!sendSongLoadCommand(fileName)) {
+        displayAlert('Chat desconectado. Não foi possível carregar para todos.');
+    }
+}
+async function loadNamedTextIntoController(event) {
+    const songName = event.detail.songName;
+    try {
+        document.getElementById('text-to-show').value = await loadTextFromBackend(songName);
+        displayAlert(`${event.detail.username} carregou ${songName}`);
+    } catch (error) {
+        displayAlert(`Não foi possível carregar ${songName}.`);
+    }
 }
 async function loadAndCreateBlocks() {
     const fileName = document.getElementById('select-text-options').value;
@@ -261,6 +353,63 @@ async function loadSongListFromFolder() {
     const archive = 'musicas'
     const json = await fetchSongsFromFolder(archive, folder);
     fillSongListFromFolderTable(json.mediaList, folder, archive);
+}
+
+async function loadSongCatalog() {
+    const folders = (await fetchSongFolders('musicas')).mediaList
+        .filter(folder => !folder.startsWith('_'));
+    const songsByFolder = await Promise.all(folders.map(async folder => {
+        const json = await fetchSongsFromFolder('musicas', folder);
+        return json.mediaList.map(song => ({
+            name: song,
+            path: `musicas/${folder}/${song}`
+        }));
+    }));
+    songCatalog = songsByFolder.flat().sort((first, second) =>
+        first.name.localeCompare(second.name, 'pt-BR', { sensitivity: 'base' })
+    );
+}
+
+function normalizeSongSearch(value) {
+    return value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase('pt-BR');
+}
+
+function searchSongs() {
+    const query = normalizeSongSearch(document.getElementById('buscar-musicas').value.trim());
+    if (!query) {
+        loadSongListFromFolder();
+        return;
+    }
+    const matches = songCatalog.filter(song =>
+        normalizeSongSearch(song.name.replace(/\.txt$/i, '')).includes(query)
+    );
+    fillSongSearchResults(matches);
+}
+
+function fillSongSearchResults(songs) {
+    const tbody = document.getElementById('tabela-lista-musicas');
+    tbody.textContent = '';
+    if (songs.length === 0) {
+        const row = document.createElement('tr');
+        const cell = document.createElement('td');
+        cell.colSpan = 2;
+        cell.textContent = 'Nenhuma música encontrada';
+        row.appendChild(cell);
+        tbody.appendChild(row);
+        return;
+    }
+    songs.forEach(song => {
+        const row = document.createElement('tr');
+        const buttonCell = document.createElement('td');
+        buttonCell.classList.add('tg0-lax', 'autosize');
+        buttonCell.appendChild(createButtonLoadSongNode(song.path));
+        const nameCell = document.createElement('td');
+        nameCell.classList.add('tg0-lax');
+        nameCell.textContent = song.name;
+        row.append(buttonCell, nameCell);
+        tbody.appendChild(row);
+    });
+    addLoadSongFromFolderEventListener();
 }
 
 function fillSongListFromFolderTable(songs, folder, archive) {
@@ -376,27 +525,41 @@ async function removeFromList() {
     const body = {
         mediaId,
         category: CATEGORY_SONGS,
-        destination: REMOVE_FROM_LIST_DESTINATION
+        destination: REMOVE_FROM_LIST_DESTINATION,
+        username: window.localStorage.getItem(CHAT_NAME_STORAGE_KEY) || ''
     };
-    await moveMedia(body);
+    const response = await moveMedia(body);
+    if (!response.ok) {
+        displayAlert('Não foi possível remover o texto da lista.');
+        return;
+    }
     getSongList();
     getSongFolders();
     displayAlert('Texto removido da lista com sucesso');
 }
-// TODO: criar um elemento para cada alerta em vez de todos reaproveitarem
+let alertTimeout;
 function displayAlert(conteudo) {
     const alertBox = document.getElementById('alert-modal');
     const alertContent = document.getElementById('alert-text');
     alertContent.textContent = conteudo;
     alertBox.style.display = 'block';
     alertBox.style.opacity = 100;
-    setTimeout(t => {
+    window.clearTimeout(alertTimeout);
+    alertTimeout = window.setTimeout(() => {
         alertContent.textContent = '';
         alertBox.style.opacity = 0;
         alertBox.style.display = 'none';
     }, 4000);
 }
 document.addEventListener('DOMContentLoaded', () => {
+    initializeChat();
+    document.addEventListener('keydown', navigateSelectedBlock);
+    document.addEventListener('keyup', finishBlockNavigation);
+    window.addEventListener('presenter:refresh-songs', () => getSongList());
+    window.addEventListener('presenter:load-song-by-name', loadNamedTextIntoController);
+    window.addEventListener('presenter:new-chat-message', event => {
+        displayAlert(`Nova mensagem de ${event.detail.username}`);
+    });
     addGoLiveEventListener();
     document.getElementById('process-text').addEventListener('click', (event) => {
         createBlocks(event);
@@ -428,6 +591,7 @@ document.addEventListener('DOMContentLoaded', () => {
         setAuxTextToBackend('');
     });
     document.getElementById('carregar-texto').addEventListener('click', fillTextInput);
+    document.getElementById('carregar-texto-para-todos').addEventListener('click', loadTextForAll);
     document.getElementById('carregar-blocos').addEventListener('click', loadAndCreateBlocks);
     document.getElementById('remover-texto').addEventListener('click', removeFromList);
     // document.getElementById('open-modal-letras').addEventListener('click', () => {
@@ -440,12 +604,16 @@ document.addEventListener('DOMContentLoaded', () => {
     // });
     document.getElementById('open-modal-procurar').addEventListener('click', async () => {
         await loadSongListFromFolder();
+        await loadSongCatalog();
+        document.getElementById('buscar-musicas').value = '';
         document.getElementById('folder-options').addEventListener('change', loadSongListFromFolder);
+        document.getElementById('buscar-musicas').addEventListener('input', searchSongs);
         document.getElementById('modal').classList.remove('hide');
         document.getElementById('buscar-musica').classList.remove('hide');
     });
     document.getElementById('close-modal-procurar').addEventListener('click', () => {
         document.getElementById('folder-options').removeEventListener('change', loadSongListFromFolder);
+        document.getElementById('buscar-musicas').removeEventListener('input', searchSongs);
         document.getElementById('modal').classList.add('hide');
         document.getElementById('buscar-musica').classList.add('hide');
     });

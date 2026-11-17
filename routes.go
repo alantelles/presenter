@@ -11,8 +11,8 @@ import (
 func registerMediaRoutes(router *gin.Engine, app *App) {
 	router.POST("/api/content/set/:providerId", app.AuthMiddleware, app.setMediaProviderContent)
 	router.GET("/api/content", app.getMediaProviderContent)
-	router.POST("/api/media", app.AuthMiddleware, saveMedia)
-	router.PUT("/api/media/move", app.AuthMiddleware, moveMedia)
+	router.POST("/api/media", app.AuthMiddleware, app.saveMedia)
+	router.PUT("/api/media/move", app.AuthMiddleware, app.moveMedia)
 
 	router.GET("/api/songs", getAllSongs)
 	router.GET("/api/songs/content", getSongContent)
@@ -37,6 +37,10 @@ func registerProviderRoutes(router *gin.Engine, app *App) {
 	router.POST("/api/providers", app.AuthMiddleware, app.createProvider)
 	router.DELETE("/api/providers/:id", app.AuthMiddleware, app.deleteProvider)
 	router.DELETE("/api/providers", app.AuthMiddleware, app.deleteAllProviders)
+}
+
+func registerChatRoutes(router *gin.Engine, app *App) {
+	router.GET("/api/chat", app.chatWebSocket)
 }
 
 // registerViewRoutes wires up the HTML pages: controller UIs, the home page

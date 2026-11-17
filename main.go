@@ -39,12 +39,14 @@ type Media struct {
 	Content  string `json:"content"`
 	Title    string `json:"title"`
 	Author   string `json:"author"`
+	Username string `json:"username,omitempty"`
 }
 
 type MoveMediaCommand struct {
 	MediaID     string `json:"mediaId" binding:"required"`
 	Destination string `json:"destination" binding:"required"`
 	Category    string `json:"category" binding:"required"`
+	Username    string `json:"username,omitempty"`
 }
 
 type returnBody struct {
@@ -101,6 +103,7 @@ func main() {
 	registerMediaRoutes(router, app)
 	registerImageRoutes(router, app)
 	registerProviderRoutes(router, app)
+	registerChatRoutes(router, app)
 	registerViewRoutes(router, app)
 	registerMiscRoutes(router)
 	registerLyricsRoutes(router)

@@ -28,6 +28,7 @@ type Config struct {
 type App struct {
 	Config    Config
 	Providers *providers.Store
+	Chat      *ChatHub
 }
 
 func buildScheme(secure bool) string {
@@ -89,6 +90,7 @@ func NewApp(cfg Config) *App {
 	return &App{
 		Config:    cfg,
 		Providers: providers.NewStore(),
+		Chat:      NewChatHub(),
 	}
 }
 

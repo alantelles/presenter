@@ -205,6 +205,13 @@
       cursor: pointer;
       font-size: 16px;
     }
+    .seletor-capitulo input[name=livro-busca] {
+      box-sizing: border-box;
+      padding: 5px 8px;
+      width: 250px;
+      min-width: 0;
+      font-size: 16px;
+    }
     .seletor-capitulo select[name=capitulo] {
       width: 100px;
     }
@@ -342,8 +349,10 @@
       </div>
       <div class="seletor-capitulo">
         <!-- TODO: permitir selecionar versao -->
-        <p>Livro</p>
-        <select name="livro" id="livro">
+        <label for="livro-busca">Livro</label>
+        <input type="text" name="livro-busca" id="livro-busca" list="livros-biblia" autocomplete="off" placeholder="Digite para buscar">
+        <datalist id="livros-biblia"></datalist>
+        <select name="livro" id="livro" hidden>
         </select>
         <p>Capítulo</p>
         <select name="capitulo" id="capitulo">
@@ -472,6 +481,8 @@
     }
     document.addEventListener('DOMContentLoaded', function() {
       const livroSelect = document.getElementById('livro');
+      const livroBusca = document.getElementById('livro-busca');
+      const livrosBiblia = document.getElementById('livros-biblia');
       const capituloSelect = document.getElementById('capitulo');
       const livroCapituloHeader = document.getElementById('livro-capitulo');
       const blocosCarregados = document.querySelector('.blocos-carregados');
@@ -486,9 +497,14 @@
           option.textContent = livro.nome;
           option.dataset.capitulos = livro.capitulos;
           livroSelect.appendChild(option);
+
+          const sugestao = document.createElement('option');
+          sugestao.value = livro.nome;
+          livrosBiblia.appendChild(sugestao);
         });
         const [abbrev, capitulo, versiculo] = window.sessionStorage.getItem('bibleChapter')?.split(' ') || ['gn', '1'];
         livroSelect.value = abbrev;
+        livroBusca.value = livroSelect.options[livroSelect.selectedIndex].textContent;
         capituloSelect.value = capitulo;
         livroCapituloHeader.textContent = `${livroSelect.options[livroSelect.selectedIndex].textContent} ${capitulo}`;        
         preencheCapitulos(capitulo); // Preenche os capítulos do primeiro livro
@@ -497,6 +513,21 @@
       livroSelect.addEventListener('change', () => {
         window.sessionStorage.removeItem('bibleChapter');
         preencheCapitulos();
+      });
+
+      livroBusca.addEventListener('change', () => {
+        const nomeBuscado = livroBusca.value.trim().toLocaleLowerCase('pt-BR');
+        const livroEncontrado = Array.from(livroSelect.options).find(option =>
+          option.textContent.toLocaleLowerCase('pt-BR') === nomeBuscado
+        );
+        if (!livroEncontrado) {
+          livroBusca.value = livroSelect.options[livroSelect.selectedIndex].textContent;
+          return;
+        }
+        if (livroSelect.value !== livroEncontrado.value) {
+          livroSelect.value = livroEncontrado.value;
+          livroSelect.dispatchEvent(new Event('change'));
+        }
       });
 
       function preencheCapitulos(capituloSelecionado = 1) {

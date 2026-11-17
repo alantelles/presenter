@@ -63,13 +63,14 @@ func textPathNoPrefix(category Category, fileName string) string {
 }
 
 // SaveTextFile writes content as a .txt file under the category's folder.
-func SaveTextFile(category Category, fileName string, content string) {
+func SaveTextFile(category Category, fileName string, content string) error {
 	path := textPath(category, fileName)
 	if err := fsutil.WriteTextFile(path, content); err != nil {
 		log.Print(err)
-		return
+		return err
 	}
 	log.Printf("%d bytes written successfully to %s", len(content), path)
+	return nil
 }
 
 // listDirEntries lists the names directly under path, keeping only entries
