@@ -43,6 +43,7 @@ require (
 	presenter/images v0.0.0-00010101000000-000000000000
 	presenter/providers v0.0.0-00010101000000-000000000000
 	presenter/storage v0.0.0-00010101000000-000000000000
+	presenter/videos v0.0.0-00010101000000-000000000000
 )
 
 replace presenter/bible => ./bible
@@ -56,3 +57,5 @@ replace presenter/images => ./images
 replace presenter/providers => ./providers
 
 replace presenter/storage => ./storage
+
+replace presenter/videos => ./videos

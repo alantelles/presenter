@@ -30,6 +30,14 @@ func registerImageRoutes(router *gin.Engine, app *App) {
 	router.GET("/api/images/thumb", getImageThumb)
 }
 
+// registerVideoRoutes wires up video upload, listing, retrieval and deletion.
+func registerVideoRoutes(router *gin.Engine, app *App) {
+	router.POST("/api/videos", app.AuthMiddleware, uploadVideo)
+	router.GET("/api/videos", listVideos)
+	router.GET("/api/videos/content", getVideoContent)
+	router.DELETE("/api/videos/:name", app.AuthMiddleware, deleteVideo)
+}
+
 // registerProviderRoutes wires up provider management: creating, listing
 // and deleting the channels controllers publish content to.
 func registerProviderRoutes(router *gin.Engine, app *App) {

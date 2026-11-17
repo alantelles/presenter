@@ -84,6 +84,7 @@ func createDefaultFolders() {
 	createFolder(storage.BasePath() + "songs")
 	createFolder(storage.BasePath() + "images")
 	createFolder(storage.BasePath() + "images/thumbs")
+	createFolder(storage.BasePath() + "videos")
 }
 
 func main() {
@@ -102,6 +103,7 @@ func main() {
 
 	registerMediaRoutes(router, app)
 	registerImageRoutes(router, app)
+	registerVideoRoutes(router, app)
 	registerProviderRoutes(router, app)
 	registerChatRoutes(router, app)
 	registerViewRoutes(router, app)

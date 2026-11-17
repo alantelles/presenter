@@ -4,53 +4,587 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Presenter - Imagens</title>
+    <title>Presenter - Gerenciador de Mídia</title>
     <style>
+        :root {
+            --bg-body: #121316;
+            --bg-surface: #1a1b22;
+            --bg-surface-elevated: #242631;
+            --border-color: #2e3142;
+            --border-color-focus: #3b82f6;
+            --text-primary: #f3f4f6;
+            --text-secondary: #9ca3af;
+            --text-muted: #6b7280;
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --success: #16a34a;
+            --success-hover: #15803d;
+            --warning: #d97706;
+            --warning-hover: #b45309;
+            --danger: #dc2626;
+            --danger-hover: #b91c1c;
+            --live-glow: 0 0 16px rgba(22, 163, 74, 0.4);
+            --radius-sm: 6px;
+            --radius-md: 10px;
+            --radius-lg: 14px;
+        }
+
         * {
             box-sizing: border-box;
-        }
-        body {
-            font-family: sans-serif;
             margin: 0;
-            padding: 20px;
-            background: #1e1e1e;
-            color: #eee;
+            padding: 0;
         }
-        h1 {
-            font-size: 20px;
-            margin-bottom: 16px;
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background: var(--bg-body);
+            color: var(--text-primary);
+            line-height: 1.5;
+            padding: 24px 32px;
+            min-height: 100vh;
         }
-        #upload-form {
+
+        header {
             display: flex;
-            gap: 8px;
-            margin-bottom: 20px;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 24px;
         }
-        button {
-            cursor: pointer;
+
+        .header-title-group h1 {
+            font-size: 24px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
-        #clear-main {
-            margin-bottom: 20px;
-        }
-        #gallery {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+
+        .header-nav {
+            display: flex;
+            align-items: center;
             gap: 12px;
         }
-        .gallery-item {
-            background: #2a2a2a;
-            border: 2px solid #444;
+
+        .nav-link {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 14px;
+            padding: 6px 12px;
+            border-radius: var(--radius-sm);
+            background: var(--bg-surface);
+            border: 1px solid var(--border-color);
+            transition: all 0.2s ease;
+        }
+
+        .nav-link:hover {
+            color: var(--text-primary);
+            background: var(--bg-surface-elevated);
+            border-color: #4b5563;
+        }
+
+        .btn {
+            font-family: inherit;
+            font-size: 14px;
+            font-weight: 600;
+            padding: 8px 16px;
+            border-radius: var(--radius-sm);
+            border: none;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: var(--primary-hover);
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-success:hover:not(:disabled) {
+            background: var(--success-hover);
+        }
+
+        .btn-warning {
+            background: var(--warning);
+            color: white;
+        }
+
+        .btn-warning:hover:not(:disabled) {
+            background: var(--warning-hover);
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-danger:hover:not(:disabled) {
+            background: var(--danger-hover);
+        }
+
+        .btn-secondary {
+            background: var(--bg-surface-elevated);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            background: #2e3244;
+            border-color: #4b5563;
+        }
+
+        /* Selection Staging Panel */
+        .selection-panel {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 16px 24px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+            transition: all 0.25s ease;
+        }
+
+        .selection-panel.has-selection {
+            border-color: #3b82f6;
+            background: rgba(37, 99, 235, 0.05);
+            box-shadow: 0 0 16px rgba(59, 130, 246, 0.2);
+        }
+
+        .selection-info-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .selection-title-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .selection-heading {
+            font-size: 15px;
+            font-weight: 700;
+        }
+
+        .selection-display {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .selection-display .selected-name {
+            font-weight: 600;
+            color: #93c5fd;
+            word-break: break-all;
+        }
+
+        .selection-hint {
+            color: var(--text-muted);
+            font-style: italic;
+        }
+
+        .selection-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .media-card.is-selected {
+            border-color: #3b82f6 !important;
+            box-shadow: 0 0 16px rgba(59, 130, 246, 0.45) !important;
+            transform: translateY(-2px);
+        }
+
+        .selected-tag {
+            position: absolute;
+            bottom: 8px;
+            right: 8px;
+            background: #2563eb;
+            color: white;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 2px 6px;
             border-radius: 4px;
-            padding: 4px;
+            z-index: 2;
+        }
+
+        /* Video Player Control Bar */
+        .video-control-panel {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 20px 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            transition: border-color 0.3s ease;
+        }
+
+        .video-control-panel.active {
+            border-color: var(--success);
+            box-shadow: var(--live-glow);
+        }
+
+        .video-panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .video-panel-title {
+            font-size: 16px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .status-badge {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            padding: 3px 8px;
+            border-radius: 12px;
+            letter-spacing: 0.5px;
+        }
+
+        .status-badge.live {
+            background: rgba(22, 163, 74, 0.2);
+            color: #4ade80;
+            border: 1px solid rgba(74, 222, 128, 0.4);
+        }
+
+        .status-badge.idle {
+            background: rgba(107, 114, 128, 0.2);
+            color: var(--text-muted);
+            border: 1px solid var(--border-color);
+        }
+
+        .current-video-display {
+            font-size: 15px;
+            color: var(--text-secondary);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .current-video-name {
+            font-weight: 600;
+            color: #60a5fa;
+            word-break: break-all;
+        }
+
+        .video-controls-row {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        /* Upload Section */
+        .upload-section {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .drop-zone {
+            background: var(--bg-surface);
+            border: 2px dashed var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 28px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+
+        .drop-zone.dragover {
+            border-color: var(--primary);
+            background: rgba(37, 99, 235, 0.1);
+        }
+
+        .drop-zone-icon {
+            font-size: 32px;
+            margin-bottom: 8px;
+        }
+
+        .drop-zone-text {
+            font-size: 15px;
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+
+        .drop-zone-hint {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        #file-input {
+            display: none;
+        }
+
+        /* Gallery Toolbar */
+        .gallery-toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .tabs-group {
+            display: flex;
+            background: var(--bg-surface);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            padding: 3px;
+            gap: 2px;
+        }
+
+        .tab-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            font-family: inherit;
+            font-size: 13px;
+            font-weight: 600;
+            padding: 6px 14px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .tab-btn.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        .search-box {
+            position: relative;
+            min-width: 240px;
+        }
+
+        .search-box input {
+            width: 100%;
+            background: var(--bg-surface);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            padding: 8px 12px 8px 32px;
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s ease;
+        }
+
+        .search-box input:focus {
+            border-color: var(--border-color-focus);
+        }
+
+        .search-box::before {
+            content: "🔍";
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 12px;
+            opacity: 0.6;
+        }
+
+        /* Gallery Grid */
+        #gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 16px;
+        }
+
+        .media-card {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.2s ease;
+            position: relative;
             cursor: pointer;
         }
-        .gallery-item:hover {
-            border-color: #888;
+
+        .media-card:hover {
+            border-color: #4b5563;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
         }
-        .gallery-item img {
+
+        .media-card.is-active {
+            border-color: var(--success);
+            box-shadow: var(--live-glow);
+        }
+
+        .media-thumb-container {
             width: 100%;
-            height: 100px;
+            height: 120px;
+            background: #0d0e12;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .media-thumb-container img,
+        .media-thumb-container video {
+            width: 100%;
+            height: 100%;
             object-fit: cover;
             display: block;
+        }
+
+        .media-badge {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 2px 6px;
+            border-radius: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            z-index: 2;
+        }
+
+        .badge-image {
+            background: rgba(37, 99, 235, 0.85);
+            color: white;
+        }
+
+        .badge-video {
+            background: rgba(147, 51, 234, 0.85);
+            color: white;
+        }
+
+        .live-tag {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: var(--success);
+            color: white;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 2px 6px;
+            border-radius: 4px;
+            z-index: 2;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .media-info {
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            flex: 1;
+        }
+
+        .media-name {
+            font-size: 13px;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            color: var(--text-primary);
+        }
+
+        .media-actions {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: auto;
+        }
+
+        .btn-card-action {
+            flex: 1;
+            font-size: 12px;
+            padding: 6px 10px;
+        }
+
+        .btn-card-delete {
+            background: transparent;
+            border: 1px solid transparent;
+            color: var(--text-muted);
+            border-radius: var(--radius-sm);
+            padding: 6px 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s ease;
+        }
+
+        .btn-card-delete:hover {
+            color: var(--danger);
+            background: rgba(220, 38, 38, 0.1);
+            border-color: rgba(220, 38, 38, 0.3);
+        }
+
+        /* Toast notification */
+        #toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: var(--bg-surface-elevated);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            padding: 12px 20px;
+            border-radius: var(--radius-md);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+            font-size: 14px;
+            font-weight: 500;
+            display: none;
+            z-index: 9999;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .empty-gallery {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 48px;
+            color: var(--text-muted);
+            font-size: 15px;
         }
     </style>
 </head>
@@ -58,16 +592,111 @@
 <body>
     <input type="hidden" name="basic-auth-token" id="basic-auth-token" value="{{BASIC_AUTH_TOKEN}}">
 
-    <h1>Imagens</h1>
+    <header>
+        <div class="header-title-group">
+            <h1>🎬 Gerenciador de Mídia</h1>
+        </div>
+        <div class="header-nav">
+            <a href="/" class="nav-link">🏠 Início</a>
+            <a href="/controller/songs" class="nav-link">🎵 Músicas</a>
+            <a href="/controller/bible" class="nav-link">📖 Bíblia</a>
+            <a href="/live" target="_blank" class="nav-link">📺 Abrir Telão (/live)</a>
+            <button id="clear-main" class="btn btn-danger">⏹ Limpar Telão</button>
+        </div>
+        <script>
+            (function() {
+                const isPrefixed = window.location.pathname.startsWith('/presenter');
+                const basePath = isPrefixed ? '/presenter' : '';
+                document.querySelectorAll('.header-nav a.nav-link').forEach(link => {
+                    link.href = basePath + link.getAttribute('href');
+                });
+            })();
+        </script>
+    </header>
 
-    <form id="upload-form">
-        <input type="file" id="file-input" accept="image/*">
-        <button type="submit">Enviar</button>
-    </form>
+    <!-- Staging / Selection Panel -->
+    <section class="selection-panel" id="selection-panel">
+        <div class="selection-info-group">
+            <div class="selection-title-row">
+                <span class="selection-heading">Mídia Selecionada:</span>
+                <span class="status-badge idle" id="selection-badge">Nenhuma</span>
+            </div>
+            <div class="selection-display" id="selection-display">
+                <span class="selection-hint">Clique em um card abaixo para selecionar uma imagem ou vídeo.</span>
+            </div>
+        </div>
+        <div class="selection-actions" id="selection-actions">
+            <button id="btn-go-live" class="btn btn-primary" disabled>
+                ▶ Exibir no Telão
+            </button>
+            <button id="btn-clear-selection" class="btn btn-secondary" style="display: none;">
+                Desmarcar
+            </button>
+        </div>
+    </section>
 
-    <button id="clear-main">Limpar tela</button>
+    <!-- Video Playback Controller -->
+    <section class="video-control-panel" id="video-control-panel">
+        <div class="video-panel-header">
+            <div class="video-panel-title">
+                <span>Controle do Telão (No Ar)</span>
+                <span class="status-badge idle" id="video-status-badge">Parado</span>
+            </div>
+            <div class="current-video-display" id="current-video-display">
+                <span>Nenhum vídeo em exibição no momento.</span>
+            </div>
+        </div>
 
-    <div id="gallery"></div>
+        <div class="video-controls-row">
+            <button id="btn-video-restart" class="btn btn-secondary" title="Voltar o vídeo do início (0:00)">
+                ⏮ Do Início
+            </button>
+            <button id="btn-video-rewind" class="btn btn-secondary" title="Voltar 10 segundos no vídeo">
+                ⏪ Voltar -10s
+            </button>
+            <button id="btn-video-play" class="btn btn-success" title="Iniciar ou retomar a reprodução">
+                ▶ Reproduzir
+            </button>
+            <button id="btn-video-pause" class="btn btn-warning" title="Pausar o vídeo">
+                ⏸ Pausar
+            </button>
+            <button id="btn-video-forward" class="btn btn-primary" title="Avançar 10 segundos no vídeo">
+                ⏩ Avançar +10s
+            </button>
+            <button id="btn-video-stop" class="btn btn-danger" title="Parar vídeo e limpar telão">
+                ⏹ Parar Vídeo
+            </button>
+        </div>
+    </section>
+
+    <!-- Upload Area -->
+    <section class="upload-section">
+        <div class="drop-zone" id="drop-zone">
+            <div class="drop-zone-icon">📁</div>
+            <div class="drop-zone-text" id="drop-zone-text">Clique ou arraste imagens e vídeos aqui</div>
+            <div class="drop-zone-hint">Suporta Imagens (PNG, JPG, WEBP, GIF até 10MB) e Vídeos (MP4, WebM, MOV, OGG até 500MB)</div>
+            <input type="file" id="file-input" multiple accept="image/*,video/*,.mp4,.webm,.ogg,.ogv,.mov,.m4v">
+        </div>
+    </section>
+
+    <!-- Gallery Toolbar -->
+    <section class="gallery-toolbar">
+        <div class="tabs-group">
+            <button class="tab-btn active" data-filter="all" id="tab-all">Todas as Mídias</button>
+            <button class="tab-btn" data-filter="images" id="tab-images">Imagens</button>
+            <button class="tab-btn" data-filter="videos" id="tab-videos">Vídeos</button>
+        </div>
+        <div class="search-box">
+            <input type="text" id="search-input" placeholder="Filtrar por nome...">
+        </div>
+    </section>
+
+    <!-- Media Cards Gallery -->
+    <main id="gallery">
+        <div class="empty-gallery">Carregando mídias...</div>
+    </main>
+
+    <div id="toast"></div>
 
     <script type="module" src="/presenter-static/js/images/images.js"></script>
 </body>

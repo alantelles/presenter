@@ -170,6 +170,35 @@ table {
             object-fit: cover;
             opacity: 0.9;
         }
+        #live-media-video {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            object-fit: contain;
+            background-color: black;
+            z-index: 99995;
+            display: none;
+        }
+        #audio-unlock-banner {
+            display: none;
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.85);
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            padding: 10px 24px;
+            border-radius: 24px;
+            font-size: 18px;
+            font-weight: bold;
+            z-index: 100005;
+            cursor: pointer;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.6);
+            letter-spacing: 0.5px;
+        }
         .metablock {
             position: absolute;
             text-align: left;
@@ -189,6 +218,8 @@ table {
         <source src="/presenter-static/bg-videos/sparkles.mp4" type="video/mp4">
       Your browser does not support the video tag.
       </video>
+    <video id="live-media-video" playsinline></video>
+    <div id="audio-unlock-banner">Clique aqui ou na tela para ativar o som do vídeo</div>
     <div class="loaded loading" id="status">
         _
     </div>
@@ -236,9 +267,36 @@ table {
             const bibleChapter = document.querySelector('.bible-chapter');
             bibleChapter.textContent = capitulo;
         }
+        function isMutedDisplay() {
+            const params = new URLSearchParams(window.location.search);
+            return params.get('muted') === 'true' ||
+                   params.get('mute') === 'true' ||
+                   params.get('audio') === 'false' ||
+                   params.get('som') === 'false' ||
+                   params.get('semSom') === 'true';
+        }
+        function showAudioUnlockBanner() {
+            const banner = document.getElementById('audio-unlock-banner');
+            if (banner) banner.style.display = 'block';
+        }
+        function hideAudioUnlockBanner() {
+            const banner = document.getElementById('audio-unlock-banner');
+            if (banner) banner.style.display = 'none';
+        }
+        function unlockAudio() {
+            const liveVideo = document.getElementById('live-media-video');
+            if (liveVideo && !isMutedDisplay() && liveVideo.muted) {
+                liveVideo.muted = false;
+                liveVideo.play().catch(e => console.warn('Play on unlock error:', e));
+            }
+            hideAudioUnlockBanner();
+        }
+        window.addEventListener('click', unlockAudio);
+
         function processMainProviderData(data) {
             const liveBlock = document.getElementById('liveblock');
             const metaBlock = document.getElementById('metablock');
+            const liveVideo = document.getElementById('live-media-video');
             if (isShowClockMode()) {
                 if (data.content === '') {
                     liveBlock.style.backgroundColor = 'transparent';
@@ -251,6 +309,53 @@ table {
             }
             lastMainText = data.content;
             lastMainType = data.type;
+
+            if (data.type === 'VIDEO') {
+                metaBlock.innerHTML = '';
+                liveBlock.innerHTML = '';
+                const bibleChapter = document.querySelector('.bible-chapter');
+                if (bibleChapter) bibleChapter.textContent = '';
+                toggleVideo({content: 'off'});
+
+                if (!data.content) {
+                    if (liveVideo) {
+                        liveVideo.pause();
+                        liveVideo.removeAttribute('src');
+                        liveVideo.load();
+                        liveVideo.style.display = 'none';
+                    }
+                    hideAudioUnlockBanner();
+                    return;
+                }
+
+                if (liveVideo) {
+                    liveVideo.style.display = 'block';
+                    liveVideo.muted = isMutedDisplay();
+                    const videoSrc = withBasePath('/api/videos/content?name=' + encodeURIComponent(data.content));
+                    if (!liveVideo.src || !liveVideo.src.endsWith(encodeURIComponent(data.content))) {
+                        liveVideo.src = videoSrc;
+                        liveVideo.load();
+                        liveVideo.play().catch(err => {
+                            console.warn('Autoplay error:', err);
+                            if (!isMutedDisplay()) {
+                                liveVideo.muted = true;
+                                liveVideo.play().catch(e => console.warn(e));
+                                showAudioUnlockBanner();
+                            }
+                        });
+                    }
+                }
+                return;
+            }
+
+            // Se não for vídeo, oculta e pausa qualquer vídeo ativo
+            if (liveVideo && liveVideo.style.display !== 'none') {
+                liveVideo.pause();
+                liveVideo.removeAttribute('src');
+                liveVideo.load();
+                liveVideo.style.display = 'none';
+                hideAudioUnlockBanner();
+            }
 
             if (data.type === 'IMAGE') {
                 metaBlock.innerHTML = '';
@@ -349,10 +454,78 @@ table {
                 }
             }, 1000);
         }
+        function videoPlay() {
+            const v = document.getElementById('live-media-video');
+            if (!v) return;
+            if (v.ended) {
+                v.currentTime = 0;
+            }
+            v.muted = isMutedDisplay();
+            v.play().catch(err => {
+                console.warn('videoPlay error:', err);
+                if (!isMutedDisplay()) {
+                    v.muted = true;
+                    v.play().catch(e => console.warn(e));
+                    showAudioUnlockBanner();
+                }
+            });
+        }
+        function videoPause() {
+            const v = document.getElementById('live-media-video');
+            if (v) {
+                v.pause();
+            }
+        }
+        function videoForward(data) {
+            const v = document.getElementById('live-media-video');
+            if (v) {
+                const skip = (data && data.content && !isNaN(parseFloat(data.content))) ? parseFloat(data.content) : 10;
+                v.currentTime = Math.min(v.duration || (v.currentTime + skip), v.currentTime + skip);
+            }
+        }
+        function videoRewind(data) {
+            const v = document.getElementById('live-media-video');
+            if (v) {
+                const skip = (data && data.content && !isNaN(parseFloat(data.content))) ? parseFloat(data.content) : 10;
+                v.currentTime = Math.max(0, v.currentTime - skip);
+            }
+        }
+        function videoSeek(data) {
+            const v = document.getElementById('live-media-video');
+            if (v && data && data.content) {
+                const pos = parseFloat(data.content);
+                if (!isNaN(pos)) {
+                    v.currentTime = pos;
+                }
+            }
+        }
+        function videoRestart() {
+            const v = document.getElementById('live-media-video');
+            if (v) {
+                v.currentTime = 0;
+                v.muted = isMutedDisplay();
+                v.play().catch(e => console.warn(e));
+            }
+        }
+
         const commandHandlers = {
             'cronometro': cronometro,
             'limparCronometro': limparCronometro,
             'toggleVideo': toggleVideo,
+            'videoPlay': videoPlay,
+            'playVideo': videoPlay,
+            'videoPause': videoPause,
+            'pauseVideo': videoPause,
+            'videoForward': videoForward,
+            'videoAvancar': videoForward,
+            'avancarVideo': videoForward,
+            'videoRewind': videoRewind,
+            'videoVoltar': videoRewind,
+            'voltarVideo': videoRewind,
+            'videoSeek': videoSeek,
+            'videoRestart': videoRestart,
+            'restartVideo': videoRestart,
+            'videoInicio': videoRestart,
         };
         function processCommandData(data) {
             if (data.contentId === lastCommandId) {
@@ -396,8 +569,6 @@ table {
                     const providerIds = streams.map(stream => `providerId=${stream}`).join('&');
                     const url = `/api/content?${providerIds}`;
                     // Fetch data from the API
-                    // Note: Replace `{{APP_LOCATION}}` with the actual app location in your environment
-                    // This is a placeholder, this will be replaced by the server-side template engine
                     const res = await fetch(withBasePath(url));
                     if (!res.ok) {
                         throw new Error(`HTTP error! status: ${res.status}`);

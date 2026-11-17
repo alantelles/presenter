@@ -1,11 +1,11 @@
 const isPrefixed = window.location.pathname.startsWith('/presenter');
 const APP_BASE_PATH = isPrefixed ? '/presenter' : '';
 
-function withBasePath(path) {
+export function withBasePath(path) {
     return APP_BASE_PATH + path;
 }
 
-function getAuthHeader() {
+export function getAuthHeader() {
     const token = document.getElementById('basic-auth-token').value;
     return `Basic ${token}`;
 }
@@ -20,7 +20,7 @@ export async function uploadImage(file) {
     });
     if (!res.ok) {
         const body = await res.json().catch(() => ({}));
-        throw new Error(body.error || `upload failed with status ${res.status}`);
+        throw new Error(body.error || `Upload de imagem falhou (status ${res.status})`);
     }
     return res.json();
 }
@@ -28,10 +28,46 @@ export async function uploadImage(file) {
 export async function fetchImageList() {
     const res = await fetch(withBasePath('/api/images'));
     if (!res.ok) {
-        throw new Error(`failed to list images (status ${res.status})`);
+        throw new Error(`Falha ao listar imagens (status ${res.status})`);
     }
     const body = await res.json();
     return body.images || [];
+}
+
+export async function uploadVideo(file) {
+    const formData = new FormData();
+    formData.append('files', file);
+    const res = await fetch(withBasePath('/api/videos'), {
+        method: 'POST',
+        headers: { Authorization: getAuthHeader() },
+        body: formData
+    });
+    if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body.error || `Upload de vídeo falhou (status ${res.status})`);
+    }
+    return res.json();
+}
+
+export async function fetchVideoList() {
+    const res = await fetch(withBasePath('/api/videos'));
+    if (!res.ok) {
+        throw new Error(`Falha ao listar vídeos (status ${res.status})`);
+    }
+    const body = await res.json();
+    return body.videos || [];
+}
+
+export async function deleteVideo(name) {
+    const res = await fetch(withBasePath(`/api/videos/${encodeURIComponent(name)}`), {
+        method: 'DELETE',
+        headers: { Authorization: getAuthHeader() }
+    });
+    if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body.error || `Falha ao remover vídeo (status ${res.status})`);
+    }
+    return res.json();
 }
 
 export function emitImageContent(name) {
@@ -42,6 +78,17 @@ export function emitImageContent(name) {
             'Content-Type': 'application/json'
         },
         body: JSON.stringify({ content: name, type: 'IMAGE' })
+    });
+}
+
+export function emitVideoContent(name) {
+    return fetch(withBasePath('/api/content/set/main'), {
+        method: 'POST',
+        headers: {
+            Authorization: getAuthHeader(),
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ content: name, type: 'VIDEO' })
     });
 }
 
@@ -56,6 +103,54 @@ export function clearMainContent() {
     });
 }
 
+export async function fetchCurrentContent() {
+    const res = await fetch(withBasePath('/api/content?providerId=main'));
+    if (!res.ok) {
+        return null;
+    }
+    const data = await res.json();
+    return data.main || null;
+}
+
+export function sendVideoCommand(command, content = '') {
+    return fetch(withBasePath('/api/content/set/command'), {
+        method: 'POST',
+        headers: {
+            Authorization: getAuthHeader(),
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            contentId: `${command}-${Date.now()}`,
+            type: 'COMMAND',
+            content
+        })
+    });
+}
+
+export function playVideo() {
+    return sendVideoCommand('videoPlay');
+}
+
+export function pauseVideo() {
+    return sendVideoCommand('videoPause');
+}
+
+export function forwardVideo(seconds = 10) {
+    return sendVideoCommand('videoForward', String(seconds));
+}
+
+export function rewindVideo(seconds = 10) {
+    return sendVideoCommand('videoRewind', String(seconds));
+}
+
+export function restartVideo() {
+    return sendVideoCommand('videoRestart');
+}
+
 export function thumbUrl(name) {
     return withBasePath(`/api/images/thumb?name=${encodeURIComponent(name)}`);
+}
+
+export function videoContentUrl(name) {
+    return withBasePath(`/api/videos/content?name=${encodeURIComponent(name)}`);
 }
