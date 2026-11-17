@@ -503,8 +503,7 @@ table {
             const v = document.getElementById('live-media-video');
             if (v) {
                 v.currentTime = 0;
-                v.muted = isMutedDisplay();
-                v.play().catch(e => console.warn(e));
+                v.pause();
             }
         }
 

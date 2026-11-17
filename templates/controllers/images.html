@@ -35,6 +35,11 @@
             padding: 0;
         }
 
+        html, body {
+            max-width: 100%;
+            overflow-x: hidden;
+        }
+
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             background: var(--bg-body);
@@ -293,34 +298,44 @@
             display: flex;
             flex-direction: column;
             gap: 14px;
+            max-width: 100%;
+            overflow: hidden;
+            box-sizing: border-box;
         }
 
         .url-download-header {
             display: flex;
             flex-direction: column;
             gap: 4px;
+            max-width: 100%;
         }
 
         .url-download-title {
             font-size: 15px;
             font-weight: 700;
             color: var(--text-primary);
+            word-break: break-word;
+            overflow-wrap: anywhere;
         }
 
         .url-download-subtitle {
             font-size: 13px;
             color: var(--text-muted);
+            word-break: break-word;
+            overflow-wrap: anywhere;
         }
 
         .url-download-form {
             display: flex;
             gap: 10px;
             flex-wrap: wrap;
+            max-width: 100%;
         }
 
         .url-download-form input {
             flex: 1;
-            min-width: 260px;
+            min-width: 200px;
+            max-width: 100%;
             background: var(--bg-body);
             border: 1px solid var(--border-color);
             border-radius: var(--radius-sm);
@@ -330,6 +345,7 @@
             font-size: 14px;
             outline: none;
             transition: border-color 0.2s ease;
+            box-sizing: border-box;
         }
 
         .url-download-form input:focus {
@@ -340,6 +356,9 @@
             font-size: 13px;
             color: #60a5fa;
             display: none;
+            word-break: break-word;
+            overflow-wrap: anywhere;
+            line-height: 1.4;
         }
 
         /* Video Player Control Bar */
@@ -390,6 +409,12 @@
             border: 1px solid rgba(74, 222, 128, 0.4);
         }
 
+        .status-badge.paused {
+            background: rgba(234, 179, 8, 0.2);
+            color: #facc15;
+            border: 1px solid rgba(250, 204, 21, 0.4);
+        }
+
         .status-badge.idle {
             background: rgba(107, 114, 128, 0.2);
             color: var(--text-muted);
@@ -403,12 +428,16 @@
             display: flex;
             align-items: center;
             gap: 8px;
+            flex-wrap: wrap;
+            word-break: break-word;
+            overflow-wrap: anywhere;
         }
 
         .current-video-name {
             font-weight: 600;
             color: #60a5fa;
-            word-break: break-all;
+            word-break: break-word;
+            overflow-wrap: anywhere;
         }
 
         .video-controls-row {
@@ -416,6 +445,144 @@
             align-items: center;
             flex-wrap: wrap;
             gap: 10px;
+        }
+
+        .video-controls-row .btn:disabled {
+            opacity: 0.38;
+            cursor: not-allowed;
+            filter: grayscale(60%);
+            pointer-events: none;
+        }
+
+        .video-timer-row {
+            margin-bottom: 16px;
+            background: rgba(0, 0, 0, 0.35);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 12px 16px;
+        }
+
+        .video-timer-display {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 14px;
+            margin-bottom: 8px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .video-timer-elapsed-group {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--text-primary);
+            font-weight: 600;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .video-timer-separator {
+            color: var(--text-muted);
+        }
+
+        .video-timer-remaining-group {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(37, 99, 235, 0.15);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            color: #93c5fd;
+            padding: 3px 10px;
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+        }
+
+        .video-timer-remaining-value {
+            color: #60a5fa;
+            font-weight: 700;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .video-timer-track {
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .video-timer-progress {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #3b82f6, #60a5fa);
+            border-radius: 3px;
+            transition: width 0.2s linear;
+        }
+
+        .download-progress-box {
+            background: rgba(0, 0, 0, 0.35);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 12px 16px;
+            margin-top: 4px;
+        }
+
+        .download-progress-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+            gap: 8px;
+            word-break: break-word;
+            overflow-wrap: anywhere;
+        }
+
+        .download-progress-track {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .download-progress-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #2563eb, #38bdf8);
+            border-radius: 4px;
+            transition: width 0.25s ease;
+        }
+
+        .download-progress-fill.processing {
+            width: 100% !important;
+            background: linear-gradient(90deg, #8b5cf6, #ec4899);
+            animation: pulseProgress 1.4s infinite linear;
+        }
+
+        @keyframes pulseProgress {
+            0% { opacity: 0.6; }
+            50% { opacity: 1; }
+            100% { opacity: 0.6; }
+        }
+
+        .video-duration-badge {
+            position: absolute;
+            bottom: 6px;
+            right: 6px;
+            background: rgba(0, 0, 0, 0.85);
+            color: #ffffff;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 2px 6px;
+            border-radius: 4px;
+            letter-spacing: 0.5px;
+            font-variant-numeric: tabular-nums;
+            z-index: 3;
+            pointer-events: none;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.6);
         }
 
         /* Upload Section */
@@ -682,6 +849,9 @@
             display: none;
             z-index: 9999;
             animation: fadeIn 0.3s ease;
+            max-width: calc(100vw - 48px);
+            word-break: break-word;
+            overflow-wrap: anywhere;
         }
 
         @keyframes fadeIn {
@@ -815,10 +985,12 @@
             .video-controls-row .btn {
                 width: 100%;
                 min-height: 44px;
-                padding: 10px 6px;
+                padding: 10px 4px;
                 font-size: 13px;
                 justify-content: center;
-                white-space: nowrap;
+                white-space: normal;
+                word-break: normal;
+                line-height: 1.2;
             }
 
             .url-download-card {
@@ -973,23 +1145,41 @@
             </div>
         </div>
 
+        <div class="video-timer-row" id="video-timer-row" style="display: none;">
+            <div class="video-timer-display">
+                <div class="video-timer-elapsed-group">
+                    <span class="video-timer-icon">⏱️</span>
+                    <span id="ctrl-video-current">00:00</span>
+                    <span class="video-timer-separator">/</span>
+                    <span id="ctrl-video-duration">00:00</span>
+                </div>
+                <div class="video-timer-remaining-group">
+                    <span class="video-timer-remaining-label">Faltam:</span>
+                    <strong id="ctrl-video-remaining" class="video-timer-remaining-value">00:00</strong>
+                </div>
+            </div>
+            <div class="video-timer-track">
+                <div class="video-timer-progress" id="ctrl-video-progress"></div>
+            </div>
+        </div>
+
         <div class="video-controls-row">
-            <button id="btn-video-restart" class="btn btn-secondary" title="Voltar o vídeo do início (0:00)">
-                ⏮ Do Início
-            </button>
-            <button id="btn-video-rewind" class="btn btn-secondary" title="Voltar 10 segundos no vídeo">
-                ⏪ Voltar -10s
-            </button>
-            <button id="btn-video-play" class="btn btn-success" title="Iniciar ou retomar a reprodução">
+            <button id="btn-video-play" class="btn btn-success" title="Iniciar ou retomar a reprodução" disabled>
                 ▶ Reproduzir
             </button>
-            <button id="btn-video-pause" class="btn btn-warning" title="Pausar o vídeo">
+            <button id="btn-video-pause" class="btn btn-warning" title="Pausar o vídeo" disabled>
                 ⏸ Pausar
             </button>
-            <button id="btn-video-forward" class="btn btn-primary" title="Avançar 10 segundos no vídeo">
+            <button id="btn-video-rewind" class="btn btn-secondary" title="Voltar 10 segundos no vídeo" disabled>
+                ⏪ Voltar -10s
+            </button>
+            <button id="btn-video-forward" class="btn btn-primary" title="Avançar 10 segundos no vídeo" disabled>
                 ⏩ Avançar +10s
             </button>
-            <button id="btn-video-stop" class="btn btn-danger" title="Parar vídeo e limpar telão">
+            <button id="btn-video-restart" class="btn btn-secondary" title="Voltar o vídeo do início (0:00) e pausar" disabled>
+                ⏮ Do Início
+            </button>
+            <button id="btn-video-stop" class="btn btn-danger" title="Parar vídeo e limpar telão" disabled>
                 ⏹ Parar Vídeo
             </button>
         </div>
@@ -1021,6 +1211,17 @@
                     <span id="btn-download-label">Baixar Vídeo</span>
                 </button>
             </form>
+
+            <div class="download-progress-box" id="download-progress-box" style="display: none;">
+                <div class="download-progress-header">
+                    <span id="download-progress-status">Baixando vídeo...</span>
+                    <span id="download-progress-percent">0%</span>
+                </div>
+                <div class="download-progress-track">
+                    <div class="download-progress-fill" id="download-progress-fill"></div>
+                </div>
+            </div>
+
             <div class="download-status-text" id="download-status-text"></div>
         </div>
     </section>

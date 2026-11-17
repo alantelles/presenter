@@ -16,7 +16,7 @@ import {
     thumbUrl,
     videoContentUrl,
     fetchDownloaderStatus,
-    downloadVideoFromUrl,
+    downloadVideoWithProgress,
     withBasePath
 } from './client.js';
 
@@ -51,21 +51,143 @@ async function loadCurrentContent() {
     }
 }
 
-function updateVideoControlBar() {
+const playback = {
+    videoName: null,
+    isPlaying: false,
+    currentTime: 0,
+    duration: 0,
+    lastTick: null,
+    intervalId: null,
+};
+
+function formatVideoTime(seconds) {
+    if (isNaN(seconds) || seconds < 0) return '00:00';
+    const s = Math.floor(seconds);
+    const m = Math.floor(s / 60);
+    const sec = s % 60;
+    const h = Math.floor(m / 60);
+    const min = m % 60;
+    if (h > 0) {
+        return `${h}:${min.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}`;
+    }
+    return `${min.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}`;
+}
+
+function startPlaybackTicker() {
+    if (playback.intervalId) return;
+    playback.lastTick = performance.now();
+    playback.intervalId = setInterval(() => {
+        const now = performance.now();
+        const delta = (now - playback.lastTick) / 1000;
+        playback.lastTick = now;
+
+        if (playback.isPlaying && playback.duration > 0) {
+            playback.currentTime += delta;
+            if (playback.currentTime >= playback.duration) {
+                playback.currentTime = playback.duration;
+                playback.isPlaying = false;
+            }
+            updateTimerDisplay();
+        }
+    }, 250);
+}
+
+function stopPlaybackTicker() {
+    if (playback.intervalId) {
+        clearInterval(playback.intervalId);
+        playback.intervalId = null;
+    }
+}
+
+function updateTimerDisplay() {
+    const cur = playback.currentTime || 0;
+    const dur = playback.duration || 0;
+    const rem = Math.max(0, dur - cur);
+
+    const curEl = document.getElementById('ctrl-video-current');
+    const durEl = document.getElementById('ctrl-video-duration');
+    const remEl = document.getElementById('ctrl-video-remaining');
+    const progEl = document.getElementById('ctrl-video-progress');
+    const badgeEl = document.getElementById('video-status-badge');
+
+    if (curEl) curEl.textContent = formatVideoTime(cur);
+    if (durEl) durEl.textContent = formatVideoTime(dur);
+    if (remEl) remEl.textContent = formatVideoTime(rem);
+
+    if (progEl) {
+        const pct = dur > 0 ? (cur / dur) * 100 : 0;
+        progEl.style.width = `${pct}%`;
+    }
+
+    const isVideoLive = state.currentMain && state.currentMain.type === 'VIDEO' && Boolean(state.currentMain.content);
+    if (badgeEl && isVideoLive) {
+        if (playback.isPlaying) {
+            badgeEl.className = 'status-badge live';
+            badgeEl.textContent = 'NO AR';
+        } else {
+            badgeEl.className = 'status-badge paused';
+            badgeEl.textContent = 'PAUSADO';
+        }
+    }
+}
+
+function fetchVideoDuration(videoName) {
+    return new Promise((resolve) => {
+        const cardVid = document.querySelector(`.media-card[data-name="${CSS.escape(videoName)}"][data-type="VIDEO"] video`);
+        if (cardVid && cardVid.duration && !isNaN(cardVid.duration) && cardVid.duration > 0) {
+            resolve(cardVid.duration);
+            return;
+        }
+
+        const probe = document.createElement('video');
+        probe.preload = 'metadata';
+        probe.src = videoContentUrl(videoName);
+        probe.onloadedmetadata = () => {
+            resolve(probe.duration || 0);
+        };
+        probe.onerror = () => resolve(0);
+    });
+}
+
+async function updateVideoControlBar() {
     const panel = document.getElementById('video-control-panel');
     const badge = document.getElementById('video-status-badge');
     const display = document.getElementById('current-video-display');
+    const timerRow = document.getElementById('video-timer-row');
     const isVideoLive = state.currentMain && state.currentMain.type === 'VIDEO' && Boolean(state.currentMain.content);
+
+    // Desabilita os botões de controle se nenhum vídeo estiver rodando
+    const videoButtons = panel.querySelectorAll('.video-controls-row .btn');
+    videoButtons.forEach(btn => {
+        btn.disabled = !isVideoLive;
+    });
 
     if (isVideoLive) {
         panel.classList.add('active');
-        badge.className = 'status-badge live';
-        badge.textContent = 'NO AR';
         display.innerHTML = `<span>Em reprodução no telão:</span> <span class="current-video-name">${escapeHtml(state.currentMain.content)}</span>`;
+        if (timerRow) timerRow.style.display = 'block';
+
+        if (playback.videoName !== state.currentMain.content) {
+            playback.videoName = state.currentMain.content;
+            playback.currentTime = 0;
+            playback.isPlaying = false; // Ao carregar ou atualizar tela (F5), não roda automaticamente
+            playback.duration = await fetchVideoDuration(state.currentMain.content);
+            updateTimerDisplay();
+        } else {
+            updateTimerDisplay();
+        }
     } else {
         panel.classList.remove('active');
         badge.className = 'status-badge idle';
         badge.textContent = 'Parado';
+        if (timerRow) timerRow.style.display = 'none';
+
+        playback.videoName = null;
+        playback.isPlaying = false;
+        playback.currentTime = 0;
+        playback.duration = 0;
+        stopPlaybackTicker();
+
         if (state.currentMain && state.currentMain.type === 'IMAGE' && state.currentMain.content) {
             display.innerHTML = `<span>Imagem no ar:</span> <span class="current-video-name">${escapeHtml(state.currentMain.content)}</span>`;
         } else {
@@ -275,6 +397,17 @@ function renderGallery() {
             vid.muted = true;
             vid.playsInline = true;
             thumbContainer.appendChild(vid);
+
+            const durationBadge = document.createElement('div');
+            durationBadge.className = 'video-duration-badge';
+            durationBadge.textContent = '--:--';
+            thumbContainer.appendChild(durationBadge);
+
+            vid.addEventListener('loadedmetadata', () => {
+                if (vid.duration && !isNaN(vid.duration)) {
+                    durationBadge.textContent = formatVideoTime(vid.duration);
+                }
+            });
         } else {
             const img = document.createElement('img');
             img.src = thumbUrl(item.name);
@@ -356,9 +489,19 @@ async function triggerGoLive(item) {
     if (!item) return;
     try {
         if (item.type === 'VIDEO') {
+            playback.videoName = item.name;
+            playback.currentTime = 0;
+            playback.isPlaying = true;
+            startPlaybackTicker();
+            playback.duration = await fetchVideoDuration(item.name);
+            updateTimerDisplay();
             await emitVideoContent(item.name);
             showToast(`🎬 Vídeo "${item.name}" no ar!`);
         } else {
+            playback.videoName = null;
+            playback.isPlaying = false;
+            playback.currentTime = 0;
+            stopPlaybackTicker();
             await emitImageContent(item.name);
             showToast(`🖼 Imagem "${item.name}" no ar!`);
         }
@@ -457,31 +600,55 @@ function setupControlButtons() {
 
     // Botões de controle de reprodução de vídeo
     document.getElementById('btn-video-restart').addEventListener('click', async () => {
+        playback.currentTime = 0;
+        playback.isPlaying = false; // Entra em pausa no início
+        updateTimerDisplay();
         await restartVideo();
-        showToast('⏮ Comando enviado: Voltar vídeo do início (0:00)');
+        showToast('⏮ Vídeo reiniciado no início (0:00) e pausado.');
     });
 
     document.getElementById('btn-video-rewind').addEventListener('click', async () => {
+        // Se estava pausado, CONTINUA PAUSADO! O timer não roda sozinho!
+        playback.currentTime = Math.max(0, playback.currentTime - 10);
+        playback.lastTick = performance.now();
+        updateTimerDisplay();
         await rewindVideo(10);
         showToast('⏪ Comando enviado: Voltar -10s');
     });
 
     document.getElementById('btn-video-play').addEventListener('click', async () => {
+        playback.isPlaying = true;
+        if (playback.duration > 0 && playback.currentTime >= playback.duration) {
+            playback.currentTime = 0;
+        }
+        playback.lastTick = performance.now();
+        startPlaybackTicker();
+        updateTimerDisplay();
         await playVideo();
         showToast('▶ Comando enviado: Reproduzir vídeo');
     });
 
     document.getElementById('btn-video-pause').addEventListener('click', async () => {
+        playback.isPlaying = false;
+        updateTimerDisplay();
         await pauseVideo();
         showToast('⏸ Comando enviado: Pausar vídeo');
     });
 
     document.getElementById('btn-video-forward').addEventListener('click', async () => {
+        playback.currentTime = Math.min(playback.duration || 0, playback.currentTime + 10);
+        playback.lastTick = performance.now();
+        updateTimerDisplay();
         await forwardVideo(10);
         showToast('⏩ Comando enviado: Avançar +10s');
     });
 
     const stopPlayback = async () => {
+        playback.isPlaying = false;
+        playback.currentTime = 0;
+        playback.videoName = null;
+        playback.duration = 0;
+        stopPlaybackTicker();
         await clearMainContent();
         showToast('⏹ Telão limpo.');
         await loadCurrentContent();
@@ -546,6 +713,10 @@ function setupUrlDownloader() {
     const btnIcon = document.getElementById('btn-download-icon');
     const btnLabel = document.getElementById('btn-download-label');
     const statusText = document.getElementById('download-status-text');
+    const progressBox = document.getElementById('download-progress-box');
+    const progressStatus = document.getElementById('download-progress-status');
+    const progressPercent = document.getElementById('download-progress-percent');
+    const progressFill = document.getElementById('download-progress-fill');
 
     if (!form) return;
 
@@ -555,30 +726,73 @@ function setupUrlDownloader() {
         if (!url) return;
 
         if (!downloaderAvailable) {
-            alert('Atenção: O yt-dlp e o ffmpeg não estão instalados no servidor.\nExecute "sudo ./install-video-tools.sh" no servidor para habilitar esta funcionalidade.');
+            alert('Atenção: As ferramentas necessárias para download de vídeos não estão instaladas no servidor.\nExecute "sudo ./install-video-tools.sh" no servidor para habilitar esta funcionalidade.');
             return;
         }
 
-        // Estado de carregamento
+        // Estado de carregamento com barra de progresso
         input.disabled = true;
         submitBtn.disabled = true;
         btnIcon.textContent = '⏳';
         btnLabel.textContent = 'Baixando...';
-        statusText.style.display = 'block';
-        statusText.textContent = 'Baixando e mesclando vídeo via yt-dlp e ffmpeg... isso pode levar alguns segundos.';
+        if (statusText) {
+            statusText.style.display = 'none';
+            statusText.textContent = '';
+        }
+        if (progressBox) {
+            progressBox.style.display = 'block';
+            progressStatus.textContent = 'Iniciando download...';
+            progressPercent.textContent = '0%';
+            progressFill.style.width = '0%';
+            progressFill.classList.remove('processing');
+        }
 
         try {
-            const res = await downloadVideoFromUrl(url);
-            showToast(`Vídeo "${res.name}" baixado com sucesso!`);
+            const res = await downloadVideoWithProgress(url, (evt) => {
+                if (evt.status === 'downloading') {
+                    const pct = Math.round(evt.percent || 0);
+                    if (progressFill) {
+                        progressFill.classList.remove('processing');
+                        progressFill.style.width = `${pct}%`;
+                    }
+                    if (progressPercent) progressPercent.textContent = `${pct}%`;
+                    if (progressStatus) progressStatus.textContent = `Baixando vídeo... ${pct}%`;
+                } else if (evt.status === 'processing') {
+                    if (progressFill) {
+                        progressFill.classList.add('processing');
+                        progressFill.style.width = '100%';
+                    }
+                    if (progressPercent) progressPercent.textContent = '';
+                    if (progressStatus) progressStatus.textContent = 'Processando...';
+                }
+            });
+
+            if (progressFill) progressFill.style.width = '100%';
+            if (progressPercent) progressPercent.textContent = '100%';
+            if (progressStatus) progressStatus.textContent = 'Download concluído!';
+
+            if (statusText) {
+                statusText.style.display = 'block';
+                statusText.textContent = `✓ Vídeo "${res.name}" salvo com sucesso!`;
+            }
+            showToast(`Vídeo "${res.name}" pronto para exibição!`);
             input.value = '';
-            statusText.style.display = 'none';
+
             await loadMediaData();
             if (res.name) {
                 selectItem({ name: res.name, type: 'VIDEO' });
             }
+
+            setTimeout(() => {
+                if (progressBox) progressBox.style.display = 'none';
+            }, 3000);
         } catch (err) {
             alert(`Erro no download: ${err.message}`);
-            statusText.style.display = 'none';
+            if (progressBox) progressBox.style.display = 'none';
+            if (statusText) {
+                statusText.style.display = 'block';
+                statusText.textContent = `Erro: ${err.message}`;
+            }
         } finally {
             input.disabled = false;
             submitBtn.disabled = false;

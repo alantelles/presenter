@@ -41,12 +41,15 @@ Para evitar múltiplos painéis tocando áudio simultaneamente em configuraçõe
 
 ### Comandos de Controle Remoto
 O `/live` processa comandos enviados pelo provider `command` (`data.contentId` no formato `<comando>-<timestamp>`):
-- `videoRestart` / `restartVideo` / `videoInicio`: Reinicia o vídeo para o início (0:00) e retoma a reprodução.
+- `videoRestart` / `restartVideo` / `videoInicio`: Reinicia o vídeo para o início (0:00) e pausa a reprodução.
 - `videoPlay` / `playVideo`: Inicia ou retoma a reprodução (reinicia do zero se o vídeo tiver terminado).
 - `videoPause` / `pauseVideo`: Pausa a reprodução.
 - `videoForward` / `videoAvancar`: Avança N segundos (padrão 10s se omitido).
 - `videoRewind` / `videoVoltar`: Retrocede N segundos (padrão 10s se omitido).
 - `videoSeek`: Posiciona em segundo específico via `data.content`.
+
+### Telão Limpo (`/live`)
+- **Tela Cheia Limpa**: O telão principal (`/live`) exibe estritamente o vídeo em tela cheia sem nenhuma barra de progresso, botões ou overlay na frente do vídeo para o público.
 
 ---
 
@@ -84,9 +87,20 @@ A tela de gerenciamento de imagens foi modernizada para atuar como o **Gerenciad
   - Exibe prévia do item selecionado e botão dedicado para colocar no ar (`▶ Dar o Play no Vídeo` ou `🖼️ Exibir Imagem no Telão`).
 - **Barra de Controle de Reprodução (No Ar)**:
   - Exibe status em tempo real (`NO AR: <arquivo>` com indicador pulsante ou `Parado`).
+  - **Estado Desabilitado**: Todos os 6 botões de controle (`Do Início`, `Voltar -10s`, `Reproduzir`, `Pausar`, `Avançar +10s`, `Parar Telão`) permanecem **desabilitados** quando não há nenhum vídeo em reprodução no telão.
+  - **Timer e Tempo Restante**: Quando um vídeo está no ar, exibe linha de cronômetro com tempo decorrido, duração total, tempo restante (`Faltam: MM:SS`) e barra de progresso em tempo real sincronizada.
   - Botões dedicados na ordem ergonômica padrão:
-    `⏮ Do Início`, `⏪ Voltar -10s`, `▶ Reproduzir`, `⏸ Pausar`, `⏩ Avançar +10s`, `⏹ Parar Telão`.
-- **Área de Drag & Drop e Upload**:
+    `▶ Reproduzir`, `⏸ Pausar`, `⏪ Voltar -10s`, `⏩ Avançar +10s`, `⏮ Do Início`, `⏹ Parar Telão` (no celular: grid de 2 colunas com pares Reproduzir/Pausar, Voltar/Avançar, Do Início/Parar Vídeo).
+- **Downloader com Progresso em Tempo Real**:
+  - Download via URL com barra de progresso visual e porcentagem em tempo real via Server-Sent Events (SSE).
+  - Transição clara para indicador `"Processando..."` durante mesclagem/conversão final.
+  - Remoção de detalhes técnicos desnecessários (sem menções a nomes de ferramentas internas para o operador).
+- **Galeria de Cards Interativos**:
+  - Identificação visual clara entre imagens e vídeos (badges coloridos).
+  - Duração total do vídeo exibida no canto inferior direito de cada card (estilo YouTube, ex.: `03:45`).
+  - Pré-visualização do primeiro frame do vídeo usando HTML5 metadata (`#t=0.1`).
+  - Destaque com borda verde brilhante no card atualmente em exibição no telão.
+  - Ação rápida de exibição ao clicar no card e botão de exclusão de vídeo.
   - Aceita tanto imagens (até 10MB) quanto vídeos (até 500MB).
   - Identifica o tipo de arquivo automaticamente e encaminha para `/api/images` ou `/api/videos`.
 - **Abas de Filtragem e Busca**:

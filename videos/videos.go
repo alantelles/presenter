@@ -4,6 +4,7 @@
 package videos
 
 import (
+	"bufio"
 	"bytes"
 	"context"
 	"errors"
@@ -13,7 +14,9 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"sort"
+	"strconv"
 	"strings"
 
 	"presenter/fsutil"
@@ -241,8 +244,20 @@ func CheckDownloaderTools() DownloaderStatus {
 	}
 }
 
-// DownloadVideo downloads a video from rawURL using yt-dlp with merged MP4 output.
-func DownloadVideo(ctx context.Context, rawURL string) (string, error) {
+// ProgressEvent holds download / processing updates.
+type ProgressEvent struct {
+	Status  string  `json:"status"`            // "downloading", "processing", "finished", "error"
+	Percent float64 `json:"percent,omitempty"` // 0.0 - 100.0
+	Message string  `json:"message,omitempty"`
+	Name    string  `json:"name,omitempty"`
+}
+
+// DownloadProgressFunc is a callback invoked with progress events during download.
+type DownloadProgressFunc func(event ProgressEvent)
+
+// DownloadVideoWithProgress downloads a video from rawURL using yt-dlp with merged MP4 output,
+// reporting real-time percentage and processing state via onProgress.
+func DownloadVideoWithProgress(ctx context.Context, rawURL string, onProgress DownloadProgressFunc) (string, error) {
 	parsed, err := url.ParseRequestURI(strings.TrimSpace(rawURL))
 	if err != nil || (parsed.Scheme != "http" && parsed.Scheme != "https") {
 		return "", errors.New("URL inválida: informe uma URL iniciando com http:// ou https://")
@@ -259,20 +274,64 @@ func DownloadVideo(ctx context.Context, rawURL string) (string, error) {
 
 	destTemplate := filepath.Join(videosDir(), "%(title)s.%(ext)s")
 	cmd := exec.CommandContext(ctx, "yt-dlp",
+		"--newline",
+		"--progress",
 		"--no-playlist",
 		"-f", "bv*+ba/b",
 		"--merge-output-format", "mp4",
-		"--restrict-filenames",
+		"--windows-filenames",
 		"-o", destTemplate,
 		"--print", "after_move:filename",
 		parsed.String(),
 	)
 
-	var stdout, stderr bytes.Buffer
-	cmd.Stdout = &stdout
+	stdoutPipe, err := cmd.StdoutPipe()
+	if err != nil {
+		return "", fmt.Errorf("creating stdout pipe: %w", err)
+	}
+	var stderr bytes.Buffer
 	cmd.Stderr = &stderr
 
-	if err := cmd.Run(); err != nil {
+	if err := cmd.Start(); err != nil {
+		return "", fmt.Errorf("iniciando download: %w", err)
+	}
+
+	percentRegex := regexp.MustCompile(`\[download\]\s+([0-9.]+)%`)
+	var finalName string
+	scanner := bufio.NewScanner(stdoutPipe)
+
+	for scanner.Scan() {
+		line := strings.TrimSpace(scanner.Text())
+		if line == "" {
+			continue
+		}
+
+		if m := percentRegex.FindStringSubmatch(line); len(m) > 1 {
+			if pct, err := strconv.ParseFloat(m[1], 64); err == nil {
+				if onProgress != nil {
+					onProgress(ProgressEvent{
+						Status:  "downloading",
+						Percent: pct,
+					})
+				}
+			}
+		} else if strings.Contains(line, "[Merger]") || strings.Contains(line, "[ffmpeg]") || strings.Contains(line, "Merging formats") {
+			if onProgress != nil {
+				onProgress(ProgressEvent{
+					Status:  "processing",
+					Percent: 100,
+					Message: "Processando...",
+				})
+			}
+		} else if strings.HasSuffix(strings.ToLower(line), ".mp4") || !strings.HasPrefix(line, "[") {
+			base := filepath.Base(line)
+			if base != "" && base != "." {
+				finalName = base
+			}
+		}
+	}
+
+	if err := cmd.Wait(); err != nil {
 		errMsg := strings.TrimSpace(stderr.String())
 		if errMsg == "" {
 			errMsg = err.Error()
@@ -280,21 +339,22 @@ func DownloadVideo(ctx context.Context, rawURL string) (string, error) {
 		return "", fmt.Errorf("falha ao baixar vídeo: %s", errMsg)
 	}
 
-	lines := strings.Split(strings.TrimSpace(stdout.String()), "\n")
-	var finalName string
-	for i := len(lines) - 1; i >= 0; i-- {
-		line := strings.TrimSpace(lines[i])
-		if line != "" && strings.HasSuffix(strings.ToLower(line), ".mp4") {
-			finalName = filepath.Base(line)
-			break
-		}
-	}
-	if finalName == "" && len(lines) > 0 {
-		finalName = filepath.Base(strings.TrimSpace(lines[len(lines)-1]))
-	}
 	if finalName == "" {
 		return "", errors.New("não foi possível identificar o nome do arquivo baixado")
 	}
 
+	if onProgress != nil {
+		onProgress(ProgressEvent{
+			Status:  "finished",
+			Percent: 100,
+			Name:    finalName,
+		})
+	}
+
 	return finalName, nil
+}
+
+// DownloadVideo downloads a video from rawURL using yt-dlp with merged MP4 output.
+func DownloadVideo(ctx context.Context, rawURL string) (string, error) {
+	return DownloadVideoWithProgress(ctx, rawURL, nil)
 }

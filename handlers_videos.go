@@ -1,7 +1,9 @@
 package main
 
 import (
+	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"presenter/videos"
 
@@ -101,6 +103,7 @@ func getDownloaderStatus(c *gin.Context) {
 }
 
 // downloadVideo downloads a video from a URL using yt-dlp and merges into MP4.
+// If the client sends "Accept: text/event-stream", it streams real-time progress via SSE.
 func downloadVideo(c *gin.Context) {
 	var req downloadVideoRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -114,6 +117,39 @@ func downloadVideo(c *gin.Context) {
 			"error":         status.Message,
 			"installScript": status.InstallScript,
 			"tools":         status,
+		})
+		return
+	}
+
+	if c.GetHeader("Accept") == "text/event-stream" {
+		c.Header("Content-Type", "text/event-stream")
+		c.Header("Cache-Control", "no-cache")
+		c.Header("Connection", "keep-alive")
+		c.Header("X-Accel-Buffering", "no")
+
+		sendSSE := func(evt videos.ProgressEvent) {
+			b, err := json.Marshal(evt)
+			if err == nil {
+				_, _ = c.Writer.Write([]byte(fmt.Sprintf("data: %s\n\n", string(b))))
+				c.Writer.Flush()
+			}
+		}
+
+		savedName, err := videos.DownloadVideoWithProgress(c.Request.Context(), req.URL, func(evt videos.ProgressEvent) {
+			sendSSE(evt)
+		})
+		if err != nil {
+			sendSSE(videos.ProgressEvent{
+				Status:  "error",
+				Message: err.Error(),
+			})
+			return
+		}
+
+		sendSSE(videos.ProgressEvent{
+			Status:  "finished",
+			Percent: 100,
+			Name:    savedName,
 		})
 		return
 	}

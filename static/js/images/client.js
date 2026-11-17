@@ -171,6 +171,63 @@ export async function downloadVideoFromUrl(url) {
     return body;
 }
 
+export async function downloadVideoWithProgress(url, onProgress) {
+    const res = await fetch(withBasePath('/api/videos/download'), {
+        method: 'POST',
+        headers: {
+            Authorization: getAuthHeader(),
+            'Content-Type': 'application/json',
+            'Accept': 'text/event-stream'
+        },
+        body: JSON.stringify({ url })
+    });
+
+    if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body.error || `Download falhou (status ${res.status})`);
+    }
+
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+    let finalName = '';
+
+    while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const parts = buffer.split('\n\n');
+        buffer = parts.pop(); // Mantém o pedaço incompleto no buffer
+
+        for (const part of parts) {
+            const line = part.trim();
+            if (!line.startsWith('data:')) continue;
+            const jsonStr = line.replace(/^data:\s*/, '');
+            try {
+                const data = JSON.parse(jsonStr);
+                if (data.status === 'error') {
+                    throw new Error(data.message || data.error || 'Erro no download');
+                }
+                if (data.name) {
+                    finalName = data.name;
+                }
+                if (onProgress) {
+                    onProgress(data);
+                }
+            } catch (err) {
+                if (err.message && !err.message.startsWith('Unexpected')) {
+                    throw err;
+                }
+            }
+        }
+    }
+
+    if (!finalName) {
+        throw new Error('Não foi possível identificar o vídeo baixado.');
+    }
+    return { name: finalName };
+}
+
 export function thumbUrl(name) {
     return withBasePath(`/api/images/thumb?name=${encodeURIComponent(name)}`);
 }
