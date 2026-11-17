@@ -92,6 +92,11 @@ A tela de gerenciamento de imagens foi modernizada para atuar como o **Gerenciad
 - **Abas de Filtragem e Busca**:
   - Abas: `Todas as Mídias`, `Imagens (N)`, `Vídeos (N)`.
   - Campo de busca instantânea por nome de arquivo.
+  - Ordenação natural e totalmente **insensível a maiúsculas e minúsculas** (case-insensitive) tanto no backend (`images`/`videos`) quanto no frontend.
+- **Responsividade Mobile Completa**:
+  - Grid de navegação e botões dimensionados para telas de celular (área de toque mínima de 44px).
+  - Botões de controle de vídeo em grid perfeito de 2 colunas no celular (`1fr 1fr`), evitando quebras irregulares de linha.
+  - Galeria em 2 colunas compactas com cards otimizados para telas pequenas.
 - **Galeria de Cards Interativos**:
   - Identificação visual clara entre imagens e vídeos (badges coloridos).
   - Pré-visualização do primeiro frame do vídeo usando HTML5 metadata (`#t=0.1`).

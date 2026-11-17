@@ -147,6 +147,24 @@ func TestListReturnsSortedNames(t *testing.T) {
 	}
 }
 
+func TestListReturnsSortedNamesCaseInsensitive(t *testing.T) {
+	withTempMediaDir(t)
+
+	for _, name := range []string{"Zebra.mp4", "abacaxi.mp4", "BANANA.mp4"} {
+		if _, err := Save(name, bytes.NewReader(mp4Bytes())); err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+	}
+	got, err := List()
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	want := []string{"abacaxi.mp4", "BANANA.mp4", "Zebra.mp4"}
+	if len(got) != len(want) || got[0] != want[0] || got[1] != want[1] || got[2] != want[2] {
+		t.Errorf("List() = %v, want %v", got, want)
+	}
+}
+
 func TestContentPathAndNotFound(t *testing.T) {
 	withTempMediaDir(t)
 

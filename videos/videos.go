@@ -164,7 +164,14 @@ func List() ([]string, error) {
 		}
 		names = append(names, entry.Name())
 	}
-	sort.Strings(names)
+	sort.Slice(names, func(i, j int) bool {
+		lowerI := strings.ToLower(names[i])
+		lowerJ := strings.ToLower(names[j])
+		if lowerI == lowerJ {
+			return names[i] < names[j]
+		}
+		return lowerI < lowerJ
+	})
 	return names, nil
 }
 

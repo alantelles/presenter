@@ -238,6 +238,9 @@ function renderGallery() {
         });
     }
 
+    // Ordenação alfabética insensível a maiúsculas/minúsculas e natural com números
+    mediaItems.sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base', numeric: true }));
+
     if (mediaItems.length === 0) {
         const empty = document.createElement('div');
         empty.className = 'empty-gallery';

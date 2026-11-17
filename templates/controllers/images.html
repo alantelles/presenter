@@ -696,6 +696,222 @@
             color: var(--text-muted);
             font-size: 15px;
         }
+
+        /* Responsividade para Celulares e Tablets */
+        @media (max-width: 768px) {
+            body {
+                padding: 12px;
+            }
+
+            header {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 12px;
+                margin-bottom: 16px;
+                padding-bottom: 14px;
+            }
+
+            .header-title-group h1 {
+                font-size: 20px;
+                justify-content: center;
+            }
+
+            .header-nav {
+                display: grid;
+                grid-template-columns: repeat(4, 1fr);
+                gap: 6px;
+                width: 100%;
+            }
+
+            .nav-link {
+                padding: 8px 4px;
+                font-size: 11px;
+                text-align: center;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                gap: 2px;
+                white-space: normal;
+                min-height: 48px;
+                border-radius: var(--radius-sm);
+            }
+
+            #clear-main {
+                grid-column: 1 / -1;
+                width: 100%;
+                padding: 10px;
+                font-size: 14px;
+                margin-top: 4px;
+            }
+
+            .selection-panel {
+                padding: 14px;
+                flex-direction: column;
+                align-items: stretch;
+                gap: 12px;
+            }
+
+            .selection-title-row {
+                justify-content: space-between;
+                width: 100%;
+            }
+
+            .selection-heading {
+                font-size: 14px;
+            }
+
+            .selection-display {
+                font-size: 13px;
+                line-height: 1.4;
+            }
+
+            .selection-actions {
+                display: flex;
+                gap: 8px;
+                width: 100%;
+            }
+
+            .selection-actions .btn {
+                flex: 1;
+                min-height: 44px;
+                font-size: 14px;
+                padding: 10px 12px;
+            }
+
+            #btn-clear-selection {
+                flex: 0 0 auto;
+                padding: 10px 14px;
+            }
+
+            .video-control-panel {
+                padding: 14px;
+                margin-bottom: 16px;
+            }
+
+            .video-panel-header {
+                margin-bottom: 12px;
+                gap: 8px;
+            }
+
+            .video-panel-title {
+                font-size: 15px;
+                width: 100%;
+                justify-content: space-between;
+            }
+
+            .current-video-display {
+                font-size: 13px;
+                margin-bottom: 12px;
+            }
+
+            .video-controls-row {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 8px;
+                width: 100%;
+            }
+
+            .video-controls-row .btn {
+                width: 100%;
+                min-height: 44px;
+                padding: 10px 6px;
+                font-size: 13px;
+                justify-content: center;
+                white-space: nowrap;
+            }
+
+            .url-download-card {
+                padding: 14px;
+            }
+
+            .url-download-form {
+                flex-direction: column;
+            }
+
+            .url-download-form input {
+                min-width: unset;
+                width: 100%;
+                min-height: 44px;
+            }
+
+            .url-download-form .btn {
+                width: 100%;
+                min-height: 44px;
+                font-size: 14px;
+            }
+
+            .drop-zone {
+                padding: 18px 12px;
+            }
+
+            .drop-zone-icon {
+                font-size: 24px;
+                margin-bottom: 4px;
+            }
+
+            .drop-zone-text {
+                font-size: 14px;
+            }
+
+            .gallery-toolbar {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 10px;
+                margin-bottom: 14px;
+            }
+
+            .tabs-group {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                width: 100%;
+            }
+
+            .tabs-group .tab-btn {
+                padding: 8px 4px;
+                font-size: 12px;
+                text-align: center;
+            }
+
+            .search-box {
+                min-width: unset;
+                width: 100%;
+            }
+
+            .search-box input {
+                min-height: 40px;
+            }
+
+            #gallery {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 10px;
+            }
+
+            .media-thumb-container {
+                height: 95px;
+            }
+
+            .media-info {
+                padding: 8px;
+                gap: 6px;
+            }
+
+            .media-name {
+                font-size: 12px;
+            }
+
+            .btn-card-action {
+                font-size: 11px;
+                padding: 6px 4px;
+                min-height: 36px;
+            }
+
+            .btn-card-delete {
+                padding: 6px;
+                font-size: 14px;
+                min-height: 36px;
+            }
+        }
     </style>
 </head>
 
@@ -710,7 +926,7 @@
             <a href="/" class="nav-link">🏠 Início</a>
             <a href="/controller/songs" class="nav-link">🎵 Músicas</a>
             <a href="/controller/bible" class="nav-link">📖 Bíblia</a>
-            <a href="/live" target="_blank" class="nav-link">📺 Abrir Telão (/live)</a>
+            <a href="/live" target="_blank" class="nav-link">📺 Telão</a>
             <button id="clear-main" class="btn btn-danger">⏹ Limpar Telão</button>
         </div>
         <script>
